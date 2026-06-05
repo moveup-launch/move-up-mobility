@@ -3,7 +3,12 @@ import { jsPDF } from 'jspdf';
 import { useApp } from '../context/AppContext';
 
 function safe(str) {
-  return String(str || '').replace(/[^\x00-\xFF]/g, '').trim();
+  return String(str || '')
+    .replace(/[—–]/g, '-')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[^\x00-\xFF]/g, '')
+    .trim();
 }
 
 export default function Step6PDF() {
@@ -89,17 +94,18 @@ export default function Step6PDF() {
         row(t('elevatorSize'), yesNoLabel(d.elevatorSize));
       }
       row(t('parkingTruck'), yesNoLabel(d.parkingAvailable));
+      if (d.accessDifficult && d.accessDifficult !== 'toCheck') row(isFr ? 'Acces difficile' : 'Difficult access', yesNoLabel(d.accessDifficult));
       const distMap = { front: 'Front', lt10: 'Less10', '10_30': '10_30', '30_50': '30_50', gt50: 'More50', unknown: 'Unknown' };
-      if (d.truckDistance) row(t('truckDistance'), t('truckDistance' + (distMap[d.truckDistance] || '')));
+      if (d.truckDistance) row(isFr ? 'Distance stationnement camion' : 'Truck parking distance', t('truckDistance' + (distMap[d.truckDistance] || '')));
 
       // Monte-meubles
       const liftSection = isFr ? 'Monte-meubles' : 'Furniture lift';
       if (d.furnitureLiftNeeded && d.furnitureLiftNeeded !== 'toCheck') {
         row(liftSection + ' ' + (isFr ? 'necessaire' : 'needed'), yesNoLabel(d.furnitureLiftNeeded));
         if (d.furnitureLiftNeeded !== 'no') {
-          if (d.furnitureLiftFeasible) row(isFr ? '  Faisabilite' : '  Feasibility', yesNoLabel(d.furnitureLiftFeasible));
+          if (d.furnitureLiftFeasible) row(isFr ? '  Mise en place' : '  Setup feasible', yesNoLabel(d.furnitureLiftFeasible));
           if (d.furnitureLiftLocation) row(isFr ? '  Emplacement' : '  Location', d.furnitureLiftLocation);
-          if (d.furnitureLiftPermission) row(isFr ? '  Autorisation' : '  Permission', yesNoLabel(d.furnitureLiftPermission));
+          if (d.furnitureLiftComment) row(isFr ? '  Commentaire' : '  Comment', d.furnitureLiftComment);
         }
       }
       if (d.accessNotes) row(t('accessNotes'), d.accessNotes);

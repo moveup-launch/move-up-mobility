@@ -22,12 +22,17 @@ function YesNoCheck({ value, onChange, isFr }) {
   );
 }
 
+function isUpperFloor(floor) {
+  const f = (floor || '').toString().trim().toLowerCase();
+  return !(f === '0' || f === 'rdc' || f.startsWith('rez-de-chaussee') || f.startsWith('rez-de-chaussée'));
+}
+
 function AccessBlock({ prefix, label }) {
   const { t, lang, state, updateOrigin, updateDestination } = useApp();
   const d = state[prefix];
   const update = prefix === 'origin' ? updateOrigin : updateDestination;
   const isFr = lang === 'fr';
-  const showElevator = ['apartment', 'office_pro'].includes(state.housingType);
+  const showElevator = ['apartment', 'office_pro'].includes(state.housingType) && isUpperFloor(d.floor);
 
   const truckOpts = [
     { val: 'front', key: 'truckDistanceFront' },
@@ -44,12 +49,14 @@ function AccessBlock({ prefix, label }) {
     { val: 'garden', key: 'locationGarden' },
     { val: 'balcony', key: 'locationBalcony' },
     { val: 'window', key: 'locationWindow' },
+    { val: 'other', key: 'locationOther' },
   ];
 
   const alerts = [];
-  if (d.elevator === 'no') alerts.push(t('alertElevatorNo'));
-  if (d.elevatorUsable === 'no') alerts.push(isFr ? 'Ascenseur inutilisable' : 'Elevator unusable');
+  if (showElevator && d.elevator === 'no') alerts.push(t('alertElevatorNo'));
+  if (showElevator && d.elevatorUsable === 'no') alerts.push(isFr ? 'Ascenseur inutilisable' : 'Elevator unusable');
   if (d.parkingAvailable === 'no') alerts.push(t('alertParkingNo'));
+  if (d.accessDifficult === 'yes') alerts.push(isFr ? 'Acces difficile signale' : 'Difficult access flagged');
   if (d.furnitureLiftNeeded === 'yes' && d.furnitureLiftFeasible === 'toCheck') alerts.push(t('alertLiftCheck'));
   if (d.truckDistance === '30_50') alerts.push(t('alertLong30'));
   if (d.truckDistance === 'gt50') alerts.push(t('alertLong50'));
@@ -115,6 +122,10 @@ function AccessBlock({ prefix, label }) {
         <YesNoCheck value={d.parkingAvailable} onChange={v => update('parkingAvailable', v)} isFr={isFr} />
       </div>
       <div className="field">
+        <label style={{ fontSize: '12px' }}>{t('accessDifficult')}</label>
+        <YesNoCheck value={d.accessDifficult} onChange={v => update('accessDifficult', v)} isFr={isFr} />
+      </div>
+      <div className="field">
         <label style={{ fontSize: '12px' }}>{t('truckDistance')}</label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {truckOpts.map(o => (
@@ -157,8 +168,13 @@ function AccessBlock({ prefix, label }) {
               </div>
             </div>
             <div className="field">
-              <label style={{ fontSize: '12px' }}>{t('furnitureLiftPermission')}</label>
-              <YesNoCheck value={d.furnitureLiftPermission} onChange={v => update('furnitureLiftPermission', v)} isFr={isFr} />
+              <label style={{ fontSize: '12px' }}>{isFr ? 'Commentaire monte-meubles' : 'Furniture lift comment'}</label>
+              <input
+                type="text"
+                value={d.furnitureLiftComment || ''}
+                onChange={e => update('furnitureLiftComment', e.target.value)}
+                placeholder={isFr ? 'Remarques, contraintes...' : 'Notes, constraints...'}
+              />
             </div>
           </>
         )}

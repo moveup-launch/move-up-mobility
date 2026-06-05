@@ -95,10 +95,7 @@ export default function Step5Summary() {
   const isEditing = !!state.editingVisitId;
   const mt = state.moveType || 'local';
   const segments = state.moveSegments || [];
-  const isInternational = mt === 'sea' || mt === 'air';
-  const transportLabel = isInternational || mt === 'storage'
-    ? t('recommendedTransport')
-    : t('recommendedTruck');
+  const transportLabel = t('recommendedTransport');
 
   const handleSave = async () => {
     setSaveStatus('saving');

@@ -196,11 +196,21 @@ function CatalogSection({ room }) {
 
   const handleItemClick = (item, cat) => {
     if (item.variants.length === 1) {
-      // Single variant: direct add +1
       addItemToRoom(room.id, cat.key, item.id, item.variants[0].id);
     } else {
-      // Multiple variants: open sheet
       openSheet(<QuickAdjustSheet roomId={room.id} catKey={cat.key} itemId={item.id} />);
+    }
+  };
+
+  const handleMultiMinus = (e, item) => {
+    e.stopPropagation();
+    for (const v of item.variants) {
+      const uid = `${item.id}_${v.id}`;
+      const invItem = (room.items || []).find(i => i.itemId === uid);
+      if (invItem && invItem.qty > 0) {
+        changeQty(room.id, uid, -1);
+        break;
+      }
     }
   };
 
@@ -224,9 +234,16 @@ function CatalogSection({ room }) {
                   {qty > 0 && <div className="item-qty-badge">{qty}</div>}
                   <span className="item-icon">{item.icon}</span>
                   <div className="item-name">{tCat(item.name)}</div>
-                  {qty > 0 && isSingle && (
+                  {qty > 0 && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); changeQty(room.id, singleUid, -1); }}
+                      onClick={(e) => {
+                        if (isSingle) {
+                          e.stopPropagation();
+                          changeQty(room.id, singleUid, -1);
+                        } else {
+                          handleMultiMinus(e, item);
+                        }
+                      }}
                       style={{
                         position: 'absolute', bottom: '4px', right: '4px',
                         width: '20px', height: '20px', borderRadius: '50%',

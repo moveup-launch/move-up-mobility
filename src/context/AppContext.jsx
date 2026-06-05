@@ -11,11 +11,12 @@ const emptyAccess = {
   elevatorUsable: 'toCheck',
   elevatorSize: 'toCheck',
   parkingAvailable: 'toCheck',
+  accessDifficult: 'toCheck',
   truckDistance: '',
   furnitureLiftNeeded: 'toCheck',
   furnitureLiftFeasible: 'toCheck',
   furnitureLiftLocation: '',
-  furnitureLiftPermission: 'toCheck',
+  furnitureLiftComment: '',
   accessNotes: '',
 };
 
@@ -350,14 +351,13 @@ export function AppProvider({ children }) {
 
     equip.push(lang === 'fr' ? 'Couvertures de protection' : 'Protective blankets');
     if (hasMattress) equip.push(lang === 'fr' ? 'Housses matelas' : 'Mattress covers');
-    equip.push(lang === 'fr' ? 'Cartons' : 'Boxes');
+    equip.push(lang === 'fr' ? 'Cartons adaptes' : 'Appropriate boxes');
     if (hasWardrobe || hasDressing) equip.push(lang === 'fr' ? 'Cartons penderie' : 'Wardrobe boxes');
     if (hasBookshelf) equip.push(lang === 'fr' ? 'Cartons livres' : 'Book boxes');
     if (hasFragile) equip.push(lang === 'fr' ? 'Papier bulle' : 'Bubble wrap');
-    equip.push(lang === 'fr' ? 'Adhesif / ruban' : 'Packing tape');
     if (hasHeavy) equip.push(lang === 'fr' ? 'Sangles' : 'Straps');
+    if (hasHeavy || hasLift) equip.push(lang === 'fr' ? 'Protection sol' : 'Floor protection');
     if (hasLift) equip.push(lang === 'fr' ? 'Monte-meubles' : 'Furniture lift');
-    if (hasHeavy || hasLift) equip.push(lang === 'fr' ? 'Protection sol et ascenseur' : 'Floor / elevator protection');
 
     return equip;
   };
@@ -436,22 +436,22 @@ export function AppProvider({ children }) {
     }
 
     const bookshelfBoxes = {
-      'bookshelf_bk_column': 2, 'bookshelf_bk_small': 3, 'bookshelf_bk_medium': 5,
-      'bookshelf_bk_large': 8, 'bookshelf_bk_wall': 5, 'bookshelf_bk_kallax_s': 2, 'bookshelf_bk_kallax_l': 6,
+      'bookshelf_bk_column': 2, 'bookshelf_bk_small': 2, 'bookshelf_bk_medium': 4,
+      'bookshelf_bk_large': 8, 'bookshelf_bk_wall': 4, 'bookshelf_bk_kallax_s': 2, 'bookshelf_bk_kallax_l': 6,
     };
     const dresserBoxes = {
-      'dresser_dresser_chiffonnier': 3, 'dresser_dresser_small': 4, 'dresser_dresser_std': 6,
-      'dresser_dresser_large': 8, 'dresser_dresser_double': 12, 'dresser_dresser_antique': 6,
+      'dresser_dresser_chiffonnier': 2, 'dresser_dresser_small': 2, 'dresser_dresser_std': 2,
+      'dresser_dresser_large': 2, 'dresser_dresser_double': 2, 'dresser_dresser_antique': 2,
     };
-    const wardrobeItems = [
-      'wardrobe_ward_1door', 'wardrobe_ward_2door', 'wardrobe_ward_3door', 'wardrobe_ward_dressing',
-    ];
+    const wardrobeBoxes = {
+      'wardrobe_ward_1door': 1, 'wardrobe_ward_2door': 2, 'wardrobe_ward_3door': 3, 'wardrobe_ward_dressing': 4,
+    };
 
     state.rooms.forEach(r => {
       (r.items || []).filter(i => i.qty > 0).forEach(i => {
         if (bookshelfBoxes[i.itemId]) suggestions.box_books = (suggestions.box_books || 0) + bookshelfBoxes[i.itemId] * i.qty;
         if (dresserBoxes[i.itemId]) suggestions.box_standard = (suggestions.box_standard || 0) + dresserBoxes[i.itemId] * i.qty;
-        if (wardrobeItems.includes(i.itemId)) suggestions.box_wardrobe = (suggestions.box_wardrobe || 0) + i.qty;
+        if (wardrobeBoxes[i.itemId]) suggestions.box_wardrobe = (suggestions.box_wardrobe || 0) + wardrobeBoxes[i.itemId] * i.qty;
       });
       if (r.type === 'kitchen' && (r.items || []).some(i => i.qty > 0)) {
         suggestions.box_dishes = (suggestions.box_dishes || 0) + 3;
@@ -515,10 +515,11 @@ export function AppProvider({ children }) {
       elevatorUsable: raw?.elevatorUsable || 'toCheck',
       elevatorSize: raw?.elevatorSize || 'toCheck',
       parkingAvailable: raw?.parkingAvailable || 'toCheck',
+      accessDifficult: raw?.accessDifficult || 'toCheck',
       furnitureLiftNeeded: raw?.furnitureLiftNeeded || (raw?.furnitureLift ? 'yes' : 'toCheck'),
       furnitureLiftFeasible: raw?.furnitureLiftFeasible || 'toCheck',
       furnitureLiftLocation: raw?.furnitureLiftLocation || '',
-      furnitureLiftPermission: raw?.furnitureLiftPermission || 'toCheck',
+      furnitureLiftComment: raw?.furnitureLiftComment || '',
     });
 
     setState({
