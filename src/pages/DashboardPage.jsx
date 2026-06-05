@@ -7,17 +7,21 @@ export default function DashboardPage() {
   const isFr = lang === 'fr';
 
   const [stats, setStats] = useState({ count: 0, avgVolume: 0, topTruck: null });
-  const [recent, setRecent] = useState([]);
+  const [upcoming, setUpcoming] = useState([]);
+  const [past, setPast] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     setLoading(true);
-    const [{ data: all }, { data: rec }] = await Promise.all([
+    const [{ data: all }, { data: visits }] = await Promise.all([
       supabase.from('visits').select('total_volume, recommended_truck'),
-      supabase.from('visits').select('id, client_name, visit_date, total_volume, recommended_truck')
-        .order('created_at', { ascending: false }).limit(5),
+      supabase.from('visits')
+        .select('id, client_name, visit_date, total_volume, recommended_truck')
+        .order('visit_date', { ascending: false }),
     ]);
 
     if (all && all.length > 0) {
@@ -30,7 +34,14 @@ export default function DashboardPage() {
       const topTruck = Object.entries(truckCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
       setStats({ count, avgVolume, topTruck });
     }
-    if (rec) setRecent(rec);
+
+    if (visits) {
+      const up = visits.filter(v => v.visit_date && v.visit_date >= today).sort((a, b) => a.visit_date > b.visit_date ? 1 : -1);
+      const pa = visits.filter(v => !v.visit_date || v.visit_date < today);
+      setUpcoming(up);
+      setPast(pa);
+    }
+
     setLoading(false);
   };
 
@@ -40,6 +51,23 @@ export default function DashboardPage() {
   };
 
   const emailName = user?.email?.split('@')[0] || '';
+
+  const VisitRow = ({ v }) => (
+    <div className="dashboard-visit-row">
+      <div className="dashboard-visit-left">
+        <div className="dashboard-visit-name">
+          {v.client_name || (isFr ? 'Client sans nom' : 'Unnamed')}
+        </div>
+        <div className="dashboard-visit-date">{formatDate(v.visit_date)}</div>
+      </div>
+      <div className="dashboard-visit-right">
+        <div className="dashboard-visit-vol">{(v.total_volume || 0).toFixed(1)} m³</div>
+        {v.recommended_truck && (
+          <div className="history-truck-badge">{v.recommended_truck}</div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="dashboard">
@@ -76,34 +104,40 @@ export default function DashboardPage() {
             </div>
             <div className="stat-card stat-card-truck">
               <div className="stat-card-num stat-card-truck-text">{stats.topTruck || '—'}</div>
-              <div className="stat-card-label">{isFr ? 'camion le + utilisé' : 'most used truck'}</div>
+              <div className="stat-card-label">{isFr ? 'transport + utilisé' : 'top transport'}</div>
             </div>
           </div>
 
-          {recent.length > 0 && (
+          {upcoming.length > 0 && (
             <div className="dashboard-recent">
               <div className="dashboard-section-title">
-                <span>{isFr ? 'Visites récentes' : 'Recent visits'}</span>
+                <span>{isFr ? 'Visites à venir' : 'Upcoming visits'}</span>
                 <button className="dashboard-see-all" onClick={() => setViewMode('history')}>
                   {isFr ? 'Voir tout →' : 'See all →'}
                 </button>
               </div>
-              {recent.map(v => (
-                <div key={v.id} className="dashboard-visit-row">
-                  <div className="dashboard-visit-left">
-                    <div className="dashboard-visit-name">
-                      {v.client_name || (isFr ? 'Client sans nom' : 'Unnamed')}
-                    </div>
-                    <div className="dashboard-visit-date">{formatDate(v.visit_date)}</div>
-                  </div>
-                  <div className="dashboard-visit-right">
-                    <div className="dashboard-visit-vol">{(v.total_volume || 0).toFixed(1)} m³</div>
-                    {v.recommended_truck && (
-                      <div className="history-truck-badge">{v.recommended_truck}</div>
-                    )}
-                  </div>
+              {upcoming.map(v => <VisitRow key={v.id} v={v} />)}
+            </div>
+          )}
+
+          {past.length > 0 && (
+            <div className="dashboard-recent">
+              <div className="dashboard-section-title">
+                <span>{isFr ? 'Visites passées' : 'Past visits'}</span>
+                {upcoming.length === 0 && (
+                  <button className="dashboard-see-all" onClick={() => setViewMode('history')}>
+                    {isFr ? 'Voir tout →' : 'See all →'}
+                  </button>
+                )}
+              </div>
+              {past.slice(0, 5).map(v => <VisitRow key={v.id} v={v} />)}
+              {past.length > 5 && (
+                <div style={{ textAlign: 'center', paddingTop: '8px' }}>
+                  <button className="dashboard-see-all" onClick={() => setViewMode('history')}>
+                    {isFr ? `+${past.length - 5} autres →` : `+${past.length - 5} more →`}
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
           )}
 
@@ -113,7 +147,7 @@ export default function DashboardPage() {
               <div className="empty-title">{isFr ? 'Aucune visite enregistrée' : 'No saved visits'}</div>
               <div className="empty-sub">
                 {isFr
-                  ? 'Démarrez une visite et enregistrez-la depuis l\'étape Synthèse.'
+                  ? "Démarrez une visite et enregistrez-la depuis l'étape Synthèse."
                   : 'Start a visit and save it from the Summary step.'}
               </div>
             </div>

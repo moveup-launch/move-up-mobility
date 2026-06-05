@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\user\\\\moveup\" -Depth 3 | Select-Object Name, @{Name='Type'; Expression={if \\($_.PSIsContainer\\) { 'Folder' } else { 'File' }}} | Where-Object { $_.Name -notmatch 'node_modules|dist' })"
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\user\\\\moveup\" -Depth 3 | Select-Object Name, @{Name='Type'; Expression={if \\($_.PSIsContainer\\) { 'Folder' } else { 'File' }}} | Where-Object { $_.Name -notmatch 'node_modules|dist' })",
+      "Bash(npm run *)",
+      "Bash(node -e ' *)",
+      "Bash(grep -v \"//\")",
+      "Bash(git add *)"
     ]
   }
 }

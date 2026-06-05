@@ -5,20 +5,40 @@ import { supabase } from '../lib/supabase';
 
 const AppContext = createContext();
 
+const emptyAccess = {
+  address: '', city: '', postalCode: '', floor: '',
+  elevator: 'no',
+  elevatorUsable: 'toCheck',
+  elevatorSize: 'toCheck',
+  parkingAvailable: 'toCheck',
+  truckDistance: '',
+  furnitureLiftNeeded: 'toCheck',
+  furnitureLiftFeasible: 'toCheck',
+  furnitureLiftLocation: '',
+  furnitureLiftPermission: 'toCheck',
+  accessNotes: '',
+};
+
+const baseClient = {
+  name: '', phone: '', email: '',
+  visitDate: new Date().toISOString().split('T')[0],
+  surveyor: '', moveDate: '', notes: '',
+};
+
 const initialState = {
-  client: {
-    name: '', phone: '', email: '',
-    visitDate: new Date().toISOString().split('T')[0],
-    surveyor: '', moveDate: '', notes: ''
-  },
-  origin: { address: '', city: '', postalCode: '', floor: '', elevator: 'no', furnitureLift: false, truckDistance: '', accessNotes: '' },
-  destination: { address: '', city: '', postalCode: '', floor: '', elevator: 'no', furnitureLift: false, truckDistance: '', accessNotes: '' },
+  client: { ...baseClient },
   housingType: '',
+  moveType: 'local',
+  moveSegments: [],
+  origin: { ...emptyAccess },
+  destination: { ...emptyAccess },
   rooms: [],
   currentRoomId: null,
   boxesDone: {},
   boxesRemaining: {},
   nextRoomId: 1,
+  householdPersons: 0,
+  editingVisitId: null,
 };
 
 export function AppProvider({ children }) {
@@ -55,7 +75,7 @@ export function AppProvider({ children }) {
   };
 
   const goToStep = (i) => {
-    if (i <= currentStep + 1 && i >= 0) setCurrentStepState(i);
+    if (i >= 0 && i <= 5) setCurrentStepState(i);
   };
   const nextStep = () => setCurrentStepState(s => Math.min(5, s + 1));
   const prevStep = () => setCurrentStepState(s => Math.max(0, s - 1));
@@ -66,7 +86,10 @@ export function AppProvider({ children }) {
   };
 
   const startNewVisit = () => {
-    setState(initialState);
+    setState({
+      ...initialState,
+      client: { ...baseClient, surveyor: user?.email || '' },
+    });
     setCurrentStepState(0);
     setViewMode('wizard');
   };
@@ -81,6 +104,59 @@ export function AppProvider({ children }) {
     setState(s => ({ ...s, destination: { ...s.destination, [field]: value } }));
 
   const setHousingType = (val) => setState(s => ({ ...s, housingType: val }));
+  const setMoveType = (val) => setState(s => ({ ...s, moveType: val }));
+  const setHouseholdPersons = (val) => setState(s => ({ ...s, householdPersons: Math.max(0, val) }));
+
+  // Move segments (multi-line transport breakdown)
+  const addMoveSegment = () => {
+    setState(s => ({
+      ...s,
+      moveSegments: [...(s.moveSegments || []), {
+        id: `seg_${Date.now()}`,
+        type: 'local',
+        volume: 0,
+        comment: '',
+      }],
+    }));
+  };
+
+  const updateMoveSegment = (id, field, value) => {
+    setState(s => ({
+      ...s,
+      moveSegments: (s.moveSegments || []).map(seg =>
+        seg.id === id ? { ...seg, [field]: value } : seg
+      ),
+    }));
+  };
+
+  const removeMoveSegment = (id) => {
+    setState(s => ({
+      ...s,
+      moveSegments: (s.moveSegments || []).filter(seg => seg.id !== id),
+    }));
+  };
+
+  const getSegmentSolution = (type, volume) => {
+    const v = parseFloat(volume) || 0;
+    const isFr = lang === 'fr';
+    if (type === 'sea') {
+      if (v < 3) return isFr ? 'Maritime LCL - petit volume' : 'Sea LCL - small volume';
+      if (v < 10) return isFr ? 'Maritime LCL - groupage' : 'Sea LCL - groupage';
+      if (v < 25) return isFr ? 'Conteneur 20 pieds' : "20ft container";
+      return isFr ? 'Conteneur 40 pieds' : '40ft container';
+    }
+    if (type === 'air') {
+      if (v < 1) return isFr ? 'Colis express' : 'Express parcel';
+      if (v < 3) return isFr ? 'Palette aerienne' : 'Air pallet';
+      return isFr ? 'Groupage aerien' : 'Air groupage';
+    }
+    if (type === 'storage') return isFr ? 'Garde-meuble / box' : 'Storage / warehouse';
+    if (type === 'road') return isFr ? 'Camion international' : 'International truck';
+    // local
+    if (v <= 18) return isFr ? 'Camionnette (20m3)' : 'Van (20m3)';
+    if (v <= 38) return isFr ? 'Camion standard (40m3)' : 'Standard truck (40m3)';
+    return isFr ? 'Grand camion' : 'Large truck';
+  };
 
   const addRoom = (type) => {
     setState(s => {
@@ -157,6 +233,34 @@ export function AppProvider({ children }) {
     }));
   };
 
+  const addCustomItemToRoom = (roomId, name, volume_m3, qty) => {
+    const uid = `custom_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return {
+          ...r,
+          items: [...r.items, {
+            itemId: uid,
+            catalogId: 'custom',
+            name,
+            variantLabel: lang === 'fr' ? 'Objet divers' : 'Misc item',
+            icon: '📦',
+            qty,
+            volume_m3,
+            fragile: false,
+            heavy: false,
+            requires_protection: false,
+            requires_disassembly: false,
+            possible_furniture_lift: false,
+            isCustom: true,
+          }],
+        };
+      }),
+    }));
+  };
+
   const changeQty = (roomId, itemId, delta) =>
     setState(s => ({
       ...s,
@@ -181,6 +285,16 @@ export function AppProvider({ children }) {
       [source]: { ...s[source], [id]: Math.max(0, parseInt(value) || 0) },
     }));
 
+  const applyBoxSuggestions = (suggestions) => {
+    setState(s => {
+      const newRemaining = { ...s.boxesRemaining };
+      Object.entries(suggestions).forEach(([id, qty]) => {
+        newRemaining[id] = Math.max(newRemaining[id] || 0, qty);
+      });
+      return { ...s, boxesRemaining: newRemaining };
+    });
+  };
+
   const getRoomVolume = (room) =>
     (room.items || []).reduce((sum, item) => sum + (item.volume_m3 || 0) * (item.qty || 1), 0);
 
@@ -194,6 +308,21 @@ export function AppProvider({ children }) {
   };
 
   const getRecommendedTruck = (vol) => {
+    const mt = state.moveType || 'local';
+    if (mt === 'sea') {
+      if (vol < 3) return lang === 'fr' ? 'Maritime LCL - petit volume' : 'Sea LCL - small volume';
+      if (vol < 10) return lang === 'fr' ? 'Maritime LCL - groupage' : 'Sea LCL - groupage';
+      if (vol < 25) return lang === 'fr' ? 'Maritime - conteneur 20 pieds' : 'Sea - 20ft container';
+      return lang === 'fr' ? 'Maritime - conteneur 40 pieds' : 'Sea - 40ft container';
+    }
+    if (mt === 'air') {
+      if (vol < 1) return lang === 'fr' ? 'Aerien - colis express' : 'Air - express parcel';
+      if (vol < 3) return lang === 'fr' ? 'Aerien - palette' : 'Air - pallet';
+      return lang === 'fr' ? 'Aerien - palette / groupage' : 'Air - pallet / groupage';
+    }
+    if (mt === 'storage') {
+      return lang === 'fr' ? 'Stockage - box / garde-meuble' : 'Storage - box / warehouse';
+    }
     if (vol <= 18) return t('truck20');
     if (vol <= 28) return t('truck30');
     if (vol <= 38) return t('truck40');
@@ -210,14 +339,62 @@ export function AppProvider({ children }) {
 
   const getEquipment = () => {
     const equip = [];
-    const hasLift = state.rooms.some(r => (r.items || []).some(i => i.possible_furniture_lift && i.qty > 0));
-    const hasHeavy = state.rooms.some(r => (r.items || []).some(i => i.heavy && i.qty > 0));
-    const hasFragile = state.rooms.some(r => (r.items || []).some(i => i.fragile && i.qty > 0));
-    if (hasLift) equip.push(lang === 'fr' ? '🏗️ Monte-meubles' : '🏗️ Furniture lift');
-    if (hasHeavy) equip.push(lang === 'fr' ? '🛞 Diable / Transpalette' : '🛞 Dolly / Hand truck');
-    if (hasFragile) equip.push(lang === 'fr' ? '🛡️ Couvertures de protection' : '🛡️ Protective blankets');
-    equip.push(lang === 'fr' ? "📦 Matériel d'emballage" : '📦 Packing supplies');
+    const allItems = state.rooms.flatMap(r => r.items || []).filter(i => i.qty > 0);
+    const hasLift = allItems.some(i => i.possible_furniture_lift);
+    const hasFragile = allItems.some(i => i.fragile);
+    const hasHeavy = allItems.some(i => i.heavy);
+    const hasMattress = allItems.some(i => i.catalogId === 'mattress');
+    const hasWardrobe = allItems.some(i => i.catalogId === 'wardrobe');
+    const hasDressing = state.rooms.some(r => r.type === 'dressing');
+    const hasBookshelf = allItems.some(i => i.catalogId === 'bookshelf');
+
+    equip.push(lang === 'fr' ? 'Couvertures de protection' : 'Protective blankets');
+    if (hasMattress) equip.push(lang === 'fr' ? 'Housses matelas' : 'Mattress covers');
+    equip.push(lang === 'fr' ? 'Cartons' : 'Boxes');
+    if (hasWardrobe || hasDressing) equip.push(lang === 'fr' ? 'Cartons penderie' : 'Wardrobe boxes');
+    if (hasBookshelf) equip.push(lang === 'fr' ? 'Cartons livres' : 'Book boxes');
+    if (hasFragile) equip.push(lang === 'fr' ? 'Papier bulle' : 'Bubble wrap');
+    equip.push(lang === 'fr' ? 'Adhesif / ruban' : 'Packing tape');
+    if (hasHeavy) equip.push(lang === 'fr' ? 'Sangles' : 'Straps');
+    if (hasLift) equip.push(lang === 'fr' ? 'Monte-meubles' : 'Furniture lift');
+    if (hasHeavy || hasLift) equip.push(lang === 'fr' ? 'Protection sol et ascenseur' : 'Floor / elevator protection');
+
     return equip;
+  };
+
+  const getCheckPoints = () => {
+    const points = [];
+    ['origin', 'destination'].forEach(prefix => {
+      const d = state[prefix];
+      const label = prefix === 'origin'
+        ? (lang === 'fr' ? 'Origine' : 'Origin')
+        : (lang === 'fr' ? 'Destination' : 'Destination');
+      if (d.elevator === 'no') {
+        points.push(`${label} : ${t('alertElevatorNo')}`);
+      }
+      if (d.elevatorUsable === 'no') {
+        points.push(`${label} : ${lang === 'fr' ? 'Ascenseur inutilisable' : 'Elevator unusable'}`);
+      } else if (d.elevatorUsable === 'toCheck' && d.elevator === 'yes') {
+        points.push(`${label} : ${lang === 'fr' ? 'Utilisation ascenseur a confirmer' : 'Elevator use to confirm'}`);
+      }
+      if (d.parkingAvailable === 'no') {
+        points.push(`${label} : ${t('alertParkingNo')}`);
+      } else if (d.parkingAvailable === 'toCheck') {
+        points.push(`${label} : ${lang === 'fr' ? 'Stationnement camion a verifier' : 'Truck parking to verify'}`);
+      }
+      if (d.furnitureLiftNeeded === 'yes' && d.furnitureLiftFeasible === 'toCheck') {
+        points.push(`${label} : ${t('alertLiftCheck')}`);
+      }
+      if (d.furnitureLiftNeeded === 'toCheck') {
+        points.push(`${label} : ${lang === 'fr' ? 'Besoin monte-meubles a confirmer' : 'Furniture lift need to confirm'}`);
+      }
+      if (d.truckDistance === '30_50') {
+        points.push(`${label} : ${t('alertLong30')}`);
+      } else if (d.truckDistance === 'gt50') {
+        points.push(`${label} : ${t('alertLong50')}`);
+      }
+    });
+    return points;
   };
 
   const getAllFragile = () => {
@@ -249,13 +426,47 @@ export function AppProvider({ children }) {
     return vol;
   };
 
+  const getBoxSuggestions = () => {
+    const suggestions = {};
+    const persons = state.householdPersons || 0;
+
+    if (persons > 0) {
+      suggestions.box_standard = (suggestions.box_standard || 0) + persons * 10;
+      suggestions.box_wardrobe = (suggestions.box_wardrobe || 0) + persons;
+    }
+
+    const bookshelfBoxes = {
+      'bookshelf_bk_column': 2, 'bookshelf_bk_small': 3, 'bookshelf_bk_medium': 5,
+      'bookshelf_bk_large': 8, 'bookshelf_bk_wall': 5, 'bookshelf_bk_kallax_s': 2, 'bookshelf_bk_kallax_l': 6,
+    };
+    const dresserBoxes = {
+      'dresser_dresser_chiffonnier': 3, 'dresser_dresser_small': 4, 'dresser_dresser_std': 6,
+      'dresser_dresser_large': 8, 'dresser_dresser_double': 12, 'dresser_dresser_antique': 6,
+    };
+    const wardrobeItems = [
+      'wardrobe_ward_1door', 'wardrobe_ward_2door', 'wardrobe_ward_3door', 'wardrobe_ward_dressing',
+    ];
+
+    state.rooms.forEach(r => {
+      (r.items || []).filter(i => i.qty > 0).forEach(i => {
+        if (bookshelfBoxes[i.itemId]) suggestions.box_books = (suggestions.box_books || 0) + bookshelfBoxes[i.itemId] * i.qty;
+        if (dresserBoxes[i.itemId]) suggestions.box_standard = (suggestions.box_standard || 0) + dresserBoxes[i.itemId] * i.qty;
+        if (wardrobeItems.includes(i.itemId)) suggestions.box_wardrobe = (suggestions.box_wardrobe || 0) + i.qty;
+      });
+      if (r.type === 'kitchen' && (r.items || []).some(i => i.qty > 0)) {
+        suggestions.box_dishes = (suggestions.box_dishes || 0) + 3;
+      }
+    });
+
+    return suggestions;
+  };
+
   const getRoomIcon = (type) => CATALOG.roomIcons[type] || '📦';
 
   const saveVisit = async () => {
     if (!user) return { error: 'Not authenticated' };
     const vol = getTotalVolume();
-    const { data, error } = await supabase.from('visits').insert({
-      user_id: user.id,
+    const payload = {
       client_name: state.client.name || null,
       client_email: state.client.email || null,
       client_phone: state.client.phone || null,
@@ -263,14 +474,79 @@ export function AppProvider({ children }) {
       move_date: state.client.moveDate || null,
       total_volume: vol,
       recommended_truck: getRecommendedTruck(vol),
-      client_data: state.client,
+      client_data: {
+        ...state.client,
+        housingType: state.housingType,
+        moveType: state.moveType,
+        moveSegments: state.moveSegments || [],
+        householdPersons: state.householdPersons,
+      },
       origin_data: state.origin,
       destination_data: state.destination,
       rooms_data: state.rooms,
       boxes_done: state.boxesDone,
       boxes_remaining: state.boxesRemaining,
+    };
+
+    if (state.editingVisitId) {
+      const { data, error } = await supabase
+        .from('visits').update(payload).eq('id', state.editingVisitId).select().single();
+      if (!error) setState(s => ({ ...s, editingVisitId: null }));
+      return { data, error };
+    }
+
+    const { data, error } = await supabase.from('visits').insert({
+      user_id: user.id,
+      ...payload,
     }).select().single();
     return { data, error };
+  };
+
+  const loadVisit = (visitData) => {
+    const cd = visitData.client_data || {};
+    const maxRoomNum = (visitData.rooms_data || []).reduce((max, r) => {
+      const n = parseInt((r.id || '').replace('room_', '')) || 0;
+      return Math.max(max, n);
+    }, 0);
+
+    const migrateAccess = (raw) => ({
+      ...emptyAccess,
+      ...raw,
+      elevatorUsable: raw?.elevatorUsable || 'toCheck',
+      elevatorSize: raw?.elevatorSize || 'toCheck',
+      parkingAvailable: raw?.parkingAvailable || 'toCheck',
+      furnitureLiftNeeded: raw?.furnitureLiftNeeded || (raw?.furnitureLift ? 'yes' : 'toCheck'),
+      furnitureLiftFeasible: raw?.furnitureLiftFeasible || 'toCheck',
+      furnitureLiftLocation: raw?.furnitureLiftLocation || '',
+      furnitureLiftPermission: raw?.furnitureLiftPermission || 'toCheck',
+    });
+
+    setState({
+      ...initialState,
+      client: {
+        name: cd.name || '',
+        phone: cd.phone || '',
+        email: cd.email || '',
+        visitDate: cd.visitDate || new Date().toISOString().split('T')[0],
+        surveyor: cd.surveyor || user?.email || '',
+        moveDate: cd.moveDate || '',
+        notes: cd.notes || '',
+      },
+      housingType: cd.housingType || '',
+      moveType: cd.moveType || (cd.isInternational ? 'sea' : 'local'),
+      moveSegments: cd.moveSegments || [],
+      origin: migrateAccess(visitData.origin_data),
+      destination: migrateAccess(visitData.destination_data),
+      rooms: visitData.rooms_data || [],
+      currentRoomId: visitData.rooms_data?.[0]?.id || null,
+      boxesDone: visitData.boxes_done || {},
+      boxesRemaining: visitData.boxes_remaining || {},
+      nextRoomId: maxRoomNum + 1,
+      householdPersons: cd.householdPersons || 0,
+      editingVisitId: visitData.id,
+    });
+    setCurrentStepState(0);
+    setViewMode('wizard');
   };
 
   const openSheet = (content) => setSheet({ isOpen: true, content });
@@ -285,21 +561,24 @@ export function AppProvider({ children }) {
       state,
       t, tCat,
       updateClient, updateOrigin, updateDestination,
-      setHousingType,
+      setHousingType, setMoveType, setHouseholdPersons,
+      addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution,
       addRoom, deleteRoom, renameRoom, selectRoom,
-      setRoomTab, addItemToRoom, changeQty,
-      changeBox, setBox,
+      setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
+      changeBox, setBox, applyBoxSuggestions,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
-      getEquipment, getAllFragile, getAllHeavy, getAllDisassembly,
+      getEquipment, getCheckPoints,
+      getAllFragile, getAllHeavy, getAllDisassembly,
       getTotalBoxes, getBoxVolume, getRoomIcon,
+      getBoxSuggestions,
       sheet, openSheet, closeSheet,
       modal, openModal, closeModal,
       mainScrollRef,
       user, authLoading,
       viewMode, setViewMode,
       signOut, startNewVisit,
-      saveVisit,
+      saveVisit, loadVisit,
     }}>
       {children}
     </AppContext.Provider>

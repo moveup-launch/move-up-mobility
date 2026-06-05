@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
 export default function HistoryPage() {
-  const { lang, t } = useApp();
+  const { lang, t, loadVisit } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
@@ -32,6 +32,10 @@ export default function HistoryPage() {
     setVisits(v => v.filter(x => x.id !== id));
     if (expanded === id) setExpanded(null);
     setDeleting(null);
+  };
+
+  const handleEdit = (visit) => {
+    loadVisit(visit);
   };
 
   const filtered = visits.filter(v => {
@@ -82,7 +86,7 @@ export default function HistoryPage() {
             {search ? (isFr ? 'Aucun résultat' : 'No results') : (isFr ? 'Aucune visite enregistrée' : 'No saved visits')}
           </div>
           <div className="empty-sub">
-            {!search && (isFr ? 'Enregistrez une visite depuis l\'étape Synthèse.' : 'Save a visit from the Summary step.')}
+            {!search && (isFr ? "Enregistrez une visite depuis l'étape Synthèse." : 'Save a visit from the Summary step.')}
           </div>
         </div>
       )}
@@ -135,13 +139,24 @@ export default function HistoryPage() {
                   <span>{isFr ? 'Enregistré le' : 'Saved on'}</span>
                   <span>{formatDate(v.created_at)}</span>
                 </div>
-                <button
-                  className="history-delete-btn"
-                  onClick={() => handleDelete(v.id)}
-                  disabled={deleting === v.id}
-                >
-                  {deleting === v.id ? '…' : (isFr ? 'Supprimer cette visite' : 'Delete this visit')}
-                </button>
+
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <button
+                    className="btn btn-primary"
+                    style={{ flex: 1, padding: '10px', fontSize: '14px' }}
+                    onClick={() => handleEdit(v)}
+                  >
+                    ✏️ {isFr ? 'Modifier' : 'Edit'}
+                  </button>
+                  <button
+                    className="history-delete-btn"
+                    style={{ flex: 1 }}
+                    onClick={() => handleDelete(v.id)}
+                    disabled={deleting === v.id}
+                  >
+                    {deleting === v.id ? '…' : (isFr ? 'Supprimer' : 'Delete')}
+                  </button>
+                </div>
               </div>
             )}
           </div>

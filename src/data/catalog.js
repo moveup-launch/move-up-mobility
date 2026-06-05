@@ -332,12 +332,144 @@ export const CATALOG = {
     { id: "suitcases", name: { fr: "Valises", en: "Suitcases" }, icon: "🧳", variants: [{ id: "suitcase_lot", label: { fr: "Lot de valises", en: "Set of suitcases" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
   ],
 
+  laundry: [
+    {
+      id: "washing_machine",
+      name: { fr: "Machine à laver", en: "Washing machine" },
+      icon: "🫧",
+      variants: [
+        { id: "wm_top", label: { fr: "Machine à laver top (chargement dessus)", en: "Top-load washing machine" }, volume_m3: 0.35, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "wm_front", label: { fr: "Machine à laver frontale (chargement frontal)", en: "Front-load washing machine" }, volume_m3: 0.35, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "dryer",
+      name: { fr: "Sèche-linge", en: "Dryer" },
+      icon: "💨",
+      variants: [
+        { id: "dryer_front", label: { fr: "Sèche-linge frontal", en: "Front-load dryer" }, volume_m3: 0.35, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "dryer_condensation", label: { fr: "Sèche-linge à condensation", en: "Condensation dryer" }, volume_m3: 0.35, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "washer_dryer",
+      name: { fr: "Lave-linge séchant", en: "Washer-dryer combo" },
+      icon: "🫧",
+      variants: [
+        { id: "wd_std", label: { fr: "Lave-linge séchant", en: "Washer-dryer combo" }, volume_m3: 0.40, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "heated_towel_rail",
+      name: { fr: "Sèche-serviettes", en: "Heated towel rail" },
+      icon: "🌡️",
+      variants: [
+        { id: "htr_std", label: { fr: "Sèche-serviettes standard", en: "Standard heated towel rail" }, volume_m3: 0.10, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "iron_board",
+      name: { fr: "Fer + table à repasser", en: "Iron + ironing board" },
+      icon: "👕",
+      variants: [
+        { id: "iron_std", label: { fr: "Fer à repasser + table à repasser", en: "Iron + ironing board" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "clothes_rack",
+      name: { fr: "Étendoir", en: "Clothes rack" },
+      icon: "👔",
+      variants: [
+        { id: "cr_std", label: { fr: "Étendoir standard", en: "Standard clothes rack" }, volume_m3: 0.10, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "laundry_basket",
+      name: { fr: "Bac à linge", en: "Laundry basket" },
+      icon: "🧺",
+      variants: [
+        { id: "lb_std", label: { fr: "Bac à linge standard", en: "Standard laundry basket" }, volume_m3: 0.10, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "laundry_cabinet",
+      name: { fr: "Armoire buanderie", en: "Laundry cabinet" },
+      icon: "🚪",
+      variants: [
+        { id: "lc_small", label: { fr: "Petite armoire buanderie", en: "Small laundry cabinet" }, volume_m3: 0.50, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "lc_large", label: { fr: "Grande armoire buanderie", en: "Large laundry cabinet" }, volume_m3: 1.00, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      ]
+    },
+  ],
+
+  bathroom: [
+    {
+      id: "vanity_unit",
+      name: { fr: "Meuble sous vasque", en: "Vanity unit" },
+      icon: "🪣",
+      variants: [
+        { id: "vu_small", label: { fr: "Petit meuble sous vasque", en: "Small vanity unit" }, volume_m3: 0.3, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "vu_std", label: { fr: "Meuble sous vasque standard", en: "Standard vanity unit" }, volume_m3: 0.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "vu_large", label: { fr: "Grand meuble sous vasque (double)", en: "Large double vanity" }, volume_m3: 0.8, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "storage_column_bath",
+      name: { fr: "Colonne de rangement", en: "Storage column" },
+      icon: "🗄️",
+      variants: [
+        { id: "scb_std", label: { fr: "Colonne standard", en: "Standard column" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "scb_large", label: { fr: "Grande colonne", en: "Large column" }, volume_m3: 0.8, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "medicine_cabinet",
+      name: { fr: "Armoire de toilette", en: "Medicine cabinet" },
+      icon: "🚪",
+      variants: [
+        { id: "mc_std", label: { fr: "Armoire de toilette standard", en: "Standard medicine cabinet" }, volume_m3: 0.2, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "bath_mirror",
+      name: { fr: "Miroir salle de bain", en: "Bathroom mirror" },
+      icon: "🪞",
+      variants: [
+        { id: "bm_small", label: { fr: "Petit miroir salle de bain", en: "Small bathroom mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "bm_large", label: { fr: "Grand miroir salle de bain", en: "Large bathroom mirror" }, volume_m3: 0.12, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "laundry_hamper",
+      name: { fr: "Panier a linge", en: "Laundry hamper" },
+      icon: "🧺",
+      variants: [
+        { id: "lh_std", label: { fr: "Panier a linge standard", en: "Standard laundry hamper" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "bath_shelf",
+      name: { fr: "Etagere salle de bain", en: "Bathroom shelf" },
+      icon: "📚",
+      variants: [
+        { id: "bs_std", label: { fr: "Etagere salle de bain", en: "Bathroom shelf" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      ]
+    },
+  ],
+
   exceptional: [
-    { id: "piano_upright", name: { fr: "Piano droit", en: "Upright piano" }, icon: "🎹", variants: [{ id: "piano_up_std", label: { fr: "Piano droit standard", en: "Standard upright piano" }, volume_m3: 1.5, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: true }] },
+    {
+      id: "piano_upright",
+      name: { fr: "Piano droit", en: "Upright piano" },
+      icon: "🎹",
+      allowedRooms: ['livingRoom', 'diningRoom', 'office', 'storageBox', 'misc'],
+      variants: [{ id: "piano_up_std", label: { fr: "Piano droit standard", en: "Standard upright piano" }, volume_m3: 1.5, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: true }]
+    },
     {
       id: "piano_grand",
       name: { fr: "Piano à queue", en: "Grand piano" },
       icon: "🎹",
+      allowedRooms: ['livingRoom', 'diningRoom', 'storageBox', 'misc'],
       variants: [
         { id: "piano_grand_baby", label: { fr: "Quart de queue", en: "Baby grand" }, volume_m3: 3.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: true },
         { id: "piano_grand_full", label: { fr: "Grand queue", en: "Full grand" }, volume_m3: 5.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: true },
@@ -347,16 +479,24 @@ export const CATALOG = {
       id: "safe",
       name: { fr: "Coffre-fort", en: "Safe" },
       icon: "🔒",
+      allowedRooms: ['office', 'bedroom', 'garage', 'basement', 'storageBox', 'misc'],
       variants: [
         { id: "safe_small", label: { fr: "Petit coffre-fort", en: "Small safe" }, volume_m3: 0.1, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "safe_large", label: { fr: "Grand coffre-fort", en: "Large safe" }, volume_m3: 0.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: true },
       ]
     },
-    { id: "pool_table", name: { fr: "Billard", en: "Pool table" }, icon: "🎱", variants: [{ id: "pt_std", label: { fr: "Table de billard", en: "Pool table" }, volume_m3: 4.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: false }] },
+    {
+      id: "pool_table",
+      name: { fr: "Billard", en: "Pool table" },
+      icon: "🎱",
+      allowedRooms: ['livingRoom', 'garage', 'basement', 'storageBox', 'misc'],
+      variants: [{ id: "pt_std", label: { fr: "Table de billard", en: "Pool table" }, volume_m3: 4.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: false }]
+    },
     {
       id: "aquarium",
       name: { fr: "Aquarium", en: "Aquarium" },
       icon: "🐠",
+      allowedRooms: ['livingRoom', 'office', 'bedroom', 'childBedroom', 'misc'],
       variants: [
         { id: "aq_small", label: { fr: "Petit aquarium < 100L", en: "Small aquarium < 100L" }, volume_m3: 0.2, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
         { id: "aq_large", label: { fr: "Grand aquarium > 200L", en: "Large aquarium > 200L" }, volume_m3: 0.8, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
@@ -366,13 +506,36 @@ export const CATALOG = {
       id: "motorcycle",
       name: { fr: "Moto / Scooter", en: "Motorcycle / Scooter" },
       icon: "🏍️",
+      allowedRooms: ['garage', 'basement', 'garden', 'storageBox', 'misc'],
       variants: [
         { id: "moto_scooter", label: { fr: "Scooter", en: "Scooter" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
         { id: "moto_std", label: { fr: "Moto standard", en: "Standard motorcycle" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
-    { id: "arcade", name: { fr: "Borne arcade", en: "Arcade machine" }, icon: "🕹️", variants: [{ id: "arcade_std", label: { fr: "Borne arcade standard", en: "Standard arcade machine" }, volume_m3: 1.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
-    { id: "server_rack", name: { fr: "Baie informatique", en: "Server rack" }, icon: "🖥️", variants: [{ id: "rack_std", label: { fr: "Baie informatique", en: "Server rack" }, volume_m3: 0.8, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: true }] },
+    {
+      id: "arcade",
+      name: { fr: "Borne arcade", en: "Arcade machine" },
+      icon: "🕹️",
+      allowedRooms: ['livingRoom', 'garage', 'basement', 'storageBox', 'misc'],
+      variants: [{ id: "arcade_std", label: { fr: "Borne arcade standard", en: "Standard arcade machine" }, volume_m3: 1.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }]
+    },
+    {
+      id: "server_rack",
+      name: { fr: "Baie informatique", en: "Server rack" },
+      icon: "🖥️",
+      allowedRooms: ['office', 'garage', 'basement', 'storageBox', 'misc'],
+      variants: [{ id: "rack_std", label: { fr: "Baie informatique", en: "Server rack" }, volume_m3: 0.8, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: true }]
+    },
+    {
+      id: "artwork",
+      name: { fr: "Sculpture / Oeuvre d'art", en: "Sculpture / Artwork" },
+      icon: "🗿",
+      allowedRooms: ['livingRoom', 'diningRoom', 'office', 'bedroom', 'misc'],
+      variants: [
+        { id: "art_small", label: { fr: "Petite oeuvre / tableau", en: "Small artwork / painting" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "art_large", label: { fr: "Grande sculpture / oeuvre", en: "Large sculpture / artwork" }, volume_m3: 0.5, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
   ],
 
   boxTypes: [
@@ -386,21 +549,21 @@ export const CATALOG = {
   ],
 
   roomCatalogMap: {
-    livingRoom: ["livingRoom", "exceptional"],
+    livingRoom: ["livingRoom"],
     diningRoom: ["livingRoom", "kitchen"],
     kitchen: ["kitchen"],
     bedroom: ["bedroom"],
     childBedroom: ["bedroom"],
     office: ["office"],
-    bathroom: [],
+    bathroom: ["bathroom"],
     dressing: ["bedroom"],
-    laundry: [],
-    garage: ["garageBasement", "exceptional"],
+    laundry: ["laundry"],
+    garage: ["garageBasement"],
     basement: ["garageBasement"],
     attic: ["garageBasement"],
     garden: ["garageBasement"],
     storageBox: ["garageBasement"],
-    misc: ["bedroom", "livingRoom", "exceptional"],
+    misc: ["bedroom", "livingRoom"],
   },
 
   roomIcons: {
