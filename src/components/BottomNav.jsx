@@ -8,7 +8,7 @@ export default function BottomNav() {
       {currentStep > 0 && (
         <button className="btn btn-secondary" onClick={prevStep}>← {t('back')}</button>
       )}
-      {currentStep < 5 && (
+      {currentStep < 4 && (
         <button className="btn btn-primary" onClick={nextStep}>{t('next')} →</button>
       )}
     </div>

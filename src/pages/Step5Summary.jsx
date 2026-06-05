@@ -16,6 +16,21 @@ const MOVE_TYPE_OPTIONS_EN = [
   { val: 'storage', label: 'Storage' },
 ];
 
+const TRANSPORT_OVERRIDE_OPTIONS_FR = [
+  { val: 'Route / National', label: 'Route / National' },
+  { val: 'Maritime LCL - groupage', label: 'Maritime LCL - groupage' },
+  { val: 'Conteneur 20 pieds', label: 'Conteneur 20 pieds' },
+  { val: 'Conteneur 40 pieds', label: 'Conteneur 40 pieds' },
+  { val: 'Aerien', label: 'Aerien / Groupage aerien' },
+];
+const TRANSPORT_OVERRIDE_OPTIONS_EN = [
+  { val: 'Road / National', label: 'Road / National' },
+  { val: 'Sea LCL - groupage', label: 'Sea LCL - groupage' },
+  { val: '20ft container', label: '20ft container' },
+  { val: '40ft container', label: '40ft container' },
+  { val: 'Air freight', label: 'Air freight / groupage' },
+];
+
 function MoveSegmentRow({ seg }) {
   const { lang, updateMoveSegment, removeMoveSegment, getSegmentSolution } = useApp();
   const isFr = lang === 'fr';
@@ -74,20 +89,23 @@ export default function Step5Summary() {
   const {
     t, lang, state,
     getTotalVolume, getRecommendedTruck, getRecommendedTeam, getEquipment,
-    getAllFragile, getAllHeavy, getAllDisassembly, getCheckPoints,
+    getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getCheckPoints,
     getTotalBoxes, getBoxVolume, getRoomVolume, getRoomIcon,
-    saveVisit, setViewMode, addMoveSegment,
+    saveVisit, setViewMode, addMoveSegment, setTransportOverride,
   } = useApp();
 
   const [saveStatus, setSaveStatus] = useState('idle');
+  const [transportPickerOpen, setTransportPickerOpen] = useState(false);
 
   const vol = getTotalVolume();
-  const truck = getRecommendedTruck(vol);
+  const truckAuto = getRecommendedTruck(vol);
+  const truck = state.transportOverride || truckAuto;
   const team = getRecommendedTeam(vol);
   const equip = getEquipment();
   const fragile = getAllFragile();
   const heavy = getAllHeavy();
   const disassembly = getAllDisassembly();
+  const crateItems = getAllCrateItems();
   const checkPoints = getCheckPoints();
   const boxesDoneCount = getTotalBoxes(state.boxesDone);
   const boxesRemCount = getTotalBoxes(state.boxesRemaining);
@@ -96,6 +114,7 @@ export default function Step5Summary() {
   const mt = state.moveType || 'local';
   const segments = state.moveSegments || [];
   const transportLabel = t('recommendedTransport');
+  const transportOpts = isFr ? TRANSPORT_OVERRIDE_OPTIONS_FR : TRANSPORT_OVERRIDE_OPTIONS_EN;
 
   const handleSave = async () => {
     setSaveStatus('saving');
@@ -159,23 +178,83 @@ export default function Step5Summary() {
         </button>
       </div>
 
-      {/* Transport global */}
+      {/* Transport global — modifiable */}
       <div className="summary-stat">
         <div className="stat-icon">🚛</div>
-        <div className="stat-info">
+        <div className="stat-info" style={{ flex: 1 }}>
           <div className="stat-label">{transportLabel}</div>
-          <div className="stat-value">{truck}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <div className="stat-value">{truck}</div>
+            {state.transportOverride && (
+              <button
+                onClick={() => { setTransportOverride(null); setTransportPickerOpen(false); }}
+                style={{
+                  fontSize: '11px', padding: '2px 8px', borderRadius: '12px',
+                  background: 'var(--surface2)', border: '1px solid var(--border)',
+                  cursor: 'pointer', color: 'var(--text3)',
+                }}
+              >
+                {t('resetAuto')}
+              </button>
+            )}
+            <button
+              onClick={() => setTransportPickerOpen(o => !o)}
+              style={{
+                fontSize: '11px', padding: '2px 8px', borderRadius: '12px',
+                background: 'var(--accent-light)', border: '1px solid var(--accent)',
+                cursor: 'pointer', color: 'var(--accent)', fontWeight: '600',
+              }}
+            >
+              ✏️ {t('modifyTransport')}
+            </button>
+          </div>
+          {/* Picker de transport */}
+          {transportPickerOpen && (
+            <div style={{
+              marginTop: '8px', background: 'var(--surface2)',
+              borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)',
+              overflow: 'hidden',
+            }}>
+              {transportOpts.map(opt => (
+                <div
+                  key={opt.val}
+                  onClick={() => { setTransportOverride(opt.val); setTransportPickerOpen(false); }}
+                  style={{
+                    padding: '10px 14px', cursor: 'pointer', fontSize: '13px',
+                    background: truck === opt.val ? 'var(--accent-light)' : 'transparent',
+                    color: truck === opt.val ? 'var(--accent)' : 'var(--text)',
+                    fontWeight: truck === opt.val ? '700' : '400',
+                    borderBottom: '1px solid var(--border)',
+                  }}
+                >
+                  {truck === opt.val ? '→ ' : ''}{opt.label}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Équipe — ratio intelligent */}
       {(mt === 'local' || mt === 'road') && (
         <div className="summary-stat">
           <div className="stat-icon">👥</div>
           <div className="stat-info">
             <div className="stat-label">{t('recommendedTeam')}</div>
-            <div className="stat-value">{team}</div>
+            <div className="stat-value">{team.label}</div>
+            {team.reasons.length > 0 && (
+              <div style={{ marginTop: '4px' }}>
+                {team.reasons.map((r, i) => (
+                  <div key={i} style={{ fontSize: '11px', color: 'var(--text3)', lineHeight: '1.5' }}>
+                    {r}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
+
       <div className="summary-stat">
         <div className="stat-icon">🛠️</div>
         <div className="stat-info">
@@ -197,6 +276,23 @@ export default function Step5Summary() {
           ))}
         </ul>
       </div>
+
+      {/* Caisse bois */}
+      {crateItems.length > 0 && (
+        <div className="card" style={{ borderLeft: '3px solid var(--warn)' }}>
+          <div className="card-title" style={{ color: 'var(--warn)' }}>
+            🗃️ {t('crateItems')} ({crateItems.length})
+          </div>
+          <ul className="item-list-summary">
+            {crateItems.map((item, i) => (
+              <li key={i}>
+                <span>{item.icon} {item.name} <em style={{ fontSize: '11px', color: 'var(--text3)' }}>{item.roomName}</em></span>
+                <strong>x{item.qty}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {fragile.length > 0 && (
         <div className="card">

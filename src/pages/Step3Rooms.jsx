@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
-function AddRoomSheet() {
+export function AddRoomSheet() {
   const { t, getRoomIcon, addRoom, closeSheet } = useApp();
   const roomTypes = ['livingRoom', 'diningRoom', 'kitchen', 'bedroom', 'childBedroom', 'office', 'bathroom', 'dressing', 'laundry', 'garage', 'basement', 'attic', 'garden', 'storageBox', 'misc'];
 

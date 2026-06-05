@@ -7,6 +7,7 @@ const AppContext = createContext();
 
 const emptyAccess = {
   address: '', city: '', postalCode: '', floor: '',
+  noFixedAddress: false,
   elevator: 'no',
   elevatorUsable: 'toCheck',
   elevatorSize: 'toCheck',
@@ -39,6 +40,7 @@ const initialState = {
   boxesRemaining: {},
   nextRoomId: 1,
   householdPersons: 0,
+  transportOverride: null,
   editingVisitId: null,
 };
 
@@ -76,9 +78,9 @@ export function AppProvider({ children }) {
   };
 
   const goToStep = (i) => {
-    if (i >= 0 && i <= 5) setCurrentStepState(i);
+    if (i >= 0 && i <= 4) setCurrentStepState(i);
   };
-  const nextStep = () => setCurrentStepState(s => Math.min(5, s + 1));
+  const nextStep = () => setCurrentStepState(s => Math.min(4, s + 1));
   const prevStep = () => setCurrentStepState(s => Math.max(0, s - 1));
 
   const signOut = async () => {
@@ -107,6 +109,7 @@ export function AppProvider({ children }) {
   const setHousingType = (val) => setState(s => ({ ...s, housingType: val }));
   const setMoveType = (val) => setState(s => ({ ...s, moveType: val }));
   const setHouseholdPersons = (val) => setState(s => ({ ...s, householdPersons: Math.max(0, val) }));
+  const setTransportOverride = (val) => setState(s => ({ ...s, transportOverride: val }));
 
   // Move segments (multi-line transport breakdown)
   const addMoveSegment = () => {
@@ -141,22 +144,19 @@ export function AppProvider({ children }) {
     const v = parseFloat(volume) || 0;
     const isFr = lang === 'fr';
     if (type === 'sea') {
-      if (v < 3) return isFr ? 'Maritime LCL - petit volume' : 'Sea LCL - small volume';
-      if (v < 10) return isFr ? 'Maritime LCL - groupage' : 'Sea LCL - groupage';
-      if (v < 25) return isFr ? 'Conteneur 20 pieds' : "20ft container";
+      if (v < 5) return isFr ? 'Maritime LCL - petit volume' : 'Sea LCL - small volume';
+      if (v < 30) return isFr ? 'Maritime LCL - groupage' : 'Sea LCL - groupage';
+      if (v < 60) return isFr ? 'Conteneur 20 pieds' : '20ft container';
       return isFr ? 'Conteneur 40 pieds' : '40ft container';
     }
     if (type === 'air') {
       if (v < 1) return isFr ? 'Colis express' : 'Express parcel';
-      if (v < 3) return isFr ? 'Palette aerienne' : 'Air pallet';
+      if (v < 5) return isFr ? 'Palette aerienne' : 'Air pallet';
       return isFr ? 'Groupage aerien' : 'Air groupage';
     }
     if (type === 'storage') return isFr ? 'Garde-meuble / box' : 'Storage / warehouse';
-    if (type === 'road') return isFr ? 'Camion international' : 'International truck';
-    // local
-    if (v <= 18) return isFr ? 'Camionnette (20m3)' : 'Van (20m3)';
-    if (v <= 38) return isFr ? 'Camion standard (40m3)' : 'Standard truck (40m3)';
-    return isFr ? 'Grand camion' : 'Large truck';
+    if (type === 'road') return isFr ? 'Route internationale' : 'International road';
+    return isFr ? 'Route / National' : 'Road / National';
   };
 
   const addRoom = (type) => {
@@ -274,6 +274,34 @@ export function AppProvider({ children }) {
       }),
     }));
 
+  const updateItemVolume = (roomId, itemId, vol) =>
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return {
+          ...r,
+          items: r.items.map(i =>
+            i.itemId === itemId ? { ...i, volume_m3: Math.max(0.001, parseFloat(vol) || 0.001) } : i
+          ),
+        };
+      }),
+    }));
+
+  const toggleItemCrate = (roomId, itemId) =>
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return {
+          ...r,
+          items: r.items.map(i =>
+            i.itemId === itemId ? { ...i, needsCrate: !i.needsCrate } : i
+          ),
+        };
+      }),
+    }));
+
   const changeBox = (source, id, delta) =>
     setState(s => ({
       ...s,
@@ -310,32 +338,65 @@ export function AppProvider({ children }) {
 
   const getRecommendedTruck = (vol) => {
     const mt = state.moveType || 'local';
-    if (mt === 'sea') {
-      if (vol < 3) return lang === 'fr' ? 'Maritime LCL - petit volume' : 'Sea LCL - small volume';
-      if (vol < 10) return lang === 'fr' ? 'Maritime LCL - groupage' : 'Sea LCL - groupage';
-      if (vol < 25) return lang === 'fr' ? 'Maritime - conteneur 20 pieds' : 'Sea - 20ft container';
-      return lang === 'fr' ? 'Maritime - conteneur 40 pieds' : 'Sea - 40ft container';
-    }
-    if (mt === 'air') {
-      if (vol < 1) return lang === 'fr' ? 'Aerien - colis express' : 'Air - express parcel';
-      if (vol < 3) return lang === 'fr' ? 'Aerien - palette' : 'Air - pallet';
-      return lang === 'fr' ? 'Aerien - palette / groupage' : 'Air - pallet / groupage';
-    }
-    if (mt === 'storage') {
-      return lang === 'fr' ? 'Stockage - box / garde-meuble' : 'Storage - box / warehouse';
-    }
-    if (vol <= 18) return t('truck20');
-    if (vol <= 28) return t('truck30');
-    if (vol <= 38) return t('truck40');
-    if (vol <= 48) return t('truck50');
-    if (vol <= 58) return t('truck60');
-    return t('truckMultiple');
+    return getSegmentSolution(mt, vol);
   };
 
   const getRecommendedTeam = (vol) => {
-    if (vol <= 20) return lang === 'fr' ? '2 déménageurs' : '2 movers';
-    if (vol <= 40) return lang === 'fr' ? '3 déménageurs' : '3 movers';
-    return lang === 'fr' ? '4 déménageurs ou plus' : '4+ movers';
+    const isFr = lang === 'fr';
+    let base = Math.max(2, Math.floor(vol / 10));
+    const reasons = [];
+
+    // +1 per 2 floors without elevator or lift
+    ['origin', 'destination'].forEach(prefix => {
+      const d = state[prefix];
+      const floorNum = parseInt(d.floor) || 0;
+      const hasElevator = d.elevator === 'yes' && d.elevatorUsable !== 'no';
+      const hasLift = d.furnitureLiftNeeded === 'yes' && d.furnitureLiftFeasible === 'yes';
+      if (floorNum >= 2 && !hasElevator && !hasLift) {
+        const add = Math.floor(floorNum / 2);
+        if (add > 0) {
+          base += add;
+          const loc = prefix === 'origin'
+            ? (isFr ? 'départ' : 'origin') : (isFr ? 'arrivée' : 'dest.');
+          reasons.push(`+${add} ${isFr ? 'étage(s) sans asc.' : 'floor(s) no elev.'} (${loc})`);
+        }
+      }
+    });
+
+    // +1 if portage > 30m
+    if (['origin', 'destination'].some(p => ['30_50', 'gt50'].includes(state[p].truckDistance))) {
+      base += 1;
+      reasons.push(isFr ? '+1 portage > 30m' : '+1 carry > 30m');
+    }
+
+    // +1 for exceptional heavy items
+    const allItems = state.rooms.flatMap(r => r.items || []).filter(i => i.qty > 0);
+    const hasExceptional = allItems.some(i =>
+      ['piano_upright', 'piano_grand', 'safe', 'pool_table'].includes(i.catalogId)
+    );
+    if (hasExceptional) {
+      base += 1;
+      reasons.push(isFr ? '+1 objet exceptionnel lourd' : '+1 exceptional heavy item');
+    }
+
+    // +1 if difficult access
+    if (['origin', 'destination'].some(p => state[p].accessDifficult === 'yes')) {
+      base += 1;
+      reasons.push(isFr ? '+1 accès difficile' : '+1 difficult access');
+    }
+
+    // -1 if furniture lift available
+    const hasLiftAvailable = ['origin', 'destination'].some(p =>
+      state[p].furnitureLiftNeeded === 'yes' && state[p].furnitureLiftFeasible === 'yes'
+    );
+    if (hasLiftAvailable) {
+      base = Math.max(2, base - 1);
+      reasons.push(isFr ? '-1 monte-meubles prévu' : '-1 furniture lift planned');
+    }
+
+    base = Math.max(2, base);
+    const label = `${base} ${isFr ? 'déménageurs' : 'movers'}`;
+    return { count: base, label, reasons };
   };
 
   const getEquipment = () => {
@@ -397,6 +458,16 @@ export function AppProvider({ children }) {
     return points;
   };
 
+  const getAllCrateItems = () => {
+    const items = [];
+    state.rooms.forEach(r =>
+      (r.items || []).filter(i => i.needsCrate && i.qty > 0).forEach(i =>
+        items.push({ ...i, roomName: r.name })
+      )
+    );
+    return items;
+  };
+
   const getAllFragile = () => {
     const items = [];
     state.rooms.forEach(r => (r.items || []).filter(i => i.fragile && i.qty > 0).forEach(i => items.push({ ...i, roomName: r.name })));
@@ -428,12 +499,6 @@ export function AppProvider({ children }) {
 
   const getBoxSuggestions = () => {
     const suggestions = {};
-    const persons = state.householdPersons || 0;
-
-    if (persons > 0) {
-      suggestions.box_standard = (suggestions.box_standard || 0) + persons * 10;
-      suggestions.box_wardrobe = (suggestions.box_wardrobe || 0) + persons;
-    }
 
     const bookshelfBoxes = {
       'bookshelf_bk_column': 2, 'bookshelf_bk_small': 2, 'bookshelf_bk_medium': 4,
@@ -480,6 +545,7 @@ export function AppProvider({ children }) {
         moveType: state.moveType,
         moveSegments: state.moveSegments || [],
         householdPersons: state.householdPersons,
+        transportOverride: state.transportOverride || null,
       },
       origin_data: state.origin,
       destination_data: state.destination,
@@ -516,6 +582,7 @@ export function AppProvider({ children }) {
       elevatorSize: raw?.elevatorSize || 'toCheck',
       parkingAvailable: raw?.parkingAvailable || 'toCheck',
       accessDifficult: raw?.accessDifficult || 'toCheck',
+      noFixedAddress: raw?.noFixedAddress || false,
       furnitureLiftNeeded: raw?.furnitureLiftNeeded || (raw?.furnitureLift ? 'yes' : 'toCheck'),
       furnitureLiftFeasible: raw?.furnitureLiftFeasible || 'toCheck',
       furnitureLiftLocation: raw?.furnitureLiftLocation || '',
@@ -544,6 +611,7 @@ export function AppProvider({ children }) {
       boxesRemaining: visitData.boxes_remaining || {},
       nextRoomId: maxRoomNum + 1,
       householdPersons: cd.householdPersons || 0,
+      transportOverride: cd.transportOverride || null,
       editingVisitId: visitData.id,
     });
     setCurrentStepState(0);
@@ -562,15 +630,16 @@ export function AppProvider({ children }) {
       state,
       t, tCat,
       updateClient, updateOrigin, updateDestination,
-      setHousingType, setMoveType, setHouseholdPersons,
+      setHousingType, setMoveType, setHouseholdPersons, setTransportOverride,
       addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution,
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
+      updateItemVolume, toggleItemCrate,
       changeBox, setBox, applyBoxSuggestions,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
       getEquipment, getCheckPoints,
-      getAllFragile, getAllHeavy, getAllDisassembly,
+      getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems,
       getTotalBoxes, getBoxVolume, getRoomIcon,
       getBoxSuggestions,
       sheet, openSheet, closeSheet,

@@ -38,6 +38,18 @@ export default function LiveVolumePanel() {
     storage: isFr ? 'Stockage' : 'Storage',
   };
 
+  const mt = state.moveType || 'local';
+  const transportRec = getRecommendedTruck(vol);
+
+  const transportOptions = [
+    { label: isFr ? 'Route / National' : 'Road / National', match: 'Route / National' },
+    { label: isFr ? 'Maritime LCL - groupage' : 'Sea LCL - groupage', match: 'LCL' },
+    { label: isFr ? 'Conteneur 20 pieds' : '20ft container', match: '20 pieds' },
+    { label: isFr ? 'Conteneur 40 pieds' : '40ft container', match: '40 pieds' },
+    { label: isFr ? 'Aerien' : 'Air freight', match: 'aerien' },
+    { label: isFr ? 'Stockage' : 'Storage', match: 'Garde-meuble' },
+  ];
+
   return (
     <div className="live-panel">
       <div className="live-panel-title">{t('liveVolume')}</div>
@@ -59,35 +71,45 @@ export default function LiveVolumePanel() {
         <Stat label={t('liveHeavy')} value={heavyCount} color={heavyCount > 0 ? 'var(--warn)' : undefined} />
       </div>
 
-      {/* Solution logistique — segments ou recommandation globale */}
-      {vol > 0 && (
-        <div style={{ marginBottom: '12px' }}>
-          <div className="live-rooms-title" style={{ marginBottom: '6px' }}>{t('recommendedTransport')}</div>
-          {segments.length > 0 ? (
-            segments.map(seg => (
-              <div key={seg.id} style={{
-                fontSize: '12px', padding: '5px 8px', marginBottom: '4px',
-                background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)',
-                color: 'var(--accent)', fontWeight: '500',
+      {/* Solution logistique — liste des modes + recommandation */}
+      <div style={{ marginBottom: '12px' }}>
+        <div className="live-rooms-title" style={{ marginBottom: '6px' }}>{t('recommendedTransport')}</div>
+        {segments.length > 0 ? (
+          segments.map(seg => (
+            <div key={seg.id} style={{
+              fontSize: '12px', padding: '5px 8px', marginBottom: '4px',
+              background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)',
+              color: 'var(--accent)', fontWeight: '500',
+            }}>
+              <span style={{ color: 'var(--text2)', marginRight: '4px' }}>
+                {moveTypeLabel[seg.type] || seg.type} {seg.volume ? `${seg.volume}m³` : ''}
+              </span>
+              → {getSegmentSolution(seg.type, seg.volume)}
+            </div>
+          ))
+        ) : (
+          transportOptions.map(opt => {
+            const isRec = transportRec.toLowerCase().includes(opt.match.toLowerCase()) ||
+              (opt.match === 'Route / National' && (mt === 'local' || mt === 'road'));
+            return (
+              <div key={opt.match} style={{
+                fontSize: '12px', padding: '5px 8px', marginBottom: '3px',
+                borderRadius: 'var(--radius-sm)',
+                background: isRec ? 'var(--accent)' : 'var(--surface2)',
+                color: isRec ? 'white' : 'var(--text3)',
+                fontWeight: isRec ? '700' : '400',
               }}>
-                <span style={{ color: 'var(--text2)', marginRight: '4px' }}>
-                  {moveTypeLabel[seg.type] || seg.type} {seg.volume ? `${seg.volume}m³` : ''}
-                </span>
-                → {getSegmentSolution(seg.type, seg.volume)}
+                {isRec ? '→ ' : ''}{opt.label}
+                {isRec && vol > 0 && (mt === 'local' || mt === 'road') && (
+                  <span style={{ marginLeft: '6px', fontWeight: '400', opacity: 0.85 }}>
+                    — {getRecommendedTeam(vol)}
+                  </span>
+                )}
               </div>
-            ))
-          ) : (
-            <div style={{ fontSize: '13px', color: 'var(--text)', fontWeight: '600' }}>
-              {getRecommendedTruck(vol)}
-            </div>
-          )}
-          {segments.length === 0 && (state.moveType === 'local' || state.moveType === 'road') && (
-            <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>
-              {getRecommendedTeam(vol)}
-            </div>
-          )}
-        </div>
-      )}
+            );
+          })
+        )}
+      </div>
 
       {/* Par pièce */}
       {state.rooms.length > 0 && (

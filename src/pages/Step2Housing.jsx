@@ -65,26 +65,45 @@ function AccessBlock({ prefix, label }) {
     <div className="card">
       <div className="card-title">{label}</div>
 
+      {/* Option sans logement fixe — destination uniquement */}
+      {prefix === 'destination' && (
+        <div
+          className={`radio-option ${d.noFixedAddress ? 'selected' : ''}`}
+          style={{ padding: '10px 12px', marginBottom: '8px', cursor: 'pointer' }}
+          onClick={() => update('noFixedAddress', !d.noFixedAddress)}
+        >
+          <span className="radio-label" style={{ fontSize: '12px' }}>
+            {isFr ? 'Client sans logement fixe — ville de destination uniquement' : 'No fixed address — destination city only'}
+          </span>
+        </div>
+      )}
+
       {/* Adresse */}
-      <div className="field">
-        <label>{t('originAddress')}</label>
-        <input type="text" value={d.address} onChange={e => update('address', e.target.value)}
-          placeholder={isFr ? 'Rue, numéro...' : 'Street, number...'} />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+      {!d.noFixedAddress && (
+        <div className="field">
+          <label>{t('originAddress')}</label>
+          <input type="text" value={d.address} onChange={e => update('address', e.target.value)}
+            placeholder={isFr ? 'Rue, numéro...' : 'Street, number...'} />
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: d.noFixedAddress ? '1fr' : '1fr 1fr', gap: '8px' }}>
         <div className="field">
           <label>{t('city')}</label>
           <input type="text" value={d.city} onChange={e => update('city', e.target.value)} />
         </div>
+        {!d.noFixedAddress && (
+          <div className="field">
+            <label>{t('postalCode')}</label>
+            <input type="text" value={d.postalCode} onChange={e => update('postalCode', e.target.value)} />
+          </div>
+        )}
+      </div>
+      {!d.noFixedAddress && (
         <div className="field">
-          <label>{t('postalCode')}</label>
-          <input type="text" value={d.postalCode} onChange={e => update('postalCode', e.target.value)} />
+          <label>{t('floor')}</label>
+          <input type="text" value={d.floor} onChange={e => update('floor', e.target.value)} placeholder="RDC / 2 / ..." />
         </div>
-      </div>
-      <div className="field">
-        <label>{t('floor')}</label>
-        <input type="text" value={d.floor} onChange={e => update('floor', e.target.value)} placeholder="RDC / 2 / ..." />
-      </div>
+      )}
 
       {/* Ascenseur — uniquement pour appartement / bureau */}
       {showElevator && (

@@ -584,3 +584,5 @@ export const CATALOG = {
     misc: "📋",
   }
 };
+
+export const CRATE_ELIGIBLE_IDS = new Set(['tv', 'mirror', 'artwork', 'piano_upright', 'piano_grand', 'aquarium']);

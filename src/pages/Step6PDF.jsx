@@ -15,7 +15,7 @@ export default function Step6PDF() {
   const {
     t, lang, state,
     getTotalVolume, getRecommendedTruck, getRecommendedTeam, getEquipment, getCheckPoints, getSegmentSolution,
-    getTotalBoxes, getBoxVolume, getRoomVolume,
+    getTotalBoxes, getBoxVolume, getRoomVolume, getAllCrateItems,
   } = useApp();
   const [pdfSuccess, setPdfSuccess] = useState(false);
   const isFr = lang === 'fr';
@@ -221,10 +221,32 @@ export default function Step6PDF() {
     doc.setFont('helvetica', 'normal');
     doc.text(safe(t('totalVolumeLabel')), W / 2, y + 12, { align: 'center' });
     y += 22;
-    row(isFr ? 'Solution logistique' : 'Logistics solution', getRecommendedTruck(vol));
+    const truck = state.transportOverride || getRecommendedTruck(vol);
+    row(isFr ? 'Solution logistique' : 'Logistics solution', truck);
     const mt = state.moveType || 'local';
     if (mt === 'local' || mt === 'road') {
-      row(safe(t('recommendedTeam')), getRecommendedTeam(vol));
+      const team = getRecommendedTeam(vol);
+      row(safe(t('recommendedTeam')), team.label);
+      if (team.reasons.length > 0) {
+        checkY(team.reasons.length * 5 + 4);
+        doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY);
+        team.reasons.forEach(r => {
+          doc.text(safe(`    ${r}`), 100, y); y += 4.5;
+        });
+      }
+    }
+
+    // Caisse bois
+    const crateItems = getAllCrateItems();
+    if (crateItems.length > 0) {
+      checkY(6);
+      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WARN);
+      doc.text(safe(isFr ? 'Objets necessitant une caisse' : 'Items requiring a crate'), 16, y); y += 5;
+      crateItems.forEach(item => {
+        checkY(5);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
+        doc.text(safe(`  - ${item.name} (${item.roomName}) x${item.qty}`), 20, y); y += 5;
+      });
     }
 
     // Segments de déménagement

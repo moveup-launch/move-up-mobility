@@ -9,7 +9,6 @@ import SidebarNav from './components/SidebarNav';
 import LiveVolumePanel from './components/LiveVolumePanel';
 import Step1Client from './pages/Step1Client';
 import Step2Housing from './pages/Step2Housing';
-import Step3Rooms from './pages/Step3Rooms';
 import Step4Inventory from './pages/Step4Inventory';
 import Step5Summary from './pages/Step5Summary';
 import Step6PDF from './pages/Step6PDF';
@@ -17,7 +16,7 @@ import AuthPage from './pages/AuthPage';
 import HistoryPage from './pages/HistoryPage';
 import DashboardPage from './pages/DashboardPage';
 
-const STEPS = [Step1Client, Step2Housing, Step3Rooms, Step4Inventory, Step5Summary, Step6PDF];
+const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
 
 function DesktopBottomNav() {
   const { currentStep, nextStep, prevStep, t } = useApp();
@@ -26,7 +25,7 @@ function DesktopBottomNav() {
       {currentStep > 0 && (
         <button className="btn btn-secondary" onClick={prevStep}>← {t('back')}</button>
       )}
-      {currentStep < 5 && (
+      {currentStep < 4 && (
         <button className="btn btn-primary" onClick={nextStep}>{t('next')} →</button>
       )}
     </div>

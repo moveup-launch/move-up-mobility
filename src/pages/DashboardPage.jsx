@@ -6,37 +6,57 @@ export default function DashboardPage() {
   const { lang, user, setViewMode, startNewVisit } = useApp();
   const isFr = lang === 'fr';
 
-  const [stats, setStats] = useState({ count: 0, avgVolume: 0, topTruck: null });
+  const [monthStats, setMonthStats] = useState({ count: 0, avgVolume: 0, topCity: null, nextVisit: null });
   const [upcoming, setUpcoming] = useState([]);
   const [past, setPast] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const today = new Date().toISOString().split('T')[0];
+  const firstOfMonth = new Date();
+  firstOfMonth.setDate(1);
+  const firstOfMonthStr = firstOfMonth.toISOString().split('T')[0];
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     setLoading(true);
-    const [{ data: all }, { data: visits }] = await Promise.all([
-      supabase.from('visits').select('total_volume, recommended_truck'),
+    const [{ data: allMonth }, { data: visits }] = await Promise.all([
+      supabase.from('visits')
+        .select('total_volume, origin_data, visit_date')
+        .gte('visit_date', firstOfMonthStr),
       supabase.from('visits')
         .select('id, client_name, visit_date, total_volume, recommended_truck')
         .order('visit_date', { ascending: false }),
     ]);
 
-    if (all && all.length > 0) {
-      const count = all.length;
-      const avgVolume = all.reduce((s, v) => s + (v.total_volume || 0), 0) / count;
-      const truckCounts = {};
-      all.forEach(v => {
-        if (v.recommended_truck) truckCounts[v.recommended_truck] = (truckCounts[v.recommended_truck] || 0) + 1;
+    if (allMonth) {
+      const count = allMonth.length;
+      const avgVolume = count > 0
+        ? allMonth.reduce((s, v) => s + (v.total_volume || 0), 0) / count
+        : 0;
+
+      // Ville la plus fréquente (origine)
+      const cityCounts = {};
+      allMonth.forEach(v => {
+        const city = v.origin_data?.city;
+        if (city && city.trim()) {
+          const c = city.trim();
+          cityCounts[c] = (cityCounts[c] || 0) + 1;
+        }
       });
-      const topTruck = Object.entries(truckCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
-      setStats({ count, avgVolume, topTruck });
+      const topCity = Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+      // Prochaine visite
+      const nextVisit = (visits || [])
+        .filter(v => v.visit_date && v.visit_date >= today)
+        .sort((a, b) => (a.visit_date > b.visit_date ? 1 : -1))[0] || null;
+
+      setMonthStats({ count, avgVolume, topCity, nextVisit });
     }
 
     if (visits) {
-      const up = visits.filter(v => v.visit_date && v.visit_date >= today).sort((a, b) => a.visit_date > b.visit_date ? 1 : -1);
+      const up = visits.filter(v => v.visit_date && v.visit_date >= today)
+        .sort((a, b) => (a.visit_date > b.visit_date ? 1 : -1));
       const pa = visits.filter(v => !v.visit_date || v.visit_date < today);
       setUpcoming(up);
       setPast(pa);
@@ -48,6 +68,13 @@ export default function DashboardPage() {
   const formatDate = (d) => {
     if (!d) return '—';
     try { return new Date(d).toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'); } catch { return d; }
+  };
+
+  const formatDateShort = (d) => {
+    if (!d) return '—';
+    try {
+      return new Date(d).toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', { day: '2-digit', month: 'short' });
+    } catch { return d; }
   };
 
   const emailName = user?.email?.split('@')[0] || '';
@@ -91,22 +118,50 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
+          {/* Stats ce mois */}
+          <div style={{ padding: '0 16px 4px', fontSize: '12px', color: 'var(--text3)', fontWeight: '600', letterSpacing: '0.05em' }}>
+            {isFr ? `CE MOIS` : `THIS MONTH`}
+          </div>
           <div className="dashboard-stats">
             <div className="stat-card">
-              <div className="stat-card-num">{stats.count}</div>
+              <div className="stat-card-num">{monthStats.count}</div>
               <div className="stat-card-label">
-                {isFr ? `visite${stats.count !== 1 ? 's' : ''}` : `visit${stats.count !== 1 ? 's' : ''}`}
+                {isFr ? `visite${monthStats.count !== 1 ? 's' : ''}` : `visit${monthStats.count !== 1 ? 's' : ''}`}
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-card-num">{stats.avgVolume.toFixed(1)}</div>
-              <div className="stat-card-label">{isFr ? 'volume moyen (m³)' : 'avg volume (m³)'}</div>
+              <div className="stat-card-num">{monthStats.avgVolume.toFixed(1)}</div>
+              <div className="stat-card-label">{isFr ? 'vol. moy. m³' : 'avg vol. m³'}</div>
             </div>
-            <div className="stat-card stat-card-truck">
-              <div className="stat-card-num stat-card-truck-text">{stats.topTruck || '—'}</div>
-              <div className="stat-card-label">{isFr ? 'transport + utilisé' : 'top transport'}</div>
+            <div className="stat-card">
+              <div className="stat-card-num stat-card-truck-text" style={{ fontSize: monthStats.topCity ? '14px' : '20px' }}>
+                {monthStats.topCity || '—'}
+              </div>
+              <div className="stat-card-label">{isFr ? 'ville fréquente' : 'top city'}</div>
             </div>
           </div>
+
+          {/* Prochaine visite */}
+          {monthStats.nextVisit && (
+            <div style={{
+              margin: '0 0 12px', padding: '12px 16px',
+              background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', gap: '12px',
+            }}>
+              <div style={{ fontSize: '22px' }}>📅</div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {isFr ? 'Prochaine visite' : 'Next visit'}
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text)' }}>
+                  {monthStats.nextVisit.client_name || (isFr ? 'Client sans nom' : 'Unnamed')}
+                  <span style={{ fontWeight: '400', color: 'var(--text2)', marginLeft: '8px' }}>
+                    — {formatDateShort(monthStats.nextVisit.visit_date)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {upcoming.length > 0 && (
             <div className="dashboard-recent">
@@ -141,7 +196,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {stats.count === 0 && (
+          {monthStats.count === 0 && upcoming.length === 0 && past.length === 0 && (
             <div className="empty-state" style={{ paddingTop: 16 }}>
               <div className="empty-icon">📋</div>
               <div className="empty-title">{isFr ? 'Aucune visite enregistrée' : 'No saved visits'}</div>
