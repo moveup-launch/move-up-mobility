@@ -5,7 +5,9 @@
       "Bash(npm run *)",
       "Bash(node -e ' *)",
       "Bash(grep -v \"//\")",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }
