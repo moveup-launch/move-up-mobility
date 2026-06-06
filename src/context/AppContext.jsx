@@ -24,6 +24,7 @@ const emptyAccess = {
 const baseClient = {
   name: '', phone: '', email: '',
   visitDate: new Date().toISOString().split('T')[0],
+  visitTime: '', visitStatus: 'prevue', agendaNotes: '',
   surveyor: '', moveDate: '', notes: '',
 };
 
@@ -537,6 +538,10 @@ export function AppProvider({ children }) {
       client_phone: state.client.phone || null,
       visit_date: state.client.visitDate || null,
       move_date: state.client.moveDate || null,
+      visit_time: state.client.visitTime || null,
+      visit_status: state.client.visitStatus || 'prevue',
+      agenda_notes: state.client.agendaNotes || null,
+      commercial_name: state.client.surveyor || null,
       total_volume: vol,
       recommended_truck: getRecommendedTruck(vol),
       client_data: {
@@ -595,8 +600,11 @@ export function AppProvider({ children }) {
         name: cd.name || '',
         phone: cd.phone || '',
         email: cd.email || '',
-        visitDate: cd.visitDate || new Date().toISOString().split('T')[0],
-        surveyor: cd.surveyor || user?.email || '',
+        visitDate: cd.visitDate || visitData.visit_date || new Date().toISOString().split('T')[0],
+        visitTime: cd.visitTime || visitData.visit_time || '',
+        visitStatus: cd.visitStatus || visitData.visit_status || 'prevue',
+        agendaNotes: cd.agendaNotes || visitData.agenda_notes || '',
+        surveyor: cd.surveyor || visitData.commercial_name || user?.email || '',
         moveDate: cd.moveDate || '',
         notes: cd.notes || '',
       },
@@ -649,6 +657,7 @@ export function AppProvider({ children }) {
       viewMode, setViewMode,
       signOut, startNewVisit,
       saveVisit, loadVisit,
+      supabaseClient: supabase,
     }}>
       {children}
     </AppContext.Provider>

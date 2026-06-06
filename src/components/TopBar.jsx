@@ -6,13 +6,6 @@ export default function TopBar() {
   const isDesktop = useIsDesktop();
   const isFr = lang === 'fr';
 
-  const getMobileAction = () => {
-    if (viewMode === 'wizard') return { icon: '🕓', label: isFr ? 'Historique' : 'History', onClick: () => setViewMode('history') };
-    return { icon: '✏️', label: isFr ? 'Nouvelle visite' : 'New visit', onClick: startNewVisit };
-  };
-
-  const mobileAction = getMobileAction();
-
   return (
     <div className={`topbar${isDesktop ? ' topbar-desktop' : ''}`}>
       <div className="topbar-brand">
@@ -23,14 +16,26 @@ export default function TopBar() {
         </div>
       </div>
       <div className="topbar-actions">
-        {!isDesktop && user && (
-          <button className="topbar-icon-btn" onClick={mobileAction.onClick} title={mobileAction.label}>
-            {mobileAction.icon}
-          </button>
-        )}
-        {!isDesktop && user && viewMode === 'wizard' && (
+        {!isDesktop && user && viewMode !== 'dashboard' && (
           <button className="topbar-icon-btn" onClick={() => setViewMode('dashboard')} title={isFr ? 'Accueil' : 'Home'}>
             🏠
+          </button>
+        )}
+        {!isDesktop && user && (
+          <button className="topbar-icon-btn" onClick={() => setViewMode('agenda')} title={isFr ? 'Agenda' : 'Agenda'}
+            style={{ opacity: viewMode === 'agenda' ? 1 : 0.7 }}>
+            📅
+          </button>
+        )}
+        {!isDesktop && user && (
+          <button className="topbar-icon-btn" onClick={() => setViewMode('history')} title={isFr ? 'Historique' : 'History'}
+            style={{ opacity: viewMode === 'history' ? 1 : 0.7 }}>
+            🕓
+          </button>
+        )}
+        {!isDesktop && user && (
+          <button className="topbar-icon-btn" onClick={startNewVisit} title={isFr ? 'Nouvelle visite' : 'New visit'}>
+            ✏️
           </button>
         )}
         <div className="lang-toggle">

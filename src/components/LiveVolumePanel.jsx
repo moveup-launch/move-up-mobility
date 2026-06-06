@@ -102,7 +102,7 @@ export default function LiveVolumePanel() {
                 {isRec ? '→ ' : ''}{opt.label}
                 {isRec && vol > 0 && (mt === 'local' || mt === 'road') && (
                   <span style={{ marginLeft: '6px', fontWeight: '400', opacity: 0.85 }}>
-                    — {getRecommendedTeam(vol)}
+                    — {getRecommendedTeam(vol).label}
                   </span>
                 )}
               </div>

@@ -18,16 +18,22 @@ export default function SidebarNav() {
           <span>🏠</span> {isFr ? 'Accueil' : 'Dashboard'}
         </button>
         <button
-          className={`sidebar-nav-btn ${viewMode === 'history' ? 'active' : ''}`}
-          onClick={() => setViewMode('history')}
-        >
-          <span>🕓</span> {isFr ? 'Historique' : 'History'}
-        </button>
-        <button
           className="sidebar-nav-btn sidebar-new-visit"
           onClick={startNewVisit}
         >
           <span>✏️</span> {isFr ? 'Nouvelle visite' : 'New visit'}
+        </button>
+        <button
+          className={`sidebar-nav-btn ${viewMode === 'agenda' ? 'active' : ''}`}
+          onClick={() => setViewMode('agenda')}
+        >
+          <span>📅</span> {isFr ? 'Agenda' : 'Agenda'}
+        </button>
+        <button
+          className={`sidebar-nav-btn ${viewMode === 'history' ? 'active' : ''}`}
+          onClick={() => setViewMode('history')}
+        >
+          <span>🕓</span> {isFr ? 'Historique' : 'History'}
         </button>
       </div>
 

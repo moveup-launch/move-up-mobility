@@ -15,6 +15,7 @@ import Step6PDF from './pages/Step6PDF';
 import AuthPage from './pages/AuthPage';
 import HistoryPage from './pages/HistoryPage';
 import DashboardPage from './pages/DashboardPage';
+import AgendaPage from './pages/AgendaPage';
 
 const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
 
@@ -50,6 +51,11 @@ function DesktopLayout() {
           {viewMode === 'history' && (
             <div className="desktop-content-full" ref={mainScrollRef}>
               <HistoryPage />
+            </div>
+          )}
+          {viewMode === 'agenda' && (
+            <div className="desktop-content-full" ref={mainScrollRef}>
+              <AgendaPage />
             </div>
           )}
           {viewMode === 'wizard' && (
@@ -91,6 +97,17 @@ function MobileLayout() {
         <TopBar />
         <div className="main-scroll main-scroll-nopad" ref={mainScrollRef}>
           <HistoryPage />
+        </div>
+      </div>
+    );
+  }
+
+  if (viewMode === 'agenda') {
+    return (
+      <div id="app">
+        <TopBar />
+        <div className="main-scroll main-scroll-nopad" ref={mainScrollRef}>
+          <AgendaPage />
         </div>
       </div>
     );
