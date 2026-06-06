@@ -2,16 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import NewVisitModal from '../components/NewVisitModal';
-
-function getStatusInfo(status, isFr) {
-  const map = {
-    prevue:   { label: isFr ? 'Prévue' : 'Planned',      color: '#2B6BE6', bg: '#EEF4FF' },
-    en_cours: { label: isFr ? 'En cours' : 'In progress', color: '#D97706', bg: '#FFFBEB' },
-    terminee: { label: isFr ? 'Terminée' : 'Completed',   color: '#16A34A', bg: '#F0FDF4' },
-    annulee:  { label: isFr ? 'Annulée' : 'Cancelled',    color: '#6B7280', bg: '#F3F4F6' },
-  };
-  return map[status || 'prevue'] || map.prevue;
-}
+import VisitCard from '../components/VisitCard';
 
 function localToday() {
   const d = new Date();
@@ -22,6 +13,17 @@ function sortByDateTime(a, b) {
   const da = (a.visit_date || '') + 'T' + (a.visit_time || '00:00');
   const db = (b.visit_date || '') + 'T' + (b.visit_time || '00:00');
   return da < db ? -1 : da > db ? 1 : 0;
+}
+
+function formatDateShort(dateStr, isFr) {
+  if (!dateStr) return '—';
+  try {
+    const str = new Date(dateStr + 'T12:00:00').toLocaleDateString(
+      isFr ? 'fr-FR' : 'en-GB',
+      { weekday: 'short', day: 'numeric', month: 'short' }
+    );
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  } catch { return dateStr; }
 }
 
 export default function DashboardPage() {
@@ -50,7 +52,7 @@ export default function DashboardPage() {
     setLoadError(null);
     const { data, error } = await supabase
       .from('visits')
-      .select('id, client_name, client_phone, visit_date, visit_time, visit_status, origin_data, client_data')
+      .select('id, client_name, client_phone, client_email, visit_date, visit_time, visit_status, origin_data, client_data')
       .order('visit_date', { ascending: true });
     if (error) {
       console.error('DashboardPage loadData error:', error);
@@ -65,7 +67,7 @@ export default function DashboardPage() {
     setVisits(prev => [...prev, newVisit].sort(sortByDateTime));
     setJustCreated(newVisit.id);
     setShowNewVisit(false);
-    setTimeout(() => setJustCreated(null), 3000);
+    setTimeout(() => setJustCreated(null), 4000);
   };
 
   const openVisit = async (visitId, step = 0) => {
@@ -84,27 +86,15 @@ export default function DashboardPage() {
   const handleDelete = async (id) => {
     setDeleting(id);
     const { error } = await supabase.from('visits').delete().eq('id', id);
-    if (!error) {
-      setVisits(prev => prev.filter(v => v.id !== id));
-    }
+    if (!error) setVisits(prev => prev.filter(v => v.id !== id));
     setConfirmDelete(null);
     setDeleting(null);
   };
 
-  const formatDate = (d) => {
-    if (!d) return '—';
-    try {
-      return new Date(d + 'T12:00:00').toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', {
-        weekday: 'short', day: '2-digit', month: 'short',
-      });
-    } catch { return d; }
-  };
-
   const emailName = user?.email?.split('@')[0] || '';
-  const upcoming = visits.filter(v =>
-    v.visit_date >= today && (v.visit_status || 'prevue') !== 'annulee'
-  );
+  const upcoming  = visits.filter(v => v.visit_date >= today && (v.visit_status || 'prevue') !== 'annulee');
   const monthVisits = visits.filter(v => v.visit_date >= firstOfMonth && v.visit_date <= today);
+  const nextVisit = upcoming[0];
 
   return (
     <>
@@ -155,14 +145,15 @@ export default function DashboardPage() {
                 <div className="stat-card-label">{isFr ? 'à venir' : 'upcoming'}</div>
               </div>
               <div className="stat-card">
-                <div className="stat-card-num" style={{ fontSize: upcoming[0] ? '12px' : '20px' }}>
-                  {upcoming[0] ? (
+                <div className="stat-card-num" style={{ fontSize: nextVisit ? '12px' : '20px' }}>
+                  {nextVisit ? (
                     <>
                       <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent)' }}>
-                        {upcoming[0].client_name?.split(' ')[0] || '—'}
+                        {nextVisit.client_name?.split(' ')[0] || '—'}
                       </div>
                       <div style={{ fontSize: '11px', fontWeight: '400', color: 'var(--text2)' }}>
-                        {formatDate(upcoming[0].visit_date)}{upcoming[0].visit_time ? ` ${upcoming[0].visit_time}` : ''}
+                        {formatDateShort(nextVisit.visit_date, isFr)}
+                        {nextVisit.visit_time ? ` ${nextVisit.visit_time.replace(':', 'h')}` : ''}
                       </div>
                     </>
                   ) : '—'}
@@ -196,155 +187,35 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                {upcoming.map(v => {
-                  const status = getStatusInfo(v.visit_status, isFr);
-                  const city = v.origin_data?.city || v.client_data?.city || '';
-                  const phone = v.client_phone || v.client_data?.phone || '';
-                  const isOpening = opening === v.id;
-                  const isConfirming = confirmDelete === v.id;
-                  const isNew = justCreated === v.id;
-
-                  return (
-                    <div
-                      key={v.id}
-                      style={{
-                        background: 'var(--surface)',
-                        border: isNew ? '2px solid var(--accent)' : '1px solid var(--border)',
-                        borderRadius: 'var(--radius-sm)', padding: '14px',
-                        borderLeft: `4px solid ${status.color}`,
-                        transition: 'border-color 0.4s',
-                      }}
-                    >
-                      {isNew && (
-                        <div style={{
-                          fontSize: '11px', fontWeight: '700', color: 'var(--accent)',
-                          marginBottom: '6px', letterSpacing: '0.05em',
-                        }}>
-                          ✅ {isFr ? 'Visite créée !' : 'Visit created!'}
-                        </div>
-                      )}
-
-                      {/* Date + heure + badge statut */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <div>
-                          <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--text)' }}>
-                            {formatDate(v.visit_date)}
-                          </span>
-                          {v.visit_time && (
-                            <span style={{ fontSize: '14px', color: 'var(--accent)', fontWeight: '700', marginLeft: '8px' }}>
-                              🕐 {v.visit_time}
-                            </span>
-                          )}
-                        </div>
-                        <span style={{
-                          fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px',
-                          background: status.bg, color: status.color,
-                        }}>
-                          {status.label}
-                        </span>
+                {upcoming.map(v => (
+                  <div key={v.id}>
+                    {justCreated === v.id && (
+                      <div style={{
+                        fontSize: '12px', fontWeight: '700', color: 'var(--accent)',
+                        marginBottom: '4px', letterSpacing: '0.04em',
+                      }}>
+                        ✅ {isFr ? 'Visite créée !' : 'Visit created!'}
                       </div>
-
-                      {/* Nom + ville */}
-                      <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text)', marginBottom: '2px' }}>
-                        {v.client_name || (isFr ? 'Client sans nom' : 'Unnamed client')}
-                      </div>
-                      {city && (
-                        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>
-                          📍 {city}
-                        </div>
-                      )}
-
-                      {/* Téléphone cliquable */}
-                      {phone && (
-                        <a
-                          href={`tel:${phone}`}
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '5px',
-                            fontSize: '14px', color: '#16A34A', textDecoration: 'none',
-                            fontWeight: '700', marginBottom: '10px',
-                          }}
-                        >
-                          📞 {phone}
-                        </a>
-                      )}
-
-                      {/* Boutons */}
-                      {!isConfirming ? (
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          <button
-                            onClick={() => openVisit(v.id, 0)}
-                            disabled={isOpening}
-                            style={{
-                              flex: 2, padding: '9px 12px', borderRadius: '8px', border: 'none',
-                              background: 'var(--accent)', color: 'white', fontWeight: '700',
-                              fontSize: '13px', cursor: 'pointer', minWidth: '110px',
-                              opacity: isOpening ? 0.7 : 1,
-                            }}
-                          >
-                            {isOpening ? '⏳' : `▶ ${isFr ? 'Démarrer la visite' : 'Start visit'}`}
-                          </button>
-                          <button
-                            onClick={() => openVisit(v.id, 0)}
-                            disabled={isOpening}
-                            style={{
-                              flex: 1, padding: '9px 12px', borderRadius: '8px',
-                              border: '1px solid var(--border)', background: 'var(--surface2)',
-                              color: 'var(--text)', fontSize: '13px', cursor: 'pointer',
-                            }}
-                          >
-                            ✏️ {isFr ? 'Modifier' : 'Edit'}
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(v.id)}
-                            style={{
-                              padding: '9px 10px', borderRadius: '8px',
-                              border: '1px solid var(--danger)', background: 'var(--danger-light)',
-                              color: 'var(--danger)', fontSize: '13px', cursor: 'pointer',
-                            }}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{
-                          padding: '10px 12px', background: 'var(--danger-light)',
-                          border: '1px solid var(--danger)', borderRadius: '8px',
-                          display: 'flex', gap: '8px', alignItems: 'center',
-                        }}>
-                          <span style={{ flex: 1, fontSize: '13px', color: 'var(--danger)', fontWeight: '600' }}>
-                            {t('confirmDeleteVisit')}
-                          </span>
-                          <button
-                            onClick={() => handleDelete(v.id)}
-                            disabled={deleting === v.id}
-                            style={{
-                              padding: '6px 12px', borderRadius: '6px', background: 'var(--danger)',
-                              color: 'white', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer',
-                            }}
-                          >
-                            {deleting === v.id ? '…' : (isFr ? 'Oui' : 'Yes')}
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(null)}
-                            style={{
-                              padding: '6px 10px', borderRadius: '6px', background: 'var(--surface)',
-                              color: 'var(--text2)', border: '1px solid var(--border)', fontSize: '12px', cursor: 'pointer',
-                            }}
-                          >
-                            {t('cancel')}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    )}
+                    <VisitCard
+                      visit={v}
+                      isPast={false}
+                      isOpening={opening === v.id}
+                      isConfirmingDelete={confirmDelete === v.id}
+                      isDeleting={deleting === v.id}
+                      onOpen={openVisit}
+                      onDeleteRequest={id => setConfirmDelete(id)}
+                      onDeleteConfirm={handleDelete}
+                      onDeleteCancel={() => setConfirmDelete(null)}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </>
         )}
       </div>
 
-      {/* Modal nouvelle visite */}
       {showNewVisit && (
         <NewVisitModal
           onClose={() => setShowNewVisit(false)}

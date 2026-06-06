@@ -1,16 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
-
-function getStatusInfo(status, isFr) {
-  const map = {
-    prevue:   { label: isFr ? 'Prévue' : 'Planned',      color: '#2B6BE6', bg: '#EEF4FF' },
-    en_cours: { label: isFr ? 'En cours' : 'In progress', color: '#D97706', bg: '#FFFBEB' },
-    terminee: { label: isFr ? 'Terminée' : 'Completed',   color: '#16A34A', bg: '#F0FDF4' },
-    annulee:  { label: isFr ? 'Annulée' : 'Cancelled',    color: '#6B7280', bg: '#F3F4F6' },
-  };
-  return map[status || 'prevue'] || map.prevue;
-}
+import VisitCard from '../components/VisitCard';
 
 function localToday() {
   const d = new Date();
@@ -38,6 +29,7 @@ export default function AgendaPage() {
   const [opening, setOpening] = useState(null);
 
   const today = localToday();
+
   const startOfWeek = (() => {
     const d = new Date();
     const day = d.getDay();
@@ -57,7 +49,7 @@ export default function AgendaPage() {
     setLoadError(null);
     const { data, error } = await supabase
       .from('visits')
-      .select('id, client_name, client_phone, visit_date, visit_time, visit_status, total_volume, origin_data, client_data, agenda_notes')
+      .select('id, client_name, client_phone, client_email, visit_date, visit_time, visit_status, origin_data, client_data, agenda_notes')
       .order('visit_date', { ascending: true });
     if (error) {
       console.error('AgendaPage loadData error:', error);
@@ -96,13 +88,25 @@ export default function AgendaPage() {
     setDeleting(null);
   };
 
-  const formatDate = (d) => {
-    if (!d) return '—';
-    try {
-      return new Date(d + 'T12:00:00').toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', {
-        weekday: 'long', day: '2-digit', month: 'long',
-      });
-    } catch { return d; }
+  const STATUS_OPTS = isFr
+    ? [
+        { val: 'prevue',   label: 'Prévue' },
+        { val: 'en_cours', label: 'En cours' },
+        { val: 'terminee', label: 'Terminée' },
+        { val: 'annulee',  label: 'Annulée' },
+      ]
+    : [
+        { val: 'prevue',   label: 'Planned' },
+        { val: 'en_cours', label: 'In progress' },
+        { val: 'terminee', label: 'Completed' },
+        { val: 'annulee',  label: 'Cancelled' },
+      ];
+
+  const STATUS_COLORS = {
+    prevue:   { color: '#2B6BE6', bg: '#EEF4FF' },
+    en_cours: { color: '#D97706', bg: '#FFFBEB' },
+    terminee: { color: '#16A34A', bg: '#F0FDF4' },
+    annulee:  { color: '#6B7280', bg: '#F3F4F6' },
   };
 
   const FILTERS = [
@@ -112,10 +116,6 @@ export default function AgendaPage() {
     { key: 'past',     label: t('filterPast') },
     { key: 'all',      label: t('filterAll') },
   ];
-
-  const STATUS_OPTS = isFr
-    ? [{ val: 'prevue', label: 'Prévue' }, { val: 'en_cours', label: 'En cours' }, { val: 'terminee', label: 'Terminée' }, { val: 'annulee', label: 'Annulée' }]
-    : [{ val: 'prevue', label: 'Planned' }, { val: 'en_cours', label: 'In progress' }, { val: 'terminee', label: 'Completed' }, { val: 'annulee', label: 'Cancelled' }];
 
   const getFiltered = () => {
     let result = [...visits];
@@ -131,6 +131,7 @@ export default function AgendaPage() {
       result = result.filter(v =>
         (v.client_name || '').toLowerCase().includes(q) ||
         (v.client_phone || '').toLowerCase().includes(q) ||
+        (v.client_email || '').toLowerCase().includes(q) ||
         (v.origin_data?.city || '').toLowerCase().includes(q) ||
         (v.client_data?.city || '').toLowerCase().includes(q)
       );
@@ -158,7 +159,9 @@ export default function AgendaPage() {
       <div className="section-header">
         <div className="section-title">📅 {t('agenda')}</div>
         <div className="section-subtitle">
-          {isFr ? `${visits.length} visite${visits.length !== 1 ? 's' : ''}` : `${visits.length} visit${visits.length !== 1 ? 's' : ''}`}
+          {isFr
+            ? `${visits.length} visite${visits.length !== 1 ? 's' : ''}`
+            : `${visits.length} visit${visits.length !== 1 ? 's' : ''}`}
         </div>
       </div>
 
@@ -168,7 +171,7 @@ export default function AgendaPage() {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder={isFr ? '🔍 Nom, ville, téléphone...' : '🔍 Name, city, phone...'}
+          placeholder={isFr ? '🔍 Nom, ville, email, téléphone…' : '🔍 Name, city, email, phone…'}
         />
       </div>
 
@@ -201,159 +204,36 @@ export default function AgendaPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {filteredVisits.map(v => {
-            const status = getStatusInfo(v.visit_status, isFr);
-            const city = v.origin_data?.city || v.client_data?.city || '';
-            const phone = v.client_phone || v.client_data?.phone || '';
-            const notes = v.agenda_notes || v.client_data?.agendaNotes || '';
-            const isPast = v.visit_date < today;
-            const isConfirmingDelete = confirmDelete === v.id;
-            const isOpening = opening === v.id;
+            const sc = STATUS_COLORS[v.visit_status || 'prevue'] || STATUS_COLORS.prevue;
+            const statusSel = (
+              <select
+                value={v.visit_status || 'prevue'}
+                onChange={e => handleUpdateStatus(v.id, e.target.value)}
+                disabled={updatingStatus === v.id}
+                style={{
+                  padding: '4px 8px', borderRadius: '8px', fontSize: '12px',
+                  border: `1px solid ${sc.color}`, background: sc.bg,
+                  color: sc.color, fontWeight: '700', cursor: 'pointer', flexShrink: 0,
+                }}
+              >
+                {STATUS_OPTS.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
+              </select>
+            );
 
             return (
-              <div key={v.id} style={{
-                background: 'var(--surface)', border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)', padding: '14px',
-                borderLeft: `4px solid ${status.color}`,
-                opacity: v.visit_status === 'annulee' ? 0.7 : 1,
-              }}>
-                {/* Date + heure + statut */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                  <div>
-                    <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent)', textTransform: 'capitalize' }}>
-                      {formatDate(v.visit_date)}
-                    </div>
-                    {v.visit_time && (
-                      <div style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text)' }}>
-                        🕐 {v.visit_time}
-                      </div>
-                    )}
-                  </div>
-                  <select
-                    value={v.visit_status || 'prevue'}
-                    onChange={e => handleUpdateStatus(v.id, e.target.value)}
-                    disabled={updatingStatus === v.id}
-                    style={{
-                      padding: '4px 8px', borderRadius: '8px', fontSize: '12px',
-                      border: `1px solid ${status.color}`, background: status.bg,
-                      color: status.color, fontWeight: '700', cursor: 'pointer',
-                    }}
-                  >
-                    {STATUS_OPTS.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
-                  </select>
-                </div>
-
-                {/* Client + ville */}
-                <div style={{ fontWeight: '700', fontSize: '15px', marginBottom: '2px' }}>
-                  {v.client_name || (isFr ? 'Client sans nom' : 'Unnamed')}
-                </div>
-                {city && <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>📍 {city}</div>}
-
-                {notes && (
-                  <div style={{
-                    fontSize: '12px', color: 'var(--text2)', background: 'var(--surface2)',
-                    borderRadius: '6px', padding: '6px 10px', marginBottom: '8px', fontStyle: 'italic',
-                  }}>
-                    {notes}
-                  </div>
-                )}
-
-                {/* Actions */}
-                {!isConfirmingDelete ? (
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {phone && (
-                      <a href={`tel:${phone}`} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '4px',
-                        padding: '8px 12px', borderRadius: '8px', textDecoration: 'none',
-                        background: '#F0FDF4', color: '#16A34A', fontWeight: '700',
-                        fontSize: '13px', border: '1px solid #BBF7D0', flexShrink: 0,
-                      }}>
-                        📞 {phone}
-                      </a>
-                    )}
-
-                    {!isPast && (
-                      <button
-                        onClick={() => openVisit(v.id, 0)}
-                        disabled={isOpening}
-                        style={{
-                          flex: 2, padding: '8px 12px', borderRadius: '8px',
-                          border: 'none', background: 'var(--accent)', color: 'white',
-                          fontWeight: '700', fontSize: '13px', cursor: 'pointer', minWidth: '110px',
-                          opacity: isOpening ? 0.7 : 1,
-                        }}
-                      >
-                        {isOpening ? '⏳' : `▶ ${isFr ? 'Démarrer' : 'Start'}`}
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => openVisit(v.id, 0)}
-                      disabled={isOpening}
-                      style={{
-                        flex: 1, padding: '8px 12px', borderRadius: '8px',
-                        border: '1px solid var(--border)', background: 'var(--surface2)',
-                        color: 'var(--text)', fontWeight: '600', fontSize: '13px', cursor: 'pointer',
-                      }}
-                    >
-                      ✏️ {t('editVisit')}
-                    </button>
-
-                    {isPast && (
-                      <button
-                        onClick={() => openVisit(v.id, 4)}
-                        disabled={isOpening}
-                        style={{
-                          padding: '8px 10px', borderRadius: '8px',
-                          border: '1px solid var(--accent)', background: 'var(--accent-light)',
-                          color: 'var(--accent)', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
-                        }}
-                      >
-                        📄
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => setConfirmDelete(v.id)}
-                      style={{
-                        padding: '8px 10px', borderRadius: '8px',
-                        border: '1px solid var(--danger)', background: 'var(--danger-light)',
-                        color: 'var(--danger)', fontSize: '13px', cursor: 'pointer', flexShrink: 0,
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{
-                    padding: '10px 12px', background: 'var(--danger-light)',
-                    border: '1px solid var(--danger)', borderRadius: '8px',
-                    display: 'flex', gap: '8px', alignItems: 'center',
-                  }}>
-                    <span style={{ flex: 1, fontSize: '13px', color: 'var(--danger)', fontWeight: '600' }}>
-                      {t('confirmDeleteVisit')}
-                    </span>
-                    <button
-                      onClick={() => handleDelete(v.id)}
-                      disabled={deleting === v.id}
-                      style={{
-                        padding: '6px 12px', borderRadius: '6px', background: 'var(--danger)',
-                        color: 'white', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer',
-                      }}
-                    >
-                      {deleting === v.id ? '…' : (isFr ? 'Oui, supprimer' : 'Yes, delete')}
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(null)}
-                      style={{
-                        padding: '6px 10px', borderRadius: '6px', background: 'var(--surface)',
-                        color: 'var(--text2)', border: '1px solid var(--border)', fontSize: '12px', cursor: 'pointer',
-                      }}
-                    >
-                      {t('cancel')}
-                    </button>
-                  </div>
-                )}
-              </div>
+              <VisitCard
+                key={v.id}
+                visit={v}
+                isPast={v.visit_date < today}
+                isOpening={opening === v.id}
+                isConfirmingDelete={confirmDelete === v.id}
+                isDeleting={deleting === v.id}
+                onOpen={openVisit}
+                onDeleteRequest={id => setConfirmDelete(id)}
+                onDeleteConfirm={handleDelete}
+                onDeleteCancel={() => setConfirmDelete(null)}
+                statusSelector={statusSel}
+              />
             );
           })}
         </div>
