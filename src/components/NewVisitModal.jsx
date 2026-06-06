@@ -30,45 +30,55 @@ export default function NewVisitModal({ onClose, onCreated }) {
 
   const handleCreate = async () => {
     if (!validate()) return;
+    if (!user) {
+      setSaveError(isFr ? 'Non connecté — rechargez la page' : 'Not logged in — reload the page');
+      return;
+    }
     setSaving(true);
     setSaveError(null);
 
-    const { data, error } = await supabase
-      .from('visits')
-      .insert({
-        user_id: user.id,
-        client_name: form.name.trim() || null,
-        client_phone: form.phone.trim() || null,
-        client_email: form.email.trim() || null,
-        visit_date: form.visitDate || null,
-        visit_time: form.visitTime || null,
-        visit_status: 'prevue',
-        agenda_notes: form.notes.trim() || null,
-        origin_data: {
-          address: form.address.trim(),
-          city: form.city.trim(),
-          postalCode: form.postalCode.trim(),
-        },
-        client_data: {
-          name: form.name.trim(),
-          phone: form.phone.trim(),
-          email: form.email.trim(),
-          visitDate: form.visitDate,
-          visitTime: form.visitTime,
-          agendaNotes: form.notes.trim(),
-        },
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('visits')
+        .insert({
+          user_id: user.id,
+          client_name: form.name.trim() || null,
+          client_phone: form.phone.trim() || null,
+          client_email: form.email.trim() || null,
+          visit_date: form.visitDate || null,
+          visit_time: form.visitTime || null,
+          visit_status: 'prevue',
+          agenda_notes: form.notes.trim() || null,
+          origin_data: {
+            address: form.address.trim(),
+            city: form.city.trim(),
+            postalCode: form.postalCode.trim(),
+          },
+          client_data: {
+            name: form.name.trim(),
+            phone: form.phone.trim(),
+            email: form.email.trim(),
+            visitDate: form.visitDate,
+            visitTime: form.visitTime,
+            agendaNotes: form.notes.trim(),
+          },
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('NewVisitModal error:', error);
-      setSaveError(error.message);
+      if (error) {
+        console.error('NewVisitModal insert error:', error);
+        setSaveError(`${error.message} (code: ${error.code || '?'})`);
+        setSaving(false);
+        return;
+      }
+
+      onCreated(data);
+    } catch (err) {
+      console.error('NewVisitModal unexpected error:', err);
+      setSaveError(err?.message || 'Erreur inattendue');
       setSaving(false);
-      return;
     }
-
-    onCreated(data);
   };
 
   return (
@@ -167,28 +177,32 @@ export default function NewVisitModal({ onClose, onCreated }) {
           </div>
         </div>
 
-        {/* Date + heure */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <div className="field">
-            <label>{isFr ? 'Date visite' : 'Visit date'} *</label>
-            <input
-              type="date"
-              value={form.visitDate}
-              onChange={e => set('visitDate', e.target.value)}
-              style={errors.visitDate ? { borderColor: 'var(--danger)' } : {}}
-            />
-            {errors.visitDate && (
-              <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '3px' }}>{errors.visitDate}</div>
-            )}
-          </div>
-          <div className="field">
-            <label>{isFr ? 'Heure' : 'Time'}</label>
-            <input
-              type="time"
-              value={form.visitTime}
-              onChange={e => set('visitTime', e.target.value)}
-            />
-          </div>
+        {/* Date */}
+        <div className="field">
+          <label>{isFr ? 'Date visite' : 'Visit date'} *</label>
+          <input
+            type="date"
+            value={form.visitDate}
+            onChange={e => set('visitDate', e.target.value)}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              ...(errors.visitDate ? { borderColor: 'var(--danger)' } : {}),
+            }}
+          />
+          {errors.visitDate && (
+            <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '3px' }}>{errors.visitDate}</div>
+          )}
+        </div>
+
+        {/* Heure */}
+        <div className="field">
+          <label>{isFr ? 'Heure de visite' : 'Visit time'}</label>
+          <input
+            type="time"
+            value={form.visitTime}
+            onChange={e => set('visitTime', e.target.value)}
+            style={{ width: '100%', boxSizing: 'border-box' }}
+          />
         </div>
 
         {/* Notes */}
@@ -205,9 +219,10 @@ export default function NewVisitModal({ onClose, onCreated }) {
         {/* Erreur Supabase */}
         {saveError && (
           <div style={{
-            padding: '10px 12px', background: 'var(--danger-light)',
+            padding: '12px 14px', background: 'var(--danger-light)',
             border: '1px solid var(--danger)', borderRadius: '8px',
-            marginBottom: '12px', fontSize: '12px', color: 'var(--danger)',
+            marginBottom: '12px', fontSize: '13px', color: 'var(--danger)',
+            fontWeight: '600', wordBreak: 'break-word',
           }}>
             ⚠️ {saveError}
           </div>
