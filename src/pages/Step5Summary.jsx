@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { sendConfirmationEmail } from '../lib/resend';
 
 const MOVE_TYPE_OPTIONS_FR = [
   { val: 'local', label: 'Local / National' },
@@ -96,6 +97,7 @@ export default function Step5Summary() {
 
   const [saveStatus, setSaveStatus] = useState('idle');
   const [transportPickerOpen, setTransportPickerOpen] = useState(false);
+  const [emailStatus, setEmailStatus] = useState('idle');
 
   const vol = getTotalVolume();
   const truckAuto = getRecommendedTruck(vol);
@@ -124,6 +126,27 @@ export default function Step5Summary() {
       setTimeout(() => setSaveStatus('idle'), 3000);
     } else {
       setSaveStatus('saved');
+      setEmailStatus('idle');
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!state.client.email) return;
+    setEmailStatus('sending');
+    const { error } = await sendConfirmationEmail({
+      to: state.client.email,
+      clientName: state.client.name,
+      visitDate: state.client.visitDate,
+      visitTime: state.client.visitTime,
+      commercialName: state.client.surveyor,
+      originAddress: [state.origin.address, state.origin.postalCode, state.origin.city].filter(Boolean).join(', '),
+      lang,
+    });
+    if (error) {
+      setEmailStatus('error');
+      setTimeout(() => setEmailStatus('idle'), 4000);
+    } else {
+      setEmailStatus('sent');
     }
   };
 
@@ -348,14 +371,47 @@ export default function Step5Summary() {
 
       <div style={{ marginTop: 8, marginBottom: 8 }}>
         {saveStatus === 'saved' ? (
-          <div className="save-success-banner">
-            <span>✅ {isEditing
-              ? (isFr ? 'Visite mise à jour !' : 'Visit updated!')
-              : (isFr ? 'Visite enregistrée !' : 'Visit saved!')
-            }</span>
-            <button className="save-history-link" onClick={() => setViewMode('history')}>
-              {isFr ? "Voir l'historique →" : 'View history →'}
-            </button>
+          <div>
+            <div className="save-success-banner">
+              <span>✅ {isEditing
+                ? (isFr ? 'Visite mise à jour !' : 'Visit updated!')
+                : (isFr ? 'Visite enregistrée !' : 'Visit saved!')
+              }</span>
+              <button className="save-history-link" onClick={() => setViewMode('history')}>
+                {isFr ? "Voir l'historique →" : 'View history →'}
+              </button>
+            </div>
+            {/* Bouton email confirmation */}
+            {state.client.email ? (
+              emailStatus === 'sent' ? (
+                <div style={{
+                  marginTop: '8px', padding: '12px 14px', background: '#F0FDF4',
+                  border: '1px solid #BBF7D0', borderRadius: '10px',
+                  textAlign: 'center', color: '#16A34A', fontWeight: '700', fontSize: '14px',
+                }}>
+                  ✅ {t('confirmEmailSent')} — {state.client.email}
+                </div>
+              ) : (
+                <button
+                  onClick={handleSendEmail}
+                  disabled={emailStatus === 'sending'}
+                  style={{
+                    width: '100%', marginTop: '8px', padding: '12px 14px',
+                    borderRadius: '10px', border: '2px solid var(--accent)',
+                    background: 'var(--accent-light)', color: 'var(--accent)',
+                    fontWeight: '700', fontSize: '14px',
+                    cursor: emailStatus === 'sending' ? 'default' : 'pointer',
+                    opacity: emailStatus === 'sending' ? 0.7 : 1,
+                  }}
+                >
+                  {emailStatus === 'sending'
+                    ? (isFr ? '⏳ Envoi…' : '⏳ Sending…')
+                    : emailStatus === 'error'
+                      ? `❌ ${t('confirmEmailError')} — ${isFr ? 'réessayer' : 'retry'}`
+                      : `✉️ ${t('sendConfirmEmail')}`}
+                </button>
+              )
+            ) : null}
           </div>
         ) : (
           <button

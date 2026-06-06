@@ -98,6 +98,15 @@ export function AppProvider({ children }) {
     setViewMode('wizard');
   };
 
+  const startQuickVisit = () => {
+    setState({
+      ...initialState,
+      client: { ...baseClient, surveyor: user?.email || '' },
+    });
+    setCurrentStepState(0);
+    setViewMode('quickvisit');
+  };
+
   const updateClient = (field, value) =>
     setState(s => ({ ...s, client: { ...s.client, [field]: value } }));
 
@@ -655,7 +664,7 @@ export function AppProvider({ children }) {
       mainScrollRef,
       user, authLoading,
       viewMode, setViewMode,
-      signOut, startNewVisit,
+      signOut, startNewVisit, startQuickVisit,
       saveVisit, loadVisit,
       supabaseClient: supabase,
     }}>
