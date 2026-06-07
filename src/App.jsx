@@ -17,6 +17,7 @@ import HistoryPage from './pages/HistoryPage';
 import DashboardPage from './pages/DashboardPage';
 import AgendaPage from './pages/AgendaPage';
 import QuickVisitPage from './pages/QuickVisitPage';
+import SettingsPage from './pages/SettingsPage';
 
 const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
 
@@ -62,6 +63,11 @@ function DesktopLayout() {
           {viewMode === 'quickvisit' && (
             <div className="desktop-content-full" ref={mainScrollRef}>
               <QuickVisitPage />
+            </div>
+          )}
+          {viewMode === 'settings' && (
+            <div className="desktop-content-full" ref={mainScrollRef}>
+              <SettingsPage />
             </div>
           )}
           {viewMode === 'wizard' && (
@@ -125,6 +131,17 @@ function MobileLayout() {
         <TopBar />
         <div className="main-scroll" ref={mainScrollRef}>
           <QuickVisitPage />
+        </div>
+      </div>
+    );
+  }
+
+  if (viewMode === 'settings') {
+    return (
+      <div id="app">
+        <TopBar />
+        <div className="main-scroll" ref={mainScrollRef}>
+          <SettingsPage />
         </div>
       </div>
     );

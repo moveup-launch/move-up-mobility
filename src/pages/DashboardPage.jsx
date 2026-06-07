@@ -27,7 +27,7 @@ function formatDateShort(dateStr, isFr) {
 }
 
 export default function DashboardPage() {
-  const { t, lang, user, loadVisit, goToStep } = useApp();
+  const { t, lang, user, profile, loadVisit, goToStep } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
@@ -91,7 +91,7 @@ export default function DashboardPage() {
     setDeleting(null);
   };
 
-  const emailName = user?.email?.split('@')[0] || '';
+  const displayName = profile?.first_name || user?.email?.split('@')[0] || '';
   const upcoming  = visits.filter(v => v.visit_date >= today && (v.visit_status || 'prevue') !== 'annulee');
   const monthVisits = visits.filter(v => v.visit_date >= firstOfMonth && v.visit_date <= today);
   const nextVisit = upcoming[0];
@@ -102,7 +102,7 @@ export default function DashboardPage() {
         {/* En-tête */}
         <div className="dashboard-welcome">
           <div className="dashboard-hi">
-            {isFr ? `Bonjour, ${emailName} 👋` : `Hello, ${emailName} 👋`}
+            {isFr ? `Bonjour, ${displayName} 👋` : `Hello, ${displayName} 👋`}
           </div>
           <div className="dashboard-sub">
             {upcoming.length > 0

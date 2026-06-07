@@ -7,6 +7,9 @@ export default function AuthPage() {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -23,12 +26,27 @@ export default function AuthPage() {
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
       if (err) setError(err.message);
     } else {
-      const { error: err } = await supabase.auth.signUp({ email, password });
-      if (err) setError(err.message);
-      else setSuccess(isFr ? 'Compte créé ! Vérifiez votre email pour confirmer.' : 'Account created! Check your email to confirm.');
+      const { data, error: err } = await supabase.auth.signUp({ email, password });
+      if (err) {
+        setError(err.message);
+      } else {
+        if (data?.user) {
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            first_name: firstName.trim() || null,
+            last_name: lastName.trim() || null,
+            company_name: company.trim() || null,
+          });
+        }
+        setSuccess(isFr
+          ? 'Compte créé ! Vérifiez votre email pour confirmer.'
+          : 'Account created! Check your email to confirm.');
+      }
     }
     setLoading(false);
   };
+
+  const switchMode = (m) => { setMode(m); setError(''); setSuccess(''); };
 
   return (
     <div className="auth-page">
@@ -42,23 +60,56 @@ export default function AuthPage() {
         </div>
 
         <div className="auth-tabs">
-          <button
-            className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-            onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-          >
+          <button className={`auth-tab ${mode === 'login' ? 'active' : ''}`} onClick={() => switchMode('login')}>
             {isFr ? 'Connexion' : 'Login'}
           </button>
-          <button
-            className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
-            onClick={() => { setMode('signup'); setError(''); setSuccess(''); }}
-          >
+          <button className={`auth-tab ${mode === 'signup' ? 'active' : ''}`} onClick={() => switchMode('signup')}>
             {isFr ? 'Inscription' : 'Sign up'}
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {mode === 'signup' && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div className="field">
+                  <label>{isFr ? 'Prénom' : 'First name'} *</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    placeholder="Jean"
+                    required
+                    autoComplete="given-name"
+                  />
+                </div>
+                <div className="field">
+                  <label>{isFr ? 'Nom' : 'Last name'} *</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    placeholder="Dupont"
+                    required
+                    autoComplete="family-name"
+                  />
+                </div>
+              </div>
+              <div className="field">
+                <label>{isFr ? 'Entreprise' : 'Company'}</label>
+                <input
+                  type="text"
+                  value={company}
+                  onChange={e => setCompany(e.target.value)}
+                  placeholder="Move Up SAS"
+                  autoComplete="organization"
+                />
+              </div>
+            </>
+          )}
+
           <div className="field">
-            <label>Email</label>
+            <label>Email *</label>
             <input
               type="email"
               value={email}
@@ -69,7 +120,7 @@ export default function AuthPage() {
             />
           </div>
           <div className="field">
-            <label>{isFr ? 'Mot de passe' : 'Password'}</label>
+            <label>{isFr ? 'Mot de passe' : 'Password'} *</label>
             <input
               type="password"
               value={password}

@@ -43,6 +43,13 @@ export default function TopBar() {
           <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
         </div>
         {!isDesktop && user && (
+          <button className="topbar-icon-btn" onClick={() => setViewMode('settings')}
+            title={isFr ? 'Paramètres' : 'Settings'}
+            style={{ opacity: viewMode === 'settings' ? 1 : 0.7 }}>
+            ⚙️
+          </button>
+        )}
+        {!isDesktop && user && (
           <button className="topbar-icon-btn" onClick={signOut} title={isFr ? 'Déconnexion' : 'Log out'}>
             🚪
           </button>

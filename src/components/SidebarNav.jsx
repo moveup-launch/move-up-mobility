@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 const STEP_ICONS = ['👤', '🏠', '📦', '📊', '📄'];
 
 export default function SidebarNav() {
-  const { currentStep, goToStep, t, lang, user, signOut, viewMode, setViewMode, startNewVisit } = useApp();
+  const { currentStep, goToStep, t, lang, user, profile, signOut, viewMode, setViewMode, startNewVisit } = useApp();
 
   const steps = [t('step1'), t('step2'), t('step3'), t('step4'), t('step5')];
   const isFr = lang === 'fr';
@@ -35,6 +35,12 @@ export default function SidebarNav() {
         >
           <span>🕓</span> {isFr ? 'Historique' : 'History'}
         </button>
+        <button
+          className={`sidebar-nav-btn ${viewMode === 'settings' ? 'active' : ''}`}
+          onClick={() => setViewMode('settings')}
+        >
+          <span>⚙️</span> {isFr ? 'Paramètres' : 'Settings'}
+        </button>
       </div>
 
       {viewMode === 'wizard' && (
@@ -59,7 +65,11 @@ export default function SidebarNav() {
       )}
 
       <div className="sidebar-footer">
-        <div className="sidebar-user">{user?.email}</div>
+        <div className="sidebar-user">
+          {profile?.first_name
+            ? `${profile.first_name}${profile.last_name ? ' ' + profile.last_name : ''}`
+            : user?.email}
+        </div>
         <button className="sidebar-logout" onClick={signOut}>
           🚪 {isFr ? 'Déconnexion' : 'Log out'}
         </button>

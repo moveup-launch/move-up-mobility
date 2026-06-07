@@ -56,6 +56,19 @@ export function AppProvider({ children }) {
   const [viewMode, setViewMode] = useState('dashboard');
   const mainScrollRef = useRef(null);
 
+  const [profile, setProfile] = useState(null);
+  const [expertMode, setExpertModeState] = useState(
+    () => localStorage.getItem('expertMode') === 'true'
+  );
+  const [customCatalog, setCustomCatalogState] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('customCatalog') || '[]'); }
+    catch { return []; }
+  });
+  const [volumeOverrides, setVolumeOverridesState] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('volumeOverrides') || '{}'); }
+    catch { return {}; }
+  });
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -70,6 +83,12 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
   }, [currentStep, viewMode]);
+
+  useEffect(() => {
+    if (!user) { setProfile(null); return; }
+    supabase.from('profiles').select('*').eq('id', user.id).single()
+      .then(({ data }) => { if (data) setProfile(data); });
+  }, [user]);
 
   const setLang = (l) => setLangState(l);
   const t = (key) => TRANSLATIONS[lang]?.[key] || key;
@@ -89,10 +108,66 @@ export function AppProvider({ children }) {
     setViewMode('dashboard');
   };
 
+  const saveProfile = async (data) => {
+    if (!user) return { error: 'Not authenticated' };
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: user.id, ...data });
+    if (!error) setProfile(prev => ({ ...(prev || {}), ...data }));
+    return { error };
+  };
+
+  const setExpertMode = (val) => {
+    localStorage.setItem('expertMode', String(val));
+    setExpertModeState(val);
+  };
+
+  const addCustomCatalogItem = (item) => {
+    const newItem = { ...item, id: `custom_${Date.now()}` };
+    setCustomCatalogState(prev => {
+      const updated = [...prev, newItem];
+      localStorage.setItem('customCatalog', JSON.stringify(updated));
+      return updated;
+    });
+    return newItem;
+  };
+
+  const deleteCustomCatalogItem = (id) => {
+    setCustomCatalogState(prev => {
+      const updated = prev.filter(i => i.id !== id);
+      localStorage.setItem('customCatalog', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const setVolumeOverride = (uid, volume) => {
+    setVolumeOverridesState(prev => {
+      const updated = { ...prev, [uid]: parseFloat(volume) };
+      localStorage.setItem('volumeOverrides', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const resetVolumeOverride = (uid) => {
+    setVolumeOverridesState(prev => {
+      const updated = { ...prev };
+      delete updated[uid];
+      localStorage.setItem('volumeOverrides', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const getSurveyorName = () => {
+    if (profile?.first_name || profile?.last_name) {
+      return [profile.first_name, profile.last_name].filter(Boolean).join(' ');
+    }
+    return user?.email || '';
+  };
+
   const startNewVisit = () => {
     setState({
       ...initialState,
-      client: { ...baseClient, surveyor: user?.email || '' },
+      client: { ...baseClient, surveyor: getSurveyorName() },
     });
     setCurrentStepState(0);
     setViewMode('wizard');
@@ -101,7 +176,7 @@ export function AppProvider({ children }) {
   const startQuickVisit = () => {
     setState({
       ...initialState,
-      client: { ...baseClient, surveyor: user?.email || '' },
+      client: { ...baseClient, surveyor: getSurveyorName() },
     });
     setCurrentStepState(0);
     setViewMode('quickvisit');
@@ -666,6 +741,10 @@ export function AppProvider({ children }) {
       viewMode, setViewMode,
       signOut, startNewVisit, startQuickVisit,
       saveVisit, loadVisit,
+      profile, saveProfile,
+      expertMode, setExpertMode,
+      customCatalog, addCustomCatalogItem, deleteCustomCatalogItem,
+      volumeOverrides, setVolumeOverride, resetVolumeOverride,
       supabaseClient: supabase,
     }}>
       {children}
