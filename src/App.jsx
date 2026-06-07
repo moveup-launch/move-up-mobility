@@ -18,6 +18,7 @@ import DashboardPage from './pages/DashboardPage';
 import AgendaPage from './pages/AgendaPage';
 import QuickVisitPage from './pages/QuickVisitPage';
 import SettingsPage from './pages/SettingsPage';
+import OfflineBanner from './components/OfflineBanner';
 
 const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
 
@@ -176,7 +177,12 @@ function AppContent() {
 
   if (!user) return <AuthPage />;
 
-  return isDesktop ? <DesktopLayout /> : <MobileLayout />;
+  return (
+    <>
+      {isDesktop ? <DesktopLayout /> : <MobileLayout />}
+      <OfflineBanner />
+    </>
+  );
 }
 
 export default function App() {
