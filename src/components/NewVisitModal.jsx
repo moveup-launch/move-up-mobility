@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
@@ -81,20 +82,37 @@ export default function NewVisitModal({ onClose, onCreated }) {
     }
   };
 
-  return (
+  return createPortal(
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
+        position: 'fixed', inset: 0, zIndex: 9999,
         background: 'rgba(0,0,0,0.55)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        /* Laisse l'espace de la safe area en haut pour que la feuille
+           ne remonte jamais derrière le notch/Dynamic Island */
+        paddingTop: 'env(safe-area-inset-top, 44px)',
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: 'var(--surface)', width: '100%', maxWidth: '560px',
-        borderRadius: '16px 16px 0 0', padding: '20px 16px 32px',
-        maxHeight: '92vh', overflowY: 'auto',
+        background: 'var(--surface)',
+        width: '100%',
+        maxWidth: '560px',
+        borderRadius: '16px 16px 0 0',
+        /* padding top fixe + bottom inclut la home bar iOS */
+        padding: '20px 16px',
+        paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        /* La feuille ne peut pas dépasser la zone utile sous le notch */
+        maxHeight: 'calc(96vh - env(safe-area-inset-top, 44px))',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}>
+        {/* Handle de drag visuel */}
+        <div style={{
+          width: 36, height: 4, borderRadius: 2,
+          background: 'var(--border)', margin: '0 auto 16px',
+        }} />
+
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
           <div style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text)' }}>
@@ -256,6 +274,7 @@ export default function NewVisitModal({ onClose, onCreated }) {
           {isFr ? 'Annuler' : 'Cancel'}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
