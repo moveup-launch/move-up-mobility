@@ -167,19 +167,22 @@ function AppContent() {
   const { user, authLoading } = useApp();
   const isDesktop = useIsDesktop();
 
+  let content;
   if (authLoading) {
-    return (
+    content = (
       <div id="app" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontSize: 40 }}>📦</div>
       </div>
     );
+  } else if (!user) {
+    content = <AuthPage />;
+  } else {
+    content = isDesktop ? <DesktopLayout /> : <MobileLayout />;
   }
-
-  if (!user) return <AuthPage />;
 
   return (
     <>
-      {isDesktop ? <DesktopLayout /> : <MobileLayout />}
+      {content}
       <OfflineBanner />
     </>
   );
