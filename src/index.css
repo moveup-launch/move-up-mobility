@@ -101,7 +101,13 @@ html, body {
 
 .main-scroll {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 20px; padding-bottom: calc(80px + var(--safe-bottom));
+  padding: 20px;
+  /* padding-bottom généreux : espace bottom-nav (80px) + safe area +
+     marge clavier iOS pour que le dernier champ reste visible */
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 20px);
+  /* scroll-padding-bottom : quand iOS scroll vers un input focusé,
+     il laisse cet espace entre l'input et le bas du container */
+  scroll-padding-bottom: 80px;
 }
 
 .bottom-nav {
@@ -247,7 +253,11 @@ textarea { min-height: 80px; resize: vertical; }
 .sheet-overlay.open { display: flex; }
 .bottom-sheet {
   background: var(--surface); border-radius: 20px 20px 0 0; width: 100%;
-  max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  /* dvh (dynamic viewport height) se réduit quand le clavier iOS s'ouvre */
+  max-height: 80vh;
+  max-height: 80dvh;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  scroll-padding-bottom: 60px;
   padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
   animation: slideUp 0.3s ease;
 }
@@ -297,7 +307,10 @@ textarea { min-height: 80px; resize: vertical; }
 .room-sel-btn.active .sel-name { color: white; }
 
 /* ── Mobile: no bottom padding when no BottomNav ── */
-.main-scroll-nopad { padding-bottom: 20px; }
+.main-scroll-nopad {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  scroll-padding-bottom: 40px;
+}
 
 /* ── TopBar actions ── */
 .topbar-actions { display: flex; align-items: center; gap: 6px; }

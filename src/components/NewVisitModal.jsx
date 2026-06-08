@@ -1,11 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
+// Suit la hauteur du visual viewport en temps réel.
+// Quand le clavier iOS s'ouvre, window.visualViewport.height diminue
+// (exclut la zone clavier) alors que window.innerHeight reste inchangé.
+// Cela permet de redimensionner la feuille pour qu'elle reste AU-DESSUS
+// du clavier plutôt que derrière lui.
+function useVisualViewportHeight() {
+  const [height, setHeight] = useState(
+    () => window.visualViewport?.height ?? window.innerHeight
+  );
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setHeight(vv.height);
+    vv.addEventListener('resize', update);
+    return () => vv.removeEventListener('resize', update);
+  }, []);
+  return height;
+}
+
 export default function NewVisitModal({ onClose, onCreated }) {
   const { user, lang } = useApp();
   const isFr = lang === 'fr';
+  const vpHeight = useVisualViewportHeight();
 
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
@@ -73,7 +93,6 @@ export default function NewVisitModal({ onClose, onCreated }) {
         setSaving(false);
         return;
       }
-
       onCreated(data);
     } catch (err) {
       console.error('NewVisitModal unexpected error:', err);
@@ -83,14 +102,24 @@ export default function NewVisitModal({ onClose, onCreated }) {
   };
 
   return createPortal(
+    /*
+     * L'overlay utilise height = vpHeight (visual viewport) au lieu de inset:0.
+     * Quand le clavier s'ouvre vpHeight rétrécit → la feuille remonte
+     * automatiquement au-dessus du clavier, sans JS supplémentaire.
+     * transition: height évite le saut brusque pendant l'animation clavier.
+     */
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
+        position: 'fixed',
+        top: 0, left: 0, right: 0,
+        height: `${vpHeight}px`,
+        zIndex: 9999,
         background: 'rgba(0,0,0,0.55)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-        /* Laisse l'espace de la safe area en haut pour que la feuille
-           ne remonte jamais derrière le notch/Dynamic Island */
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
         paddingTop: 'env(safe-area-inset-top, 44px)',
+        transition: 'height 0.25s ease',
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -99,32 +128,54 @@ export default function NewVisitModal({ onClose, onCreated }) {
         width: '100%',
         maxWidth: '560px',
         borderRadius: '16px 16px 0 0',
-        /* padding top fixe + bottom inclut la home bar iOS */
-        padding: '20px 16px',
-        paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
-        /* La feuille ne peut pas dépasser la zone utile sous le notch */
-        maxHeight: 'calc(96vh - env(safe-area-inset-top, 44px))',
+        padding: '0 16px',
+        /* padding-bottom : safe area home bar + espace de respiration */
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+        /*
+         * maxHeight = visual viewport - notch - marge de 6px visible au-dessus.
+         * Quand clavier ouvert la feuille se rétrécit automatiquement
+         * et overflowY:auto permet de scroller jusqu'aux champs du bas.
+         */
+        maxHeight: `calc(${vpHeight}px - env(safe-area-inset-top, 44px) - 6px)`,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
+        /* scroll-behavior lisse pour le focus automatique sur les inputs */
+        scrollBehavior: 'smooth',
       }}>
-        {/* Handle de drag visuel */}
-        <div style={{
-          width: 36, height: 4, borderRadius: 2,
-          background: 'var(--border)', margin: '0 auto 16px',
-        }} />
 
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-          <div style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text)' }}>
-            ✏️ {isFr ? 'Nouvelle visite' : 'New visit'}
+        {/* Handle de drag + sticky header dans la feuille */}
+        <div style={{
+          position: 'sticky', top: 0,
+          background: 'var(--surface)',
+          paddingTop: '12px',
+          paddingBottom: '4px',
+          zIndex: 1,
+        }}>
+          <div style={{
+            width: 36, height: 4, borderRadius: 2,
+            background: 'var(--border)', margin: '0 auto 12px',
+          }} />
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            alignItems: 'center', marginBottom: '16px',
+          }}>
+            <div style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text)' }}>
+              ✏️ {isFr ? 'Nouvelle visite' : 'New visit'}
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none', border: 'none', fontSize: '20px',
+                cursor: 'pointer', color: 'var(--text3)', lineHeight: 1,
+                padding: '4px',
+              }}
+            >
+              ✕
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text3)', lineHeight: 1 }}
-          >
-            ✕
-          </button>
         </div>
+
+        {/* ─── Formulaire ─────────────────────────────────────── */}
 
         {/* Nom */}
         <div className="field">
@@ -150,7 +201,7 @@ export default function NewVisitModal({ onClose, onCreated }) {
               type="tel"
               value={form.phone}
               onChange={e => set('phone', e.target.value)}
-              placeholder="+33 6 12 34 56 78"
+              placeholder="+33 6 12 34 56"
             />
           </div>
           <div className="field">
@@ -164,7 +215,7 @@ export default function NewVisitModal({ onClose, onCreated }) {
           </div>
         </div>
 
-        {/* Adresse origine */}
+        {/* Adresse */}
         <div className="field">
           <label>{isFr ? "Adresse d'origine" : 'Origin address'}</label>
           <input
@@ -195,32 +246,28 @@ export default function NewVisitModal({ onClose, onCreated }) {
           </div>
         </div>
 
-        {/* Date */}
-        <div className="field">
-          <label>{isFr ? 'Date visite' : 'Visit date'} *</label>
-          <input
-            type="date"
-            value={form.visitDate}
-            onChange={e => set('visitDate', e.target.value)}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              ...(errors.visitDate ? { borderColor: 'var(--danger)' } : {}),
-            }}
-          />
-          {errors.visitDate && (
-            <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '3px' }}>{errors.visitDate}</div>
-          )}
-        </div>
-
-        {/* Heure */}
-        <div className="field">
-          <label>{isFr ? 'Heure de visite' : 'Visit time'}</label>
-          <input
-            type="time"
-            value={form.visitTime}
-            onChange={e => set('visitTime', e.target.value)}
-            style={{ width: '100%', boxSizing: 'border-box' }}
-          />
+        {/* Date + Heure */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <div className="field">
+            <label>{isFr ? 'Date visite' : 'Visit date'} *</label>
+            <input
+              type="date"
+              value={form.visitDate}
+              onChange={e => set('visitDate', e.target.value)}
+              style={errors.visitDate ? { borderColor: 'var(--danger)' } : {}}
+            />
+            {errors.visitDate && (
+              <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '3px' }}>{errors.visitDate}</div>
+            )}
+          </div>
+          <div className="field">
+            <label>{isFr ? 'Heure' : 'Time'}</label>
+            <input
+              type="time"
+              value={form.visitTime}
+              onChange={e => set('visitTime', e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Notes */}
@@ -246,33 +293,37 @@ export default function NewVisitModal({ onClose, onCreated }) {
           </div>
         )}
 
-        <button
-          onClick={handleCreate}
-          disabled={saving}
-          style={{
-            width: '100%', padding: '14px', borderRadius: '10px',
-            border: 'none', background: 'var(--accent)', color: 'white',
-            fontWeight: '700', fontSize: '15px',
-            cursor: saving ? 'default' : 'pointer',
-            opacity: saving ? 0.7 : 1,
-            marginBottom: '8px',
-          }}
-        >
-          {saving
-            ? (isFr ? '⏳ Création en cours…' : '⏳ Creating…')
-            : `✅ ${isFr ? 'Créer la visite' : 'Create visit'}`}
-        </button>
-        <button
-          onClick={onClose}
-          disabled={saving}
-          style={{
-            width: '100%', padding: '12px', borderRadius: '10px',
-            border: '1px solid var(--border)', background: 'var(--surface2)',
-            color: 'var(--text2)', fontWeight: '600', fontSize: '14px', cursor: 'pointer',
-          }}
-        >
-          {isFr ? 'Annuler' : 'Cancel'}
-        </button>
+        {/* Boutons */}
+        <div style={{ paddingTop: '4px' }}>
+          <button
+            onClick={handleCreate}
+            disabled={saving}
+            style={{
+              width: '100%', padding: '14px', borderRadius: '10px',
+              border: 'none', background: 'var(--accent)', color: 'white',
+              fontWeight: '700', fontSize: '15px',
+              cursor: saving ? 'default' : 'pointer',
+              opacity: saving ? 0.7 : 1, marginBottom: '8px',
+            }}
+          >
+            {saving
+              ? (isFr ? '⏳ Création en cours…' : '⏳ Creating…')
+              : `✅ ${isFr ? 'Créer la visite' : 'Create visit'}`}
+          </button>
+          <button
+            onClick={onClose}
+            disabled={saving}
+            style={{
+              width: '100%', padding: '12px', borderRadius: '10px',
+              border: '1px solid var(--border)', background: 'var(--surface2)',
+              color: 'var(--text2)', fontWeight: '600', fontSize: '14px',
+              cursor: 'pointer', marginBottom: '8px',
+            }}
+          >
+            {isFr ? 'Annuler' : 'Cancel'}
+          </button>
+        </div>
+
       </div>
     </div>,
     document.body
