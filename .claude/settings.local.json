@@ -19,7 +19,16 @@
       "Bash(npm install *)",
       "Bash(git checkout *)",
       "Bash(git stash *)",
-      "Bash(git merge *)"
+      "Bash(git merge *)",
+      "Bash(curl -s http://localhost:4173/)",
+      "Bash(curl -s http://localhost:4173/manifest.webmanifest)",
+      "Bash(python -m json.tool)",
+      "Bash(curl -sv http://localhost:4173/manifest.webmanifest)",
+      "Bash(curl -sI http://localhost:4173/icon-192.png)",
+      "Bash(curl -sI http://localhost:4173/icon-512.png)",
+      "Bash(curl -sI http://localhost:4173/sw.js)",
+      "Bash(curl -sI http://localhost:4173/registerSW.js)",
+      "Bash(pkill -f \"vite preview\")"
     ]
   }
 }
