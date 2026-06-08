@@ -134,10 +134,11 @@ html, body {
 .field { margin-bottom: 14px; }
 .field:last-child { margin-bottom: 0; }
 label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
-input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea, select {
+input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
   width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-  font-size: 15px; font-family: var(--font); color: var(--text); background: var(--surface);
+  font-size: 16px; font-family: var(--font); color: var(--text); background: var(--surface);
   outline: none; appearance: none; -webkit-appearance: none; transition: border-color 0.15s;
+  touch-action: manipulation;
 }
 input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 textarea { min-height: 80px; resize: vertical; }
