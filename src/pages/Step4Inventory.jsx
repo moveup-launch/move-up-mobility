@@ -1,7 +1,26 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, CRATE_ELIGIBLE_IDS } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
+
+const PHOTO_CATEGORIES_FR = ['Mobilier', 'Accès', 'Fragile', 'Stationnement', 'Contrainte', 'Autre'];
+const PHOTO_CATEGORIES_EN = ['Furniture', 'Access', 'Fragile', 'Parking', 'Constraint', 'Other'];
+
+async function compressImage(dataURL, maxW = 1200, quality = 0.75) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let { width: w, height: h } = img;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataURL);
+    img.src = dataURL;
+  });
+}
 
 const ROOM_BOX_TYPES = {
   bedroom:      ['box_standard', 'box_wardrobe', 'box_books', 'box_fragile'],
@@ -434,6 +453,188 @@ function InventoryList({ room }) {
   );
 }
 
+function RoomPhotosSection({ room }) {
+  const { lang, t, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto } = useApp();
+  const isFr = lang === 'fr';
+  const cats = isFr ? PHOTO_CATEGORIES_FR : PHOTO_CATEGORIES_EN;
+  const [lightbox, setLightbox] = useState(null);
+  const cameraRef = useRef(null);
+  const galleryRef = useRef(null);
+  const photos = room.photos || [];
+
+  const handleFiles = async (files) => {
+    for (const file of Array.from(files || [])) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const compressed = await compressImage(e.target.result);
+        addRoomPhoto(room.id, compressed, isFr ? 'Autre' : 'Other');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const statusIndicator = (photo) => {
+    if (photo.uploadStatus === 'uploading') return (
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'var(--accent)', borderRadius: '0 0 6px 6px', animation: 'pulse 1.2s infinite' }} />
+    );
+    if (photo.uploadStatus === 'done') return (
+      <div style={{ position: 'absolute', bottom: '3px', right: '3px', background: '#16A34A', color: 'white', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '700' }}>✓</div>
+    );
+    if (photo.uploadStatus === 'error') return (
+      <div style={{ position: 'absolute', bottom: '3px', right: '3px', background: '#DC2626', color: 'white', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: '700' }}>!</div>
+    );
+    return null;
+  };
+
+  return (
+    <div style={{ marginTop: '12px' }}>
+      <div className="card-title" style={{ fontSize: '12px', color: 'var(--accent)', marginBottom: '8px' }}>
+        📷 {t('photoSection')}
+      </div>
+
+      {/* Boutons capture */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+        <label style={{ flex: 1, cursor: 'pointer' }}>
+          <input
+            ref={cameraRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
+            style={{ display: 'none' }}
+          />
+          <div style={{
+            textAlign: 'center', padding: '10px 6px', fontSize: '12px', borderRadius: '8px',
+            border: '1px solid var(--border)', background: 'var(--surface2)', color: 'var(--text2)', userSelect: 'none',
+          }}>
+            📷 {t('takePhoto')}
+          </div>
+        </label>
+        <label style={{ flex: 1, cursor: 'pointer' }}>
+          <input
+            ref={galleryRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
+            style={{ display: 'none' }}
+          />
+          <div style={{
+            textAlign: 'center', padding: '10px 6px', fontSize: '12px', borderRadius: '8px',
+            border: '1px solid var(--border)', background: 'var(--surface2)', color: 'var(--text2)', userSelect: 'none',
+          }}>
+            🖼️ {t('chooseGallery')}
+          </div>
+        </label>
+      </div>
+
+      {/* Bande miniatures */}
+      {photos.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '10px' }}>
+          {photos.map(photo => (
+            <div key={photo.id} style={{ position: 'relative', flexShrink: 0 }}>
+              <img
+                src={photo.dataURL}
+                onClick={() => setLightbox(photo.id)}
+                style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer', border: '2px solid var(--border)', display: 'block' }}
+                alt=""
+              />
+              <button
+                onClick={() => deleteRoomPhoto(room.id, photo.id)}
+                style={{
+                  position: 'absolute', top: '2px', right: '2px',
+                  background: 'rgba(220,38,38,0.85)', color: 'white',
+                  border: 'none', borderRadius: '50%', width: '18px', height: '18px',
+                  cursor: 'pointer', fontSize: '10px', fontWeight: '700',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1,
+                }}
+              >×</button>
+              {statusIndicator(photo)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Détails photo (commentaire + catégorie) */}
+      {photos.map((photo, idx) => (
+        <div key={photo.id} style={{
+          background: 'var(--surface2)', borderRadius: '8px',
+          padding: '8px', marginBottom: '6px',
+          display: 'flex', gap: '8px', alignItems: 'flex-start',
+        }}>
+          <img
+            src={photo.dataURL}
+            onClick={() => setLightbox(photo.id)}
+            style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0, cursor: 'pointer' }}
+            alt=""
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <select
+              value={photo.category}
+              onChange={e => updateRoomPhoto(room.id, photo.id, { category: e.target.value })}
+              style={{
+                width: '100%', marginBottom: '5px', padding: '5px 6px',
+                borderRadius: '6px', border: '1px solid var(--border)',
+                fontSize: '12px', background: 'var(--bg)', color: 'var(--text)',
+              }}
+            >
+              {cats.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <input
+              type="text"
+              placeholder={t('photoComment')}
+              value={photo.comment}
+              onChange={e => updateRoomPhoto(room.id, photo.id, { comment: e.target.value })}
+              style={{
+                width: '100%', padding: '5px 6px', borderRadius: '6px',
+                border: '1px solid var(--border)', fontSize: '12px',
+                boxSizing: 'border-box', background: 'var(--bg)', color: 'var(--text)',
+              }}
+            />
+          </div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0, paddingTop: '2px' }}>
+            #{idx + 1}
+          </div>
+        </div>
+      ))}
+
+      {/* Lightbox */}
+      {lightbox && (() => {
+        const photo = photos.find(p => p.id === lightbox);
+        if (!photo) return null;
+        return (
+          <div
+            onClick={() => setLightbox(null)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)',
+              zIndex: 9999, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', padding: '24px',
+            }}
+          >
+            <img
+              src={photo.dataURL}
+              style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: '8px' }}
+              alt=""
+            />
+            {photo.comment && (
+              <div style={{ color: 'white', marginTop: '12px', fontSize: '14px', textAlign: 'center' }}>
+                {photo.comment}
+              </div>
+            )}
+            <div style={{ color: 'rgba(255,255,255,0.55)', marginTop: '4px', fontSize: '12px' }}>
+              {photo.category}
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.4)', marginTop: '16px', fontSize: '11px' }}>
+              {isFr ? 'Appuyer pour fermer' : 'Tap to close'}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 // Tâche 3 (onglet cartons global) + Tâche 9 (suggestion optionnelle)
 function BoxesSection() {
   const { t, lang, state, changeBox, setBox, setHouseholdPersons, getBoxSuggestions, applyBoxSuggestions } = useApp();
@@ -632,6 +833,7 @@ export default function Step4Inventory() {
           <CatalogSection room={room} />
           <RoomBoxSection room={room} />
           <InventoryList room={room} />
+          <RoomPhotosSection room={room} />
         </>
       ) : (
         <BoxesSection />

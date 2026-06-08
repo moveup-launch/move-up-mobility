@@ -646,7 +646,11 @@ export function AppProvider({ children }) {
     if (state.editingVisitId) {
       const { data, error } = await supabase
         .from('visits').update(payload).eq('id', state.editingVisitId).select().single();
-      if (!error) setState(s => ({ ...s, editingVisitId: null }));
+      if (!error) {
+        const roomsSnapshot = state.rooms;
+        setState(s => ({ ...s, editingVisitId: null }));
+        uploadPhotos(state.editingVisitId, roomsSnapshot);
+      }
       return { data, error };
     }
 
@@ -654,6 +658,9 @@ export function AppProvider({ children }) {
       user_id: user.id,
       ...payload,
     }).select().single();
+    if (!error && data) {
+      uploadPhotos(data.id, state.rooms);
+    }
     return { data, error };
   };
 
@@ -710,6 +717,77 @@ export function AppProvider({ children }) {
     setViewMode('wizard');
   };
 
+  // ── Photos ──────────────────────────────────────────────────────
+  const addRoomPhoto = (roomId, dataURL, category = 'Autre') => {
+    const photoId = `photo_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return {
+          ...r,
+          photos: [...(r.photos || []), {
+            id: photoId, dataURL, comment: '', category,
+            storagePath: null, uploadStatus: 'pending',
+          }],
+        };
+      }),
+    }));
+    return photoId;
+  };
+
+  const deleteRoomPhoto = (roomId, photoId) => {
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return { ...r, photos: (r.photos || []).filter(p => p.id !== photoId) };
+      }),
+    }));
+  };
+
+  const updateRoomPhoto = (roomId, photoId, updates) => {
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return { ...r, photos: (r.photos || []).map(p => p.id === photoId ? { ...p, ...updates } : p) };
+      }),
+    }));
+  };
+
+  const uploadPhotos = async (visitId, roomsSnapshot) => {
+    const rooms = roomsSnapshot || state.rooms;
+    for (const room of rooms) {
+      const pending = (room.photos || []).filter(p => p.uploadStatus === 'pending' && p.dataURL);
+      for (const photo of pending) {
+        updateRoomPhoto(room.id, photo.id, { uploadStatus: 'uploading' });
+        try {
+          const ext = photo.dataURL.startsWith('data:image/png') ? 'png' : 'jpg';
+          const path = `${user.id}/${visitId}/${room.id}/photo-${Date.now()}.${ext}`;
+          const res = await fetch(photo.dataURL);
+          const blob = await res.blob();
+          const { error: upErr } = await supabase.storage
+            .from('visit-photos').upload(path, blob, { contentType: blob.type });
+          if (upErr) throw upErr;
+          await supabase.from('photos').insert({
+            visit_id: visitId, room_id: room.id,
+            storage_path: path, comment: photo.comment, category: photo.category,
+          });
+          updateRoomPhoto(room.id, photo.id, { uploadStatus: 'done', storagePath: path });
+        } catch {
+          updateRoomPhoto(room.id, photo.id, { uploadStatus: 'error' });
+        }
+      }
+    }
+  };
+
+  const retryPhotoUploads = async (visitId) => {
+    await uploadPhotos(visitId);
+  };
+
+  // ────────────────────────────────────────────────────────────────
+
   const openSheet = (content) => setSheet({ isOpen: true, content });
   const closeSheet = () => setSheet({ isOpen: false, content: null });
   const openModal = (content) => setModal({ isOpen: true, content });
@@ -745,6 +823,7 @@ export function AppProvider({ children }) {
       expertMode, setExpertMode,
       customCatalog, addCustomCatalogItem, deleteCustomCatalogItem,
       volumeOverrides, setVolumeOverride, resetVolumeOverride,
+      addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, uploadPhotos, retryPhotoUploads,
       supabaseClient: supabase,
     }}>
       {children}

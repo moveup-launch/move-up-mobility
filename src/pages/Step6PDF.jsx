@@ -196,6 +196,42 @@ export default function Step6PDF() {
           } else { y += 6; }
         });
       }
+
+      // Photos de la pièce (max 4, 2 par ligne)
+      const roomPhotos = (room.photos || []).filter(p => p.dataURL);
+      if (roomPhotos.length > 0) {
+        const displayPhotos = roomPhotos.slice(0, 4);
+        const PHOTO_W = 87; const PHOTO_H = 65;
+        const PHOTO_GAP = 8; const TEXT_H = 14;
+        const rows = Math.ceil(displayPhotos.length / 2);
+
+        checkY(12);
+        doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+        doc.text(safe(isFr ? 'Photos :' : 'Photos:'), 18, y); y += 6;
+
+        for (let row = 0; row < rows; row++) {
+          checkY(PHOTO_H + TEXT_H + 4);
+          const rowY = y;
+          for (let col = 0; col < 2; col++) {
+            const idx = row * 2 + col;
+            if (idx >= displayPhotos.length) break;
+            const photo = displayPhotos[idx];
+            const x = 12 + col * (PHOTO_W + PHOTO_GAP);
+            try {
+              doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H);
+            } catch { /* skip if image fails */ }
+            doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+            doc.text(safe(photo.category || ''), x, rowY + PHOTO_H + 4);
+            if (photo.comment) {
+              doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
+              const lines = doc.splitTextToSize(safe(photo.comment), PHOTO_W);
+              doc.text(lines[0] || '', x, rowY + PHOTO_H + 9);
+            }
+          }
+          y = rowY + PHOTO_H + TEXT_H + 4;
+        }
+      }
+
       y += 3;
     });
     divider();

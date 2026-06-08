@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
@@ -24,8 +24,30 @@ export default function HistoryPage() {
   const [expanded, setExpanded] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [duplicating, setDuplicating] = useState(null);
+  const [visitPhotos, setVisitPhotos] = useState({});
+  const [photosLoading, setPhotosLoading] = useState({});
+  const [lightboxUrl, setLightboxUrl] = useState(null);
 
   useEffect(() => { fetchVisits(); }, []);
+
+  const fetchVisitPhotos = useCallback(async (visitId) => {
+    if (visitPhotos[visitId] !== undefined || photosLoading[visitId]) return;
+    setPhotosLoading(prev => ({ ...prev, [visitId]: true }));
+    const { data, error } = await supabase
+      .from('photos').select('*').eq('visit_id', visitId).order('created_at');
+    if (error || !data?.length) {
+      setVisitPhotos(prev => ({ ...prev, [visitId]: [] }));
+      setPhotosLoading(prev => ({ ...prev, [visitId]: false }));
+      return;
+    }
+    const withUrls = await Promise.all(data.map(async p => {
+      const { data: signed } = await supabase.storage
+        .from('visit-photos').createSignedUrl(p.storage_path, 3600);
+      return { ...p, url: signed?.signedUrl || null };
+    }));
+    setVisitPhotos(prev => ({ ...prev, [visitId]: withUrls }));
+    setPhotosLoading(prev => ({ ...prev, [visitId]: false }));
+  }, [visitPhotos, photosLoading]);
 
   const fetchVisits = async () => {
     setLoading(true);
@@ -169,7 +191,11 @@ export default function HistoryPage() {
             <div key={v.id} className="history-card">
               <button
                 className="history-card-header"
-                onClick={() => setExpanded(expanded === v.id ? null : v.id)}
+                onClick={() => {
+                  const next = expanded === v.id ? null : v.id;
+                  setExpanded(next);
+                  if (next) fetchVisitPhotos(next);
+                }}
               >
                 <div className="history-card-left">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
@@ -240,6 +266,63 @@ export default function HistoryPage() {
                     <span>{formatDate(v.created_at)}</span>
                   </div>
 
+                  {/* Photos par pièce */}
+                  {photosLoading[v.id] && (
+                    <div style={{ padding: '8px 0', fontSize: '12px', color: 'var(--text3)' }}>
+                      ⏳ {t('photosLoading')}
+                    </div>
+                  )}
+                  {!photosLoading[v.id] && visitPhotos[v.id] && visitPhotos[v.id].length > 0 && (() => {
+                    const byRoom = visitPhotos[v.id].reduce((acc, p) => {
+                      const key = p.room_id || 'misc';
+                      if (!acc[key]) acc[key] = [];
+                      acc[key].push(p);
+                      return acc;
+                    }, {});
+                    const roomsData = v.rooms_data || [];
+                    return (
+                      <div style={{ marginTop: '10px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text3)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          📷 {t('photoSection')}
+                        </div>
+                        {Object.entries(byRoom).map(([roomId, photos]) => {
+                          const room = roomsData.find(r => r.id === roomId);
+                          return (
+                            <div key={roomId} style={{ marginBottom: '10px' }}>
+                              {room && (
+                                <div style={{ fontSize: '11px', color: 'var(--text2)', fontWeight: '600', marginBottom: '4px' }}>
+                                  {room.name}
+                                </div>
+                              )}
+                              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+                                {photos.filter(p => p.url).map(p => (
+                                  <div key={p.id} style={{ flexShrink: 0 }}>
+                                    <img
+                                      src={p.url}
+                                      onClick={() => setLightboxUrl(p.url)}
+                                      style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', cursor: 'pointer', border: '1px solid var(--border)', display: 'block' }}
+                                      alt={p.comment || ''}
+                                    />
+                                    {p.comment && (
+                                      <div style={{ fontSize: '9px', color: 'var(--text3)', marginTop: '2px', maxWidth: '64px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {p.comment}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                  {!photosLoading[v.id] && visitPhotos[v.id] && visitPhotos[v.id].length === 0 && (
+                    <div style={{ fontSize: '11px', color: 'var(--text3)', padding: '4px 0' }}>
+                      {t('noPhotosHistory')}
+                    </div>
+                  )}
+
                   {/* Actions */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: '12px', flexWrap: 'wrap' }}>
                     <button
@@ -300,6 +383,27 @@ export default function HistoryPage() {
       </div>
 
       {filtered.length > 0 && <div style={{ height: 20 }} />}
+
+      {/* Lightbox global */}
+      {lightboxUrl && (
+        <div
+          onClick={() => setLightboxUrl(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)',
+            zIndex: 9999, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', padding: '24px',
+          }}
+        >
+          <img
+            src={lightboxUrl}
+            style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain', borderRadius: '8px' }}
+            alt=""
+          />
+          <div style={{ color: 'rgba(255,255,255,0.4)', marginTop: '16px', fontSize: '11px' }}>
+            {isFr ? 'Appuyer pour fermer' : 'Tap to close'}
+          </div>
+        </div>
+      )}
     </>
   );
 }
