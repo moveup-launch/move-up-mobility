@@ -263,6 +263,57 @@ export const CATALOG = {
     { id: "china_cabinet", name: { fr: "Vaisselier", en: "China cabinet" }, icon: "🗄️", variants: [{ id: "china_std", label: { fr: "Vaisselier standard", en: "Standard china cabinet" }, volume_m3: 1.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: false }] },
   ],
 
+  diningRoom: [
+    {
+      id: "dining_table",
+      name: { fr: "Table de salle à manger", en: "Dining table" },
+      icon: "🍽️",
+      variants: [
+        { id: "dt_round_4",    label: { fr: "Table ronde 4 personnes",           en: "Round table 4 people"            }, volume_m3: 0.6, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: true,  possible_furniture_lift: false },
+        { id: "dt_rect_6",    label: { fr: "Table rectangulaire 6 personnes",    en: "Rectangular table 6 people"     }, volume_m3: 1.0, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: true,  possible_furniture_lift: false },
+        { id: "dt_rect_10",   label: { fr: "Table rectangulaire 8-10 personnes", en: "Rectangular table 8-10 people"  }, volume_m3: 1.5, fragile: true,  heavy: true,  requires_protection: true,  requires_disassembly: true,  possible_furniture_lift: false },
+        { id: "dt_extension", label: { fr: "Table avec rallonges",               en: "Table with extensions"           }, volume_m3: 1.2, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: true,  possible_furniture_lift: false },
+        { id: "dt_marble",    label: { fr: "Table en marbre",                    en: "Marble table"                    }, volume_m3: 1.5, fragile: true,  heavy: true,  requires_protection: true,  requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "dining_chair",
+      name: { fr: "Chaise / Assise", en: "Chair / Seating" },
+      icon: "🪑",
+      variants: [
+        { id: "dc_std",       label: { fr: "Chaise standard",         en: "Standard chair"     }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "dc_design",    label: { fr: "Chaise design / fragile", en: "Design chair"       }, volume_m3: 0.15, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: false, possible_furniture_lift: false },
+        { id: "dc_armchair",  label: { fr: "Chaise avec accoudoirs",  en: "Chair with armrests"}, volume_m3: 0.2,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "dc_stool",     label: { fr: "Tabouret haut",           en: "Bar stool"          }, volume_m3: 0.1,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "dc_pouf",      label: { fr: "Pouf",                    en: "Pouf"               }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "dc_banquette", label: { fr: "Banquette",               en: "Bench"              }, volume_m3: 0.5,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "dining_tv",
+      name: { fr: "TV salle à manger", en: "Dining room TV" },
+      icon: "📺",
+      variants: [
+        { id: "dtv_small",  label: { fr: 'TV < 43"',  en: 'TV < 43"'  }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "dtv_medium", label: { fr: 'TV 43-65"', en: 'TV 43-65"' }, volume_m3: 0.3,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "dining_hifi",
+      name: { fr: "Enceinte / Hi-fi", en: "Speaker / Hi-fi" },
+      icon: "🔊",
+      variants: [
+        { id: "hifi_compact",  label: { fr: "Enceinte / hi-fi compact", en: "Speaker / compact hi-fi" }, volume_m3: 0.2,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "hifi_full",     label: { fr: "Système hi-fi complet",     en: "Full hi-fi system"       }, volume_m3: 0.5,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "hifi_soundbar", label: { fr: "Barre de son",              en: "Soundbar"                }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    { id: "dining_mirror",  name: { fr: "Miroir",                       en: "Mirror"            }, icon: "🪞", variants: [{ id: "dm_std",     label: { fr: "Miroir salle à manger",           en: "Dining room mirror"     }, volume_m3: 0.1, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "dining_artwork", name: { fr: "Tableau / Oeuvre d'art",        en: "Painting / Artwork"}, icon: "🖼️", variants: [{ id: "da_lot",    label: { fr: "Tableau / oeuvre d'art",            en: "Painting / artwork"     }, volume_m3: 0.1, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "dining_console", name: { fr: "Console / Bahut bas",           en: "Console / Sideboard"},icon: "🗄️", variants: [{ id: "dc_console", label: { fr: "Console / bahut bas",              en: "Console / low sideboard"}, volume_m3: 0.5, fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "dining_shelf",   name: { fr: "Bibliothèque / Étagère murale", en: "Bookcase / Wall shelf"},icon: "📚", variants: [{ id: "ds_std",    label: { fr: "Bibliothèque / étagère murale",    en: "Bookcase / wall shelf"  }, volume_m3: 0.8, fragile: false, heavy: true,  requires_protection: false, requires_disassembly: true,  possible_furniture_lift: false }] },
+  ],
+
   office: [
     {
       id: "office_desk",
@@ -562,6 +613,21 @@ export const CATALOG = {
     ]},
   ],
 
+  babyEquip: [
+    { id: "baby_changing_dresser", name: { fr: "Commode à langer",     en: "Changing dresser"    }, icon: "👶", variants: [{ id: "bcd_std",     label: { fr: "Commode à langer",      en: "Changing dresser"    }, volume_m3: 0.5,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "baby_changing_table",   name: { fr: "Table à langer",       en: "Changing table"      }, icon: "👶", variants: [{ id: "bct_std",     label: { fr: "Table à langer",        en: "Changing table"      }, volume_m3: 0.3,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "baby_bouncer",          name: { fr: "Transat bébé",         en: "Baby bouncer"        }, icon: "👶", variants: [{ id: "bb_std",      label: { fr: "Transat bébé",          en: "Baby bouncer"        }, volume_m3: 0.2,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "stroller_single",       name: { fr: "Poussette simple",     en: "Single stroller"     }, icon: "🍼", variants: [{ id: "stroller_s",  label: { fr: "Poussette simple",      en: "Single stroller"     }, volume_m3: 0.4,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "stroller_double",       name: { fr: "Poussette double",     en: "Double stroller"     }, icon: "🍼", variants: [{ id: "stroller_d",  label: { fr: "Poussette double",      en: "Double stroller"     }, volume_m3: 0.6,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "baby_pram",             name: { fr: "Landau",               en: "Pram"                }, icon: "🍼", variants: [{ id: "pram_std",    label: { fr: "Landau",                en: "Pram"                }, volume_m3: 0.5,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "car_seat",              name: { fr: "Siège auto",           en: "Car seat"            }, icon: "🚗", variants: [{ id: "carseat_std", label: { fr: "Siège auto",            en: "Car seat"            }, volume_m3: 0.2,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "baby_playpen",          name: { fr: "Parc bébé",           en: "Baby playpen"        }, icon: "👶", variants: [{ id: "playpen_std", label: { fr: "Parc bébé",             en: "Baby playpen"        }, volume_m3: 0.4,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: true,  possible_furniture_lift: false }] },
+    { id: "baby_walker",           name: { fr: "Trotteur",             en: "Baby walker"         }, icon: "👶", variants: [{ id: "walker_std",  label: { fr: "Trotteur",              en: "Baby walker"         }, volume_m3: 0.2,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "high_chair",            name: { fr: "Chaise haute",         en: "High chair"          }, icon: "🪑", variants: [{ id: "hchair_std",  label: { fr: "Chaise haute",          en: "High chair"          }, volume_m3: 0.2,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "baby_swing",            name: { fr: "Balancelle électrique",en: "Electric baby swing" }, icon: "👶", variants: [{ id: "swing_std",   label: { fr: "Balancelle électrique", en: "Electric baby swing" }, volume_m3: 0.3,  fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: true,  possible_furniture_lift: false }] },
+    { id: "baby_bath",             name: { fr: "Baignoire bébé",       en: "Baby bathtub"        }, icon: "🛁", variants: [{ id: "bbath_std",   label: { fr: "Baignoire bébé",        en: "Baby bathtub"        }, volume_m3: 0.1,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+  ],
+
   exceptional: [
     {
       id: "piano_upright",
@@ -578,6 +644,61 @@ export const CATALOG = {
       variants: [
         { id: "piano_grand_baby", label: { fr: "Quart de queue", en: "Baby grand" }, volume_m3: 3.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: true },
         { id: "piano_grand_full", label: { fr: "Grand queue", en: "Full grand" }, volume_m3: 5.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: true },
+      ]
+    },
+    {
+      id: "guitar",
+      name: { fr: "Guitare / Basse", en: "Guitar / Bass" },
+      icon: "🎸",
+      allowedRooms: ['livingRoom', 'diningRoom', 'office', 'bedroom', 'childBedroom', 'misc'],
+      variants: [
+        { id: "guitar_acoustic",  label: { fr: "Guitare acoustique / basse", en: "Acoustic guitar / bass"  }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "guitar_elec_amp",  label: { fr: "Guitare électrique + ampli", en: "Electric guitar + amp"   }, volume_m3: 0.3, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "drums",
+      name: { fr: "Batterie", en: "Drum kit" },
+      icon: "🥁",
+      allowedRooms: ['livingRoom', 'office', 'garage', 'basement', 'misc'],
+      variants: [
+        { id: "drums_full", label: { fr: "Batterie complète", en: "Full drum kit" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "string_instrument",
+      name: { fr: "Violon / Violoncelle", en: "Violin / Cello" },
+      icon: "🎻",
+      allowedRooms: ['livingRoom', 'diningRoom', 'office', 'bedroom', 'misc'],
+      variants: [
+        { id: "string_std", label: { fr: "Violon / violoncelle", en: "Violin / cello" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "wind_instrument",
+      name: { fr: "Saxophone / Trompette", en: "Saxophone / Trumpet" },
+      icon: "🎺",
+      allowedRooms: ['livingRoom', 'diningRoom', 'office', 'bedroom', 'misc'],
+      variants: [
+        { id: "wind_std", label: { fr: "Saxophone / trompette", en: "Saxophone / trumpet" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "keyboard_instr",
+      name: { fr: "Clavier électronique", en: "Electronic keyboard" },
+      icon: "🎹",
+      allowedRooms: ['livingRoom', 'diningRoom', 'office', 'bedroom', 'childBedroom', 'misc'],
+      variants: [
+        { id: "keyboard_std", label: { fr: "Clavier électronique", en: "Electronic keyboard" }, volume_m3: 0.3, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
+      id: "sono",
+      name: { fr: "Sono / Sonorisation", en: "PA / Sound system" },
+      icon: "🔊",
+      allowedRooms: ['livingRoom', 'office', 'garage', 'basement', 'misc'],
+      variants: [
+        { id: "sono_full", label: { fr: "Sono complète", en: "Full PA system" }, volume_m3: 1.0, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
     {
@@ -655,10 +776,10 @@ export const CATALOG = {
 
   roomCatalogMap: {
     livingRoom: ["livingRoom"],
-    diningRoom: ["livingRoom", "kitchen"],
+    diningRoom: ["diningRoom", "livingRoom", "kitchen"],
     kitchen: ["kitchen"],
-    bedroom: ["bedroom"],
-    childBedroom: ["bedroom"],
+    bedroom: ["bedroom", "babyEquip"],
+    childBedroom: ["bedroom", "babyEquip"],
     office: ["office"],
     bathroom: ["bathroom"],
     dressing: ["bedroom"],

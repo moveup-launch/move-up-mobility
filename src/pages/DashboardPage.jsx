@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState(null);
   const [showNewVisit, setShowNewVisit] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [opening, setOpening] = useState(null);
@@ -144,6 +145,10 @@ export default function DashboardPage() {
 
         {/* CTA Nouvelle visite */}
         <button className="dashboard-cta" onClick={() => {
+          if (!navigator.onLine) {
+            setShowOfflineModal(true);
+            return;
+          }
           const plan = profile?.plan || 'free';
           if (plan === 'free' && visits.length >= FREE_VISIT_LIMIT) {
             setShowUpgradeModal(true);
@@ -257,6 +262,53 @@ export default function DashboardPage() {
           onClose={() => setShowNewVisit(false)}
           onCreated={handleVisitCreated}
         />
+      )}
+
+      {/* Modal hors ligne */}
+      {showOfflineModal && (
+        <div
+          onClick={() => setShowOfflineModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'white', borderRadius: '20px 20px 0 0', padding: '28px 24px 40px', width: '100%', maxWidth: 480 }}
+          >
+            <div style={{ fontSize: 36, textAlign: 'center', marginBottom: 12 }}>📵</div>
+            <div style={{ fontWeight: 800, fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
+              {isFr ? 'Vous êtes hors ligne' : 'You are offline'}
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+              {isFr
+                ? 'La création de visite nécessite une connexion internet.\nLes visites déjà créées restent accessibles et modifiables hors ligne.'
+                : 'Creating a visit requires an internet connection.\nVisits already created remain accessible and editable offline.'}
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
+              onClick={() => {
+                if (navigator.onLine) {
+                  setShowOfflineModal(false);
+                  const plan = profile?.plan || 'free';
+                  if (plan === 'free' && visits.length >= FREE_VISIT_LIMIT) {
+                    setShowUpgradeModal(true);
+                  } else {
+                    setShowNewVisit(true);
+                  }
+                }
+              }}
+            >
+              {isFr ? '🔄 Réessayer' : '🔄 Retry'}
+            </button>
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', padding: '12px', fontSize: 14 }}
+              onClick={() => setShowOfflineModal(false)}
+            >
+              {isFr ? 'Fermer' : 'Close'}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Modal limite plan gratuit */}

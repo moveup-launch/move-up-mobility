@@ -269,7 +269,7 @@ export default function Step6PDF() {
       Object.entries(boxTotals).forEach(([id, qty]) => {
         const bt = CATALOG.boxTypes.find(b => b.id === id);
         if (!bt) return;
-        const btName = bt.name?.[lang] || bt.name?.fr || id;
+        const btName = bt.nameKey ? t(bt.nameKey) : id;
         checkY(4.5);
         doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
         doc.text(safe(`  - ${btName} : ${qty} ${isFr ? 'carton(s)' : 'box(es)'}`), 22, y); y += 4.5;
