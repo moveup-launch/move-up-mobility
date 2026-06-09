@@ -13,7 +13,7 @@ export const PLANS = {
 
 export async function redirectToCheckout(priceId, userId, userEmail) {
   if (!stripePromise) {
-    alert('Stripe non configuré. Ajoutez VITE_STRIPE_PUBLISHABLE_KEY dans votre .env');
+    alert('Stripe non configuré. Ajoutez VITE_STRIPE_PUBLIC_KEY dans votre .env');
     return;
   }
   const res = await fetch('/api/create-checkout-session', {

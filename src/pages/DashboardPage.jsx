@@ -27,9 +27,8 @@ function formatDateShort(dateStr, isFr) {
 }
 
 const PLAN_BADGE = {
-  free:       { label: 'Plan Gratuit', bg: '#F0EFE9', color: '#6B6860' },
-  pro:        { label: 'Plan Pro',     bg: '#EEF3FD', color: '#2B6BE6' },
-  enterprise: { label: 'Entreprise',  bg: '#FBF5E6', color: '#D4A017' },
+  free: { label: 'Gratuit',    bg: '#F0EFE9', color: '#6B6860' },
+  pro:  { label: 'Pro ✨',     bg: '#EEF3FD', color: '#2B6BE6' },
 };
 const FREE_VISIT_LIMIT = 3;
 
@@ -275,15 +274,15 @@ export default function DashboardPage() {
             </div>
             <div style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               {isFr
-                ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au plan Pro pour des visites illimitées.`
-                : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro for unlimited visits.`}
+                ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 9,99€/mois pour des visites illimitées, des photos et un PDF complet.`
+                : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 9.99€/month for unlimited visits, photos and full PDF.`}
             </div>
             <button
               className="btn btn-primary"
               style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
               onClick={() => { setShowUpgradeModal(false); setViewMode('pricing'); }}
             >
-              {isFr ? 'Voir les plans →' : 'View plans →'}
+              {isFr ? 'S\'abonner au Plan Pro à 9,99€/mois →' : 'Subscribe to Pro at 9.99€/month →'}
             </button>
             <button
               className="btn btn-secondary"
