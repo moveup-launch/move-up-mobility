@@ -1,6 +1,6 @@
 import { openProCheckout } from '../lib/stripe';
 
-export default function LandingPage({ onSignIn, onSignUp }) {
+export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading }) {
   const ACCENT = '#2B6BE6';
   const GOLD = '#D4A017';
 
@@ -36,8 +36,8 @@ export default function LandingPage({ onSignIn, onSignUp }) {
             <button className="landing-btn-primary landing-btn-lg" onClick={onSignUp}>
               Essayer gratuitement →
             </button>
-            <button className="landing-btn-ghost landing-btn-lg" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
-              Voir les fonctionnalités
+            <button className="landing-btn-ghost landing-btn-lg" onClick={onDemo} disabled={demoLoading}>
+              {demoLoading ? 'Connexion…' : 'Voir une démo'}
             </button>
           </div>
           <p style={{ fontSize: 12, color: '#9E9C94', marginTop: 14 }}>3 visites gratuites · Sans carte bancaire</p>

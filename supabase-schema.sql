@@ -202,6 +202,84 @@ $$;
 
 GRANT EXECUTE ON FUNCTION admin_set_user_plan(uuid, text) TO authenticated;
 
+-- ============================================================
+-- COMPTE DÉMO (exécuter après avoir créé demo@moveupapp.com
+-- dans Supabase Auth → Users → Add user
+-- Email: demo@moveupapp.com  Password: Demo1234!)
+-- ============================================================
+
+-- Profil Jean Dupont (plan pro pour montrer toutes les fonctionnalités)
+UPDATE profiles SET
+  first_name = 'Jean',
+  last_name = 'Dupont',
+  company_name = 'Déménagements Dupont & Fils',
+  plan = 'pro'
+WHERE id = (SELECT id FROM auth.users WHERE email = 'demo@moveupapp.com');
+
+-- Nettoyage si re-exécution
+DELETE FROM visits
+WHERE user_id = (SELECT id FROM auth.users WHERE email = 'demo@moveupapp.com');
+
+-- Visite 1 : Marie Lambert — Lyon → Paris (terminée, il y a 3 mois)
+INSERT INTO visits (user_id, client_name, client_email, client_phone, visit_date, visit_time, visit_status, total_volume, recommended_truck, client_data, origin_data, destination_data, rooms_data)
+VALUES (
+  (SELECT id FROM auth.users WHERE email = 'demo@moveupapp.com'),
+  'Marie Lambert', 'marie.lambert@email.fr', '06 12 34 56 78',
+  '2026-03-15', '09:30', 'termine', 38.5, '40m³',
+  '{"name":"Marie Lambert","phone":"06 12 34 56 78","email":"marie.lambert@email.fr","visitDate":"2026-03-15","visitTime":"09:30","visitStatus":"termine","surveyor":"Jean Dupont","moveDate":"2026-04-01","housingType":"appartement","moveType":"local","householdPersons":2,"notes":"Piano droit au salon — prévoir monte-meuble"}',
+  '{"address":"12 rue des Lilas","city":"Lyon","postalCode":"69003","floor":"3","elevator":"yes","elevatorUsable":"yes","elevatorSize":"small","parkingAvailable":"yes","accessDifficult":"no","truckDistance":"lt10","accessNotes":"Ascenseur étroit, démonter le canapé"}',
+  '{"address":"8 avenue Foch","city":"Paris","postalCode":"75016","floor":"0","elevator":"no","elevatorUsable":"toCheck","parkingAvailable":"yes","accessDifficult":"no","truckDistance":"lt10","accessNotes":"Maison de ville, accès direct côté rue"}',
+  '[{"id":"room_1","type":"salon","name":"Salon","items":[{"itemId":"canape","qty":1,"name":"Canapé 3 places","volume_m3":1.5},{"itemId":"piano","qty":1,"name":"Piano droit","volume_m3":2.5},{"itemId":"meuble_tv","qty":1,"name":"Meuble TV","volume_m3":0.8},{"itemId":"table_basse","qty":1,"name":"Table basse","volume_m3":0.3}]},{"id":"room_2","type":"chambre","name":"Chambre principale","items":[{"itemId":"lit","qty":1,"name":"Lit 160×200 + sommier","volume_m3":1.8},{"itemId":"armoire","qty":1,"name":"Armoire 3 portes","volume_m3":2.0},{"itemId":"commode","qty":1,"name":"Commode","volume_m3":0.6}]},{"id":"room_3","type":"chambre","name":"Chambre enfant","items":[{"itemId":"lit_enfant","qty":1,"name":"Lit 90×200","volume_m3":0.8},{"itemId":"bureau","qty":1,"name":"Bureau enfant","volume_m3":0.7},{"itemId":"etagere","qty":2,"name":"Étagère","volume_m3":0.4}]},{"id":"room_4","type":"cuisine","name":"Cuisine","items":[{"itemId":"frigo","qty":1,"name":"Réfrigérateur combiné","volume_m3":0.8},{"itemId":"maching_laver","qty":1,"name":"Machine à laver","volume_m3":0.6},{"itemId":"lave_vaisselle","qty":1,"name":"Lave-vaisselle","volume_m3":0.6}]}]'
+);
+
+-- Visite 2 : Thomas Martin — Marseille → Toulouse (terminée, il y a 2 mois)
+INSERT INTO visits (user_id, client_name, client_email, client_phone, visit_date, visit_time, visit_status, total_volume, recommended_truck, client_data, origin_data, destination_data, rooms_data)
+VALUES (
+  (SELECT id FROM auth.users WHERE email = 'demo@moveupapp.com'),
+  'Thomas Martin', 'thomas.martin@email.fr', '07 23 45 67 89',
+  '2026-04-20', '14:00', 'termine', 52.0, '60m³',
+  '{"name":"Thomas Martin","phone":"07 23 45 67 89","email":"thomas.martin@email.fr","visitDate":"2026-04-20","visitTime":"14:00","visitStatus":"termine","surveyor":"Jean Dupont","moveDate":"2026-05-10","housingType":"maison","moveType":"local","householdPersons":4,"notes":"Cave avec beaucoup de cartons — prévoir équipe de 4"}',
+  '{"address":"45 boulevard Michelet","city":"Marseille","postalCode":"13008","floor":"0","elevator":"no","parkingAvailable":"yes","accessDifficult":"no","truckDistance":"lt10","accessNotes":"Maison individuelle, accès facile par l allée"}',
+  '{"address":"22 rue du Taur","city":"Toulouse","postalCode":"31000","floor":"1","elevator":"no","parkingAvailable":"toCheck","accessDifficult":"yes","truckDistance":"lt10","accessNotes":"Rue piétonne — stationnement camion à négocier avec mairie"}',
+  '[{"id":"room_1","type":"salon","name":"Salon","items":[{"itemId":"canape","qty":1,"name":"Canapé d angle","volume_m3":2.8},{"itemId":"table","qty":1,"name":"Table à manger 8 couverts","volume_m3":1.2},{"itemId":"chaises","qty":6,"name":"Chaise","volume_m3":0.2}]},{"id":"room_2","type":"chambre","name":"Chambre parents","items":[{"itemId":"lit","qty":1,"name":"Lit 180×200","volume_m3":2.2},{"itemId":"armoire","qty":2,"name":"Armoire","volume_m3":1.8}]},{"id":"room_3","type":"chambre","name":"Chambre 1","items":[{"itemId":"lit","qty":1,"name":"Lit 90×190","volume_m3":0.8},{"itemId":"bureau","qty":1,"name":"Bureau","volume_m3":0.9}]},{"id":"room_4","type":"chambre","name":"Chambre 2","items":[{"itemId":"lit","qty":1,"name":"Lit 90×190","volume_m3":0.8},{"itemId":"armoire","qty":1,"name":"Armoire","volume_m3":1.2}]},{"id":"room_5","type":"cave","name":"Cave / Débarras","items":[{"itemId":"cartons","qty":30,"name":"Carton standard","volume_m3":0.1},{"itemId":"velo","qty":2,"name":"Vélo","volume_m3":0.5},{"itemId":"outillage","qty":1,"name":"Établi + outils","volume_m3":1.5}]}]'
+);
+
+-- Visite 3 : Sophie Leclerc — Nantes → Bordeaux (terminée, il y a 1 mois)
+INSERT INTO visits (user_id, client_name, client_email, client_phone, visit_date, visit_time, visit_status, total_volume, recommended_truck, client_data, origin_data, destination_data, rooms_data)
+VALUES (
+  (SELECT id FROM auth.users WHERE email = 'demo@moveupapp.com'),
+  'Sophie Leclerc', 'sophie.leclerc@email.fr', '06 78 90 12 34',
+  '2026-05-08', '10:00', 'termine', 19.5, '20m³',
+  '{"name":"Sophie Leclerc","phone":"06 78 90 12 34","email":"sophie.leclerc@email.fr","visitDate":"2026-05-08","visitTime":"10:00","visitStatus":"termine","surveyor":"Jean Dupont","moveDate":"2026-05-25","housingType":"appartement","moveType":"local","householdPersons":1,"notes":"Studio — déménagement rapide, 1 journée suffira"}',
+  '{"address":"3 passage de la Bonne Graine","city":"Nantes","postalCode":"44000","floor":"2","elevator":"no","parkingAvailable":"yes","accessDifficult":"no","truckDistance":"lt10","accessNotes":"Escalier étroit — attention canapé convertible"}',
+  '{"address":"17 cours de l Intendance","city":"Bordeaux","postalCode":"33000","floor":"4","elevator":"yes","elevatorUsable":"yes","elevatorSize":"large","parkingAvailable":"yes","accessDifficult":"no","truckDistance":"lt10","accessNotes":"Immeuble haussmannien, grand ascenseur"}',
+  '[{"id":"room_1","type":"salon","name":"Séjour","items":[{"itemId":"canape","qty":1,"name":"Canapé convertible","volume_m3":1.8},{"itemId":"etagere","qty":1,"name":"Bibliothèque Billy","volume_m3":0.6},{"itemId":"bureau","qty":1,"name":"Bureau","volume_m3":0.7}]},{"id":"room_2","type":"chambre","name":"Chambre","items":[{"itemId":"lit","qty":1,"name":"Lit 140×200","volume_m3":1.4},{"itemId":"armoire","qty":1,"name":"Penderie","volume_m3":0.8}]},{"id":"room_3","type":"cuisine","name":"Cuisine","items":[{"itemId":"frigo","qty":1,"name":"Réfrigérateur","volume_m3":0.7},{"itemId":"micro_ondes","qty":1,"name":"Micro-ondes","volume_m3":0.1}]}]'
+);
+
+-- Visite 4 : Pierre Dubois — Rennes → Paris (à venir, dans 2 semaines)
+INSERT INTO visits (user_id, client_name, client_email, client_phone, visit_date, visit_time, visit_status, total_volume, client_data, origin_data, destination_data, rooms_data)
+VALUES (
+  (SELECT id FROM auth.users WHERE email = 'demo@moveupapp.com'),
+  'Pierre Dubois', 'pierre.dubois@email.fr', '06 34 56 78 90',
+  '2026-06-23', '09:00', 'prevue', NULL,
+  '{"name":"Pierre Dubois","phone":"06 34 56 78 90","email":"pierre.dubois@email.fr","visitDate":"2026-06-23","visitTime":"09:00","visitStatus":"prevue","surveyor":"Jean Dupont","moveDate":"2026-07-15","housingType":"maison","moveType":"local","householdPersons":3,"notes":"Maison 5 pièces — inventaire à faire sur place"}',
+  '{"address":"14 rue de Bretagne","city":"Rennes","postalCode":"35000","floor":"0","elevator":"no","parkingAvailable":"yes","accessDifficult":"no","truckDistance":"lt10"}',
+  '{"address":"56 rue de la Roquette","city":"Paris","postalCode":"75011","floor":"3","elevator":"yes","elevatorUsable":"yes","parkingAvailable":"toCheck","accessDifficult":"toCheck","truckDistance":"lt10"}',
+  '[]'
+);
+
+-- Visite 5 : Isabelle Petit — Nice → Lyon (à venir, dans 5 semaines)
+INSERT INTO visits (user_id, client_name, client_email, client_phone, visit_date, visit_time, visit_status, total_volume, client_data, origin_data, destination_data, rooms_data)
+VALUES (
+  (SELECT id FROM auth.users WHERE email = 'demo@moveupapp.com'),
+  'Isabelle Petit', 'isabelle.petit@email.fr', '07 89 01 23 45',
+  '2026-07-14', '11:00', 'prevue', NULL,
+  '{"name":"Isabelle Petit","phone":"07 89 01 23 45","email":"isabelle.petit@email.fr","visitDate":"2026-07-14","visitTime":"11:00","visitStatus":"prevue","surveyor":"Jean Dupont","moveDate":"2026-08-01","housingType":"appartement","moveType":"local","householdPersons":2,"notes":"Appartement vue mer — garde-meubles 1 mois entre les deux logements"}',
+  '{"address":"2 promenade des Anglais","city":"Nice","postalCode":"06000","floor":"5","elevator":"yes","elevatorUsable":"yes","elevatorSize":"large","parkingAvailable":"yes","accessDifficult":"no","truckDistance":"lt10","accessNotes":"Résidence sécurisée — demander badge gardien"}',
+  '{"address":"9 place Bellecour","city":"Lyon","postalCode":"69002","floor":"2","elevator":"no","parkingAvailable":"toCheck","accessDifficult":"toCheck","truckDistance":"lt10"}',
+  '[]'
+);
+
 -- Pour activer votre compte admin (remplacer l'email) :
 -- UPDATE profiles SET is_admin = true WHERE id = (
 --   SELECT id FROM auth.users WHERE email = 'votre@email.com'

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { useIsDesktop } from './hooks/useIsDesktop';
+import { supabase } from './lib/supabase';
 import TopBar from './components/TopBar';
 import StepIndicator from './components/StepIndicator';
 import BottomNav from './components/BottomNav';
@@ -8,6 +9,7 @@ import BottomSheet from './components/BottomSheet';
 import Modal from './components/Modal';
 import SidebarNav from './components/SidebarNav';
 import LiveVolumePanel from './components/LiveVolumePanel';
+import DemoBanner from './components/DemoBanner';
 import Step1Client from './pages/Step1Client';
 import Step2Housing from './pages/Step2Housing';
 import Step4Inventory from './pages/Step4Inventory';
@@ -46,44 +48,31 @@ function DesktopLayout() {
 
   return (
     <div id="app-desktop">
+      <DemoBanner />
       <TopBar />
       <div className="desktop-body">
         <SidebarNav />
         <div className="desktop-main">
           {viewMode === 'dashboard' && (
-            <div className="desktop-content-full" ref={mainScrollRef}>
-              <DashboardPage />
-            </div>
+            <div className="desktop-content-full" ref={mainScrollRef}><DashboardPage /></div>
           )}
           {viewMode === 'history' && (
-            <div className="desktop-content-full" ref={mainScrollRef}>
-              <HistoryPage />
-            </div>
+            <div className="desktop-content-full" ref={mainScrollRef}><HistoryPage /></div>
           )}
           {viewMode === 'agenda' && (
-            <div className="desktop-content-full" ref={mainScrollRef}>
-              <AgendaPage />
-            </div>
+            <div className="desktop-content-full" ref={mainScrollRef}><AgendaPage /></div>
           )}
           {viewMode === 'quickvisit' && (
-            <div className="desktop-content-full" ref={mainScrollRef}>
-              <QuickVisitPage />
-            </div>
+            <div className="desktop-content-full" ref={mainScrollRef}><QuickVisitPage /></div>
           )}
           {viewMode === 'settings' && (
-            <div className="desktop-content-full" ref={mainScrollRef}>
-              <SettingsPage />
-            </div>
+            <div className="desktop-content-full" ref={mainScrollRef}><SettingsPage /></div>
           )}
           {viewMode === 'pricing' && (
-            <div className="desktop-content-full" ref={mainScrollRef}>
-              <PricingPage />
-            </div>
+            <div className="desktop-content-full" ref={mainScrollRef}><PricingPage /></div>
           )}
           {viewMode === 'admin' && (
-            <div className="desktop-content-full" ref={mainScrollRef}>
-              <AdminPage />
-            </div>
+            <div className="desktop-content-full" ref={mainScrollRef}><AdminPage /></div>
           )}
           {viewMode === 'wizard' && (
             <>
@@ -107,86 +96,28 @@ function DesktopLayout() {
 function MobileLayout() {
   const { currentStep, mainScrollRef, viewMode } = useApp();
 
-  if (viewMode === 'dashboard') {
-    return (
-      <div id="app">
-        <TopBar />
-        <div className="main-scroll main-scroll-nopad" ref={mainScrollRef}>
-          <DashboardPage />
-        </div>
+  const shell = (children, nopad = false) => (
+    <div id="app">
+      <DemoBanner />
+      <TopBar />
+      <div className={`main-scroll${nopad ? ' main-scroll-nopad' : ''}`} ref={mainScrollRef}>
+        {children}
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (viewMode === 'history') {
-    return (
-      <div id="app">
-        <TopBar />
-        <div className="main-scroll main-scroll-nopad" ref={mainScrollRef}>
-          <HistoryPage />
-        </div>
-      </div>
-    );
-  }
-
-  if (viewMode === 'agenda') {
-    return (
-      <div id="app">
-        <TopBar />
-        <div className="main-scroll main-scroll-nopad" ref={mainScrollRef}>
-          <AgendaPage />
-        </div>
-      </div>
-    );
-  }
-
-  if (viewMode === 'quickvisit') {
-    return (
-      <div id="app">
-        <TopBar />
-        <div className="main-scroll" ref={mainScrollRef}>
-          <QuickVisitPage />
-        </div>
-      </div>
-    );
-  }
-
-  if (viewMode === 'settings') {
-    return (
-      <div id="app">
-        <TopBar />
-        <div className="main-scroll" ref={mainScrollRef}>
-          <SettingsPage />
-        </div>
-      </div>
-    );
-  }
-
-  if (viewMode === 'pricing') {
-    return (
-      <div id="app">
-        <TopBar />
-        <div className="main-scroll" ref={mainScrollRef}>
-          <PricingPage />
-        </div>
-      </div>
-    );
-  }
-
-  if (viewMode === 'admin') {
-    return (
-      <div id="app">
-        <TopBar />
-        <div className="main-scroll main-scroll-nopad" ref={mainScrollRef}>
-          <AdminPage />
-        </div>
-      </div>
-    );
-  }
+  if (viewMode === 'dashboard') return shell(<DashboardPage />, true);
+  if (viewMode === 'history')   return shell(<HistoryPage />, true);
+  if (viewMode === 'agenda')    return shell(<AgendaPage />, true);
+  if (viewMode === 'quickvisit') return shell(<QuickVisitPage />);
+  if (viewMode === 'settings')  return shell(<SettingsPage />);
+  if (viewMode === 'pricing')   return shell(<PricingPage />);
+  if (viewMode === 'admin')     return shell(<AdminPage />, true);
 
   const StepComponent = STEPS[currentStep];
   return (
     <div id="app">
+      <DemoBanner />
       <TopBar />
       <StepIndicator />
       <div className="main-scroll" ref={mainScrollRef}>
@@ -204,9 +135,32 @@ function AppContent() {
   const isDesktop = useIsDesktop();
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const goSignIn = () => { setAuthMode('login'); setShowAuth(true); };
   const goSignUp = () => { setAuthMode('signup'); setShowAuth(true); };
+
+  // Après déconnexion démo → ouvrir directement l'inscription
+  useEffect(() => {
+    if (!user && !authLoading) {
+      const next = sessionStorage.getItem('moveup_after_signout');
+      if (next === 'signup') {
+        sessionStorage.removeItem('moveup_after_signout');
+        setAuthMode('signup');
+        setShowAuth(true);
+      }
+    }
+  }, [user, authLoading]);
+
+  const handleDemo = async () => {
+    setDemoLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: 'demo@moveupapp.com',
+      password: 'Demo1234!',
+    });
+    if (error) alert('Compte démo non disponible. Veuillez réessayer.');
+    setDemoLoading(false);
+  };
 
   let content;
   if (authLoading) {
@@ -218,7 +172,7 @@ function AppContent() {
   } else if (!user) {
     content = showAuth
       ? <AuthPage initialMode={authMode} onBack={() => setShowAuth(false)} />
-      : <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} />;
+      : <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} onDemo={handleDemo} demoLoading={demoLoading} />;
   } else {
     content = isDesktop ? <DesktopLayout /> : <MobileLayout />;
   }
