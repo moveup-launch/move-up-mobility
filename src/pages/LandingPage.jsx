@@ -21,7 +21,7 @@ export default function LandingPage({ onSignIn, onSignUp }) {
       {/* ── Hero ───────────────────────────────────────── */}
       <section className="landing-hero">
         <div className="landing-container" style={{ textAlign: 'center' }}>
-          <div className="landing-badge">🚀 Nouveau · Visites illimitées sur le plan Pro</div>
+          <div className="landing-badge">🚀 Plan Pro à 9,99€/mois · Visites illimitées</div>
           <h1 className="landing-h1">
             L'assistant de visite pour les<br />
             <span style={{ color: ACCENT }}>professionnels du déménagement</span>
@@ -157,7 +157,7 @@ export default function LandingPage({ onSignIn, onSignUp }) {
             <div className="landing-plan-card landing-plan-card-featured">
               <div className="landing-plan-badge">Le plus populaire</div>
               <div className="landing-plan-name" style={{ color: 'white' }}>Pro</div>
-              <div className="landing-plan-price" style={{ color: 'white' }}>29 €<span>/mois</span></div>
+              <div className="landing-plan-price" style={{ color: 'white' }}>9,99 €<span>/mois</span></div>
               <p className="landing-plan-desc" style={{ color: 'rgba(255,255,255,0.7)' }}>Pour les professionnels actifs</p>
               <ul className="landing-plan-features" style={{ color: 'rgba(255,255,255,0.9)' }}>
                 <li>✓ Visites illimitées</li>

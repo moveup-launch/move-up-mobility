@@ -1,17 +1,12 @@
 import { loadStripe } from '@stripe/stripe-js';
 
-const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 export const stripePromise = key ? loadStripe(key) : null;
 
 export const PLANS = {
   pro: {
     priceId: import.meta.env.VITE_STRIPE_PRO_PRICE_ID || '',
-    amount: 29,
-    currency: 'EUR',
-  },
-  enterprise: {
-    priceId: import.meta.env.VITE_STRIPE_ENTERPRISE_PRICE_ID || '',
-    amount: 79,
+    amount: 9.99,
     currency: 'EUR',
   },
 };
