@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
-export default function AuthPage() {
+export default function AuthPage({ initialMode = 'login', onBack }) {
   const { lang } = useApp();
-  const [mode, setMode] = useState('login');
+  const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -51,6 +51,14 @@ export default function AuthPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, padding: 0 }}
+          >
+            ← {isFr ? 'Retour' : 'Back'}
+          </button>
+        )}
         <div className="auth-logo-wrap">
           <div className="auth-logo">📦</div>
         </div>

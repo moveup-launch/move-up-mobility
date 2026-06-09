@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { useIsDesktop } from './hooks/useIsDesktop';
 import TopBar from './components/TopBar';
@@ -18,6 +19,8 @@ import DashboardPage from './pages/DashboardPage';
 import AgendaPage from './pages/AgendaPage';
 import QuickVisitPage from './pages/QuickVisitPage';
 import SettingsPage from './pages/SettingsPage';
+import PricingPage from './pages/PricingPage';
+import LandingPage from './pages/LandingPage';
 import OfflineBanner from './components/OfflineBanner';
 
 const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
@@ -69,6 +72,11 @@ function DesktopLayout() {
           {viewMode === 'settings' && (
             <div className="desktop-content-full" ref={mainScrollRef}>
               <SettingsPage />
+            </div>
+          )}
+          {viewMode === 'pricing' && (
+            <div className="desktop-content-full" ref={mainScrollRef}>
+              <PricingPage />
             </div>
           )}
           {viewMode === 'wizard' && (
@@ -148,6 +156,17 @@ function MobileLayout() {
     );
   }
 
+  if (viewMode === 'pricing') {
+    return (
+      <div id="app">
+        <TopBar />
+        <div className="main-scroll" ref={mainScrollRef}>
+          <PricingPage />
+        </div>
+      </div>
+    );
+  }
+
   const StepComponent = STEPS[currentStep];
   return (
     <div id="app">
@@ -166,6 +185,11 @@ function MobileLayout() {
 function AppContent() {
   const { user, authLoading } = useApp();
   const isDesktop = useIsDesktop();
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+
+  const goSignIn = () => { setAuthMode('login'); setShowAuth(true); };
+  const goSignUp = () => { setAuthMode('signup'); setShowAuth(true); };
 
   let content;
   if (authLoading) {
@@ -175,7 +199,9 @@ function AppContent() {
       </div>
     );
   } else if (!user) {
-    content = <AuthPage />;
+    content = showAuth
+      ? <AuthPage initialMode={authMode} onBack={() => setShowAuth(false)} />
+      : <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} />;
   } else {
     content = isDesktop ? <DesktopLayout /> : <MobileLayout />;
   }

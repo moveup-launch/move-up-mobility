@@ -453,16 +453,22 @@ function InventoryList({ room }) {
   );
 }
 
+const FREE_PHOTO_LIMIT = 5;
+
 function RoomPhotosSection({ room }) {
-  const { lang, t, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, retryPhotoUploads } = useApp();
+  const { lang, t, profile, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, retryPhotoUploads, setViewMode } = useApp();
   const isFr = lang === 'fr';
   const cats = isFr ? PHOTO_CATEGORIES_FR : PHOTO_CATEGORIES_EN;
   const [lightbox, setLightbox] = useState(null);
   const photos = room.photos || [];
   const hasErrors = photos.some(p => p.uploadStatus === 'error');
+  const plan = profile?.plan || 'free';
+  const photoLimit = plan === 'free' ? FREE_PHOTO_LIMIT : Infinity;
+  const atLimit = photos.length >= photoLimit;
 
   const handleFiles = async (files) => {
-    for (const file of Array.from(files || [])) {
+    const toProcess = Array.from(files || []).slice(0, Math.max(0, photoLimit - photos.length));
+    for (const file of toProcess) {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const compressed = await compressImage(e.target.result);
@@ -524,6 +530,24 @@ function RoomPhotosSection({ room }) {
           </div>
         </label>
       </div>
+
+      {/* Limite plan gratuit */}
+      {atLimit && plan === 'free' && (
+        <div
+          onClick={() => setViewMode('pricing')}
+          style={{ background: '#EEF3FD', border: '1px solid #2B6BE6', borderRadius: 8, padding: '8px 12px', marginBottom: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+        >
+          <span style={{ fontSize: 14 }}>🔒</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#2B6BE6' }}>
+              {isFr ? `Limite de ${FREE_PHOTO_LIMIT} photos (plan gratuit)` : `${FREE_PHOTO_LIMIT} photos limit (free plan)`}
+            </div>
+            <div style={{ fontSize: 11, color: '#2B6BE6', opacity: 0.8 }}>
+              {isFr ? 'Passer au Pro pour des photos illimitées →' : 'Upgrade to Pro for unlimited photos →'}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bande miniatures */}
       {photos.length > 0 && (

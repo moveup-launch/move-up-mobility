@@ -26,14 +26,22 @@ function formatDateShort(dateStr, isFr) {
   } catch { return dateStr; }
 }
 
+const PLAN_BADGE = {
+  free:       { label: 'Plan Gratuit', bg: '#F0EFE9', color: '#6B6860' },
+  pro:        { label: 'Plan Pro',     bg: '#EEF3FD', color: '#2B6BE6' },
+  enterprise: { label: 'Entreprise',  bg: '#FBF5E6', color: '#D4A017' },
+};
+const FREE_VISIT_LIMIT = 3;
+
 export default function DashboardPage() {
-  const { t, lang, user, profile, loadVisit, goToStep } = useApp();
+  const { t, lang, user, profile, loadVisit, goToStep, setViewMode } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [showNewVisit, setShowNewVisit] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [opening, setOpening] = useState(null);
@@ -113,8 +121,36 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Badge plan */}
+        {(() => {
+          const plan = profile?.plan || 'free';
+          const b = PLAN_BADGE[plan] || PLAN_BADGE.free;
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span
+                style={{ background: b.bg, color: b.color, padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                onClick={() => setViewMode('pricing')}
+              >
+                {b.label}
+              </span>
+              {plan === 'free' && (
+                <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                  {visits.length}/{FREE_VISIT_LIMIT} {isFr ? 'visites' : 'visits'}
+                </span>
+              )}
+            </div>
+          );
+        })()}
+
         {/* CTA Nouvelle visite */}
-        <button className="dashboard-cta" onClick={() => setShowNewVisit(true)}>
+        <button className="dashboard-cta" onClick={() => {
+          const plan = profile?.plan || 'free';
+          if (plan === 'free' && visits.length >= FREE_VISIT_LIMIT) {
+            setShowUpgradeModal(true);
+          } else {
+            setShowNewVisit(true);
+          }
+        }}>
           ✏️ {isFr ? 'Nouvelle visite' : 'New visit'}
         </button>
 
@@ -221,6 +257,43 @@ export default function DashboardPage() {
           onClose={() => setShowNewVisit(false)}
           onCreated={handleVisitCreated}
         />
+      )}
+
+      {/* Modal limite plan gratuit */}
+      {showUpgradeModal && (
+        <div
+          onClick={() => setShowUpgradeModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'white', borderRadius: '20px 20px 0 0', padding: '28px 24px 40px', width: '100%', maxWidth: 480 }}
+          >
+            <div style={{ fontSize: 36, textAlign: 'center', marginBottom: 12 }}>🚀</div>
+            <div style={{ fontWeight: 800, fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
+              {isFr ? 'Limite du plan gratuit atteinte' : 'Free plan limit reached'}
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+              {isFr
+                ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au plan Pro pour des visites illimitées.`
+                : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro for unlimited visits.`}
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
+              onClick={() => { setShowUpgradeModal(false); setViewMode('pricing'); }}
+            >
+              {isFr ? 'Voir les plans →' : 'View plans →'}
+            </button>
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', padding: '12px', fontSize: 14 }}
+              onClick={() => setShowUpgradeModal(false)}
+            >
+              {isFr ? 'Plus tard' : 'Later'}
+            </button>
+          </div>
+        </div>
       )}
     </>
   );

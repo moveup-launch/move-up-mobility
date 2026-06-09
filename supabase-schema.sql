@@ -100,3 +100,28 @@ CREATE POLICY "Users delete their own photos"
     bucket_id = 'visit-photos'
     AND auth.uid()::text = (string_to_array(name, '/'))[1]
   );
+
+-- ============================================================
+-- 4. TABLE PROFILES — colonnes abonnement (Sprint 4)
+-- ============================================================
+-- Créer la table profiles si absente
+CREATE TABLE IF NOT EXISTS profiles (
+  id uuid references auth.users(id) on delete cascade primary key,
+  first_name text,
+  last_name  text,
+  company_name text,
+  plan text default 'free',
+  stripe_customer_id text,
+  subscription_status text default 'inactive'
+);
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "Users manage their own profile"
+  ON profiles FOR ALL
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+-- Ajouter les colonnes si la table existe déjà
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan text DEFAULT 'free';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_status text DEFAULT 'inactive';
