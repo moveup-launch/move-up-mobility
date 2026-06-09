@@ -5,7 +5,7 @@ export const stripePromise = key ? loadStripe(key) : null;
 
 export const PLANS = {
   pro: {
-    priceId: import.meta.env.VITE_STRIPE_PRO_PRICE_ID || '',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PRO || '',
     amount: 9.99,
     currency: 'EUR',
   },
