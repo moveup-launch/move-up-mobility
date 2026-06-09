@@ -178,6 +178,20 @@ export const CATALOG = {
       ]
     },
     { id: "console", name: { fr: "Console / Meuble d'entrée", en: "Console / Hallway unit" }, icon: "🪑", variants: [{ id: "console_std", label: { fr: "Console standard", en: "Standard console" }, volume_m3: 0.2, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "coat_rack", name: { fr: "Porte-manteau / Vestiaire", en: "Coat rack / Wardrobe stand" }, icon: "🧥", variants: [
+      { id: "coat_rack_floor", label: { fr: "Porte-manteau sur pied", en: "Floor coat rack" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "coat_rack_wall", label: { fr: "Patère murale / Vestiaire mural", en: "Wall-mounted coat rack" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "shoe_cabinet", name: { fr: "Meuble à chaussures", en: "Shoe cabinet" }, icon: "👟", variants: [
+      { id: "shoe_small", label: { fr: "Petit meuble chaussures (2-4 niv.)", en: "Small shoe cabinet (2-4 tiers)" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "shoe_large", label: { fr: "Grand meuble chaussures", en: "Large shoe cabinet" }, volume_m3: 0.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "bench_hallway", name: { fr: "Banc d'entrée", en: "Hallway bench" }, icon: "🪑", variants: [
+      { id: "bench_std", label: { fr: "Banc d'entrée standard", en: "Standard hallway bench" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "fireplace_decor", name: { fr: "Cheminée décorative / Insert", en: "Decorative fireplace / Insert" }, icon: "🔥", variants: [
+      { id: "fireplace_electric", label: { fr: "Cheminée électrique décorative", en: "Decorative electric fireplace" }, volume_m3: 0.5, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
     {
       id: "rug",
       name: { fr: "Tapis", en: "Rug" },
@@ -302,6 +316,61 @@ export const CATALOG = {
     { id: "office_wardrobe", name: { fr: "Armoire à dossiers", en: "Document wardrobe" }, icon: "🚪", variants: [{ id: "oward_std", label: { fr: "Armoire à dossiers standard", en: "Standard document wardrobe" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
   ],
 
+  garden: [
+    { id: "garden_table", name: { fr: "Table de jardin", en: "Garden table" }, icon: "🪑", variants: [
+      { id: "garden_table_small", label: { fr: "Table jardin 4 places", en: "4-seater garden table" }, volume_m3: 0.5, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "garden_table_large", label: { fr: "Table jardin 6-8 places", en: "6-8 seater garden table" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "garden_chairs", name: { fr: "Chaises de jardin", en: "Garden chairs" }, icon: "🪑", variants: [
+      { id: "garden_chair_2", label: { fr: "2 chaises de jardin", en: "2 garden chairs" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "garden_chair_4", label: { fr: "4 chaises de jardin", en: "4 garden chairs" }, volume_m3: 0.4, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "garden_chair_6", label: { fr: "6 chaises de jardin", en: "6 garden chairs" }, volume_m3: 0.6, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_lounger", name: { fr: "Transat / Bain de soleil", en: "Lounger / Sun bed" }, icon: "🛋️", variants: [
+      { id: "lounger_1", label: { fr: "1 transat", en: "1 lounger" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "lounger_2", label: { fr: "2 transats", en: "2 loungers" }, volume_m3: 0.4, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_parasol", name: { fr: "Parasol / Tonnelle", en: "Parasol / Canopy" }, icon: "☂️", variants: [
+      { id: "parasol_std", label: { fr: "Parasol standard", en: "Standard parasol" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "tonnelle_std", label: { fr: "Tonnelle / Pergola", en: "Canopy / Pergola" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "garden_bbq", name: { fr: "Barbecue", en: "BBQ" }, icon: "🔥", variants: [
+      { id: "bbq_charcoal", label: { fr: "Barbecue charbon", en: "Charcoal BBQ" }, volume_m3: 0.3, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "bbq_gas", label: { fr: "Barbecue à gaz", en: "Gas BBQ" }, volume_m3: 0.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "bbq_plancha", label: { fr: "Plancha", en: "Plancha grill" }, volume_m3: 0.2, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_shed", name: { fr: "Abri de jardin / Serre", en: "Garden shed / Greenhouse" }, icon: "🏡", variants: [
+      { id: "shed_small", label: { fr: "Petit abri de jardin", en: "Small garden shed" }, volume_m3: 2.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "shed_large", label: { fr: "Grand abri de jardin", en: "Large garden shed" }, volume_m3: 5.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "garden_trampoline", name: { fr: "Trampoline", en: "Trampoline" }, icon: "⭕", variants: [
+      { id: "trampoline_small", label: { fr: "Trampoline petit (< 3m)", en: "Small trampoline (< 3m)" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "trampoline_large", label: { fr: "Grand trampoline (3-4m)", en: "Large trampoline (3-4m)" }, volume_m3: 2.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "garden_pool", name: { fr: "Piscine hors-sol", en: "Above-ground pool" }, icon: "🏊", variants: [
+      { id: "pool_inflatable", label: { fr: "Piscine gonflable", en: "Inflatable pool" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "pool_frame", label: { fr: "Piscine tubulaire", en: "Frame pool" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "garden_wheelbarrow", name: { fr: "Brouette", en: "Wheelbarrow" }, icon: "🛒", variants: [
+      { id: "wheelbarrow_std", label: { fr: "Brouette standard", en: "Standard wheelbarrow" }, volume_m3: 0.3, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_mower", name: { fr: "Tondeuse", en: "Lawnmower" }, icon: "🌿", variants: [
+      { id: "mower_push_g", label: { fr: "Tondeuse poussée", en: "Push mower" }, volume_m3: 0.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "mower_robotic", label: { fr: "Tondeuse robot", en: "Robotic mower" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "mower_ride_g", label: { fr: "Tondeuse autoportée", en: "Ride-on mower" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_tools", name: { fr: "Outils de jardin", en: "Garden tools" }, icon: "🔧", variants: [
+      { id: "garden_tools_lot", label: { fr: "Lot d'outils de jardin", en: "Garden tool set" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_pot", name: { fr: "Pots / Jardinières", en: "Pots / Planters" }, icon: "🪴", variants: [
+      { id: "pot_small_lot", label: { fr: "Petits pots (lot)", en: "Small pots (set)" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "pot_large", label: { fr: "Grand pot / jardinière", en: "Large pot / planter" }, volume_m3: 0.3, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_bike", name: { fr: "Abri à vélos", en: "Bike shed" }, icon: "🚲", variants: [
+      { id: "bike_shed_std", label: { fr: "Abri à vélos", en: "Bike shed" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+  ],
+
   garageBasement: [
     { id: "bike_child", name: { fr: "Vélo enfant", en: "Child bike" }, icon: "🚲", variants: [{ id: "bike_child_std", label: { fr: "Vélo enfant", en: "Child bike" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "bike_adult", name: { fr: "Vélo adulte", en: "Adult bike" }, icon: "🚲", variants: [{ id: "bike_adult_std", label: { fr: "Vélo adulte", en: "Adult bike" }, volume_m3: 0.6, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
@@ -400,6 +469,13 @@ export const CATALOG = {
         { id: "lc_large", label: { fr: "Grande armoire buanderie", en: "Large laundry cabinet" }, volume_m3: 1.00, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
       ]
     },
+    { id: "vacuum_cleaner", name: { fr: "Aspirateur", en: "Vacuum cleaner" }, icon: "🧹", variants: [
+      { id: "vac_upright", label: { fr: "Aspirateur balai / robot", en: "Upright / robot vacuum" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "vac_cylinder", label: { fr: "Aspirateur traîneau", en: "Cylinder vacuum" }, volume_m3: 0.08, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "steam_cleaner", name: { fr: "Nettoyeur vapeur", en: "Steam cleaner" }, icon: "💨", variants: [
+      { id: "steam_std", label: { fr: "Nettoyeur vapeur standard", en: "Standard steam cleaner" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
   ],
 
   bathroom: [
@@ -455,6 +531,18 @@ export const CATALOG = {
         { id: "bs_std", label: { fr: "Etagere salle de bain", en: "Bathroom shelf" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
       ]
     },
+    { id: "bath_stool", name: { fr: "Tabouret / Chaise de salle de bain", en: "Bathroom stool / chair" }, icon: "🪑", variants: [
+      { id: "bath_stool_std", label: { fr: "Tabouret salle de bain", en: "Bathroom stool" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "bath_towel_rack", name: { fr: "Porte-serviettes", en: "Towel rack" }, icon: "🪣", variants: [
+      { id: "towelrack_wall", label: { fr: "Porte-serviettes mural", en: "Wall towel rack" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "bathtub", name: { fr: "Baignoire", en: "Bathtub" }, icon: "🛁", variants: [
+      { id: "bathtub_freestanding", label: { fr: "Baignoire ilot / autoportante", en: "Freestanding bathtub" }, volume_m3: 1.5, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: true },
+    ]},
+    { id: "washbasin", name: { fr: "Vasque / Lavabo", en: "Washbasin / Sink" }, icon: "🪣", variants: [
+      { id: "washbasin_freestanding", label: { fr: "Vasque à poser / lavabo autoportant", en: "Freestanding washbasin" }, volume_m3: 0.15, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
   ],
 
   exceptional: [
@@ -561,7 +649,7 @@ export const CATALOG = {
     garage: ["garageBasement"],
     basement: ["garageBasement"],
     attic: ["garageBasement"],
-    garden: ["garageBasement"],
+    garden: ["garden", "garageBasement"],
     storageBox: ["garageBasement"],
     misc: ["bedroom", "livingRoom"],
   },

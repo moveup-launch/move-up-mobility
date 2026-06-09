@@ -952,3 +952,48 @@ textarea { min-height: 80px; resize: vertical; }
   .landing-plan-card-featured { transform: none; }
   .landing-btn-lg { padding: 12px 22px; font-size: 15px; }
 }
+
+/* ── iPad (768-1024px) : panel volume flottant ─────────── */
+.volume-float-btn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(43, 107, 230, 0.35);
+  z-index: 100;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .desktop-panel-wrap { display: none !important; }
+  .volume-float-btn { display: flex; }
+}
+
+.volume-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 16px;
+}
+
+.volume-overlay-panel {
+  background: var(--bg);
+  border-radius: var(--radius);
+  width: 340px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}

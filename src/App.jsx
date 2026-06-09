@@ -45,6 +45,7 @@ function DesktopBottomNav() {
 function DesktopLayout() {
   const { currentStep, mainScrollRef, viewMode } = useApp();
   const StepComponent = STEPS[currentStep];
+  const [showVolumeOverlay, setShowVolumeOverlay] = useState(false);
 
   return (
     <div id="app-desktop">
@@ -83,6 +84,22 @@ function DesktopLayout() {
               <div className="desktop-panel-wrap">
                 <LiveVolumePanel />
               </div>
+              <button
+                className="volume-float-btn"
+                onClick={() => setShowVolumeOverlay(v => !v)}
+              >
+                📊 Volume
+              </button>
+              {showVolumeOverlay && (
+                <div
+                  className="volume-overlay"
+                  onClick={() => setShowVolumeOverlay(false)}
+                >
+                  <div className="volume-overlay-panel" onClick={e => e.stopPropagation()}>
+                    <LiveVolumePanel />
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>

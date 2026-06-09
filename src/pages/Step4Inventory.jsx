@@ -106,12 +106,43 @@ function QuickAdjustSheet({ roomId, catKey, itemId }) {
   );
 }
 
-function CustomItemSheet({ roomId }) {
+const MISC_SUGGESTIONS_FR = {
+  bedroom:      [{ n: 'Couette / Duvet', v: 0.1 }, { n: 'Oreillers (lot)', v: 0.05 }, { n: 'Luminaire plafond', v: 0.1 }, { n: 'Rideaux (lot)', v: 0.1 }, { n: 'Tête de lit', v: 0.2 }],
+  childBedroom: [{ n: 'Peluches (lot)', v: 0.1 }, { n: 'Jouets (lot)', v: 0.3 }, { n: 'Luminaire', v: 0.05 }, { n: 'Rideau', v: 0.05 }],
+  dressing:     [{ n: 'Cintres (lot)', v: 0.05 }, { n: 'Boîtes à chaussures', v: 0.1 }, { n: 'Miroir', v: 0.1 }],
+  kitchen:      [{ n: 'Poubelle', v: 0.05 }, { n: 'Ustensiles cuisine', v: 0.1 }, { n: 'Bouteilles / cave', v: 0.2 }, { n: 'Électroménager petit', v: 0.1 }],
+  diningRoom:   [{ n: 'Nappe / linge de table', v: 0.05 }, { n: 'Service vaisselle', v: 0.2 }, { n: 'Luminaire suspension', v: 0.1 }],
+  livingRoom:   [{ n: 'Coussins / plaids', v: 0.1 }, { n: 'Luminaire', v: 0.1 }, { n: 'Étagères murales', v: 0.3 }, { n: 'Rideaux', v: 0.1 }],
+  office:       [{ n: 'Câbles / accessoires', v: 0.05 }, { n: 'Livres / archives', v: 0.3 }, { n: 'Lampe de bureau', v: 0.05 }],
+  bathroom:     [{ n: 'Pèse-personne', v: 0.03 }, { n: 'Accessoires SDB', v: 0.05 }, { n: 'Miroir', v: 0.08 }],
+  laundry:      [{ n: 'Produits lessive (lot)', v: 0.1 }, { n: 'Séchoir pliable', v: 0.1 }],
+  garage:       [{ n: 'Outillage divers', v: 0.2 }, { n: 'Accessoires voiture', v: 0.1 }, { n: 'Bidons', v: 0.1 }],
+  garden:       [{ n: 'Outils de jardin', v: 0.2 }, { n: 'Pots de fleurs', v: 0.15 }, { n: 'Tuyau d\'arrosage', v: 0.05 }, { n: 'Terrasse (mobilier)', v: 0.3 }],
+  misc:         [{ n: 'Cartons divers', v: 0.06 }, { n: 'Sacs bagages', v: 0.1 }, { n: 'Objets fragiles', v: 0.1 }],
+};
+const MISC_SUGGESTIONS_EN = {
+  bedroom:      [{ n: 'Duvet / Comforter', v: 0.1 }, { n: 'Pillows (set)', v: 0.05 }, { n: 'Ceiling light', v: 0.1 }, { n: 'Curtains (set)', v: 0.1 }],
+  childBedroom: [{ n: 'Stuffed toys', v: 0.1 }, { n: 'Toys (set)', v: 0.3 }, { n: 'Light fixture', v: 0.05 }],
+  dressing:     [{ n: 'Hangers (set)', v: 0.05 }, { n: 'Shoe boxes', v: 0.1 }, { n: 'Mirror', v: 0.1 }],
+  kitchen:      [{ n: 'Trash can', v: 0.05 }, { n: 'Kitchen utensils', v: 0.1 }, { n: 'Bottles / wine rack', v: 0.2 }],
+  diningRoom:   [{ n: 'Table linen', v: 0.05 }, { n: 'Tableware set', v: 0.2 }, { n: 'Pendant light', v: 0.1 }],
+  livingRoom:   [{ n: 'Cushions / throws', v: 0.1 }, { n: 'Light fixture', v: 0.1 }, { n: 'Wall shelves', v: 0.3 }, { n: 'Curtains', v: 0.1 }],
+  office:       [{ n: 'Cables / accessories', v: 0.05 }, { n: 'Books / archives', v: 0.3 }, { n: 'Desk lamp', v: 0.05 }],
+  bathroom:     [{ n: 'Bathroom scale', v: 0.03 }, { n: 'Bathroom accessories', v: 0.05 }, { n: 'Mirror', v: 0.08 }],
+  laundry:      [{ n: 'Laundry products', v: 0.1 }, { n: 'Folding dryer', v: 0.1 }],
+  garage:       [{ n: 'Misc tools', v: 0.2 }, { n: 'Car accessories', v: 0.1 }],
+  garden:       [{ n: 'Garden tools', v: 0.2 }, { n: 'Plant pots', v: 0.15 }, { n: 'Garden hose', v: 0.05 }],
+  misc:         [{ n: 'Moving boxes', v: 0.06 }, { n: 'Luggage bags', v: 0.1 }, { n: 'Fragile items', v: 0.1 }],
+};
+
+function CustomItemSheet({ roomId, roomType }) {
   const { lang, addCustomItemToRoom, closeSheet } = useApp();
   const [name, setName] = useState('');
   const [volume, setVolume] = useState(0.3);
   const [qty, setQty] = useState(1);
   const isFr = lang === 'fr';
+
+  const suggestions = (isFr ? MISC_SUGGESTIONS_FR : MISC_SUGGESTIONS_EN)[roomType] || [];
 
   const volumePresets = [
     { val: 0.1, label: isFr ? 'Petit' : 'Small' },
@@ -126,10 +157,41 @@ function CustomItemSheet({ roomId }) {
     closeSheet();
   };
 
+  const pickSuggestion = (s) => {
+    setName(s.n);
+    setVolume(s.v);
+  };
+
   return (
     <>
       <div className="sheet-handle" />
       <div className="sheet-title">📦 {isFr ? 'Objet non liste' : 'Unlisted item'}</div>
+
+      {suggestions.length > 0 && (
+        <div style={{ padding: '0 16px 12px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {isFr ? 'Suggestions rapides' : 'Quick suggestions'}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {suggestions.map(s => (
+              <button
+                key={s.n}
+                onClick={() => pickSuggestion(s)}
+                style={{
+                  padding: '5px 10px', borderRadius: '16px', fontSize: '12px', cursor: 'pointer',
+                  background: name === s.n ? 'var(--accent)' : 'var(--surface2)',
+                  color: name === s.n ? 'white' : 'var(--text2)',
+                  border: `1px solid ${name === s.n ? 'var(--accent)' : 'var(--border)'}`,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {s.n}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="field" style={{ padding: '0 16px 12px' }}>
         <label>{isFr ? "Nom de l'objet" : 'Item name'}</label>
         <input type="text" value={name} onChange={e => setName(e.target.value)}
@@ -238,9 +300,10 @@ function CatalogSection({ room }) {
 
   const catLabels = {
     bedroom: lang === 'fr' ? 'Chambre / Bureau' : 'Bedroom / Office',
-    livingRoom: lang === 'fr' ? 'Salon / Sejour' : 'Living room',
+    livingRoom: lang === 'fr' ? 'Salon / Séjour / Entrée' : 'Living room / Hallway',
     kitchen: lang === 'fr' ? 'Cuisine' : 'Kitchen',
     office: lang === 'fr' ? 'Bureau' : 'Office',
+    garden: lang === 'fr' ? 'Jardin' : 'Garden',
     garageBasement: lang === 'fr' ? 'Garage / Cave' : 'Garage / Basement',
     laundry: lang === 'fr' ? 'Buanderie' : 'Laundry',
     bathroom: lang === 'fr' ? 'Salle de bain' : 'Bathroom',
@@ -328,7 +391,7 @@ function CatalogSection({ room }) {
         <button
           className="btn btn-secondary"
           style={{ width: '100%', padding: '12px', fontSize: '13px', borderStyle: 'dashed' }}
-          onClick={() => openSheet(<CustomItemSheet roomId={room.id} />)}
+          onClick={() => openSheet(<CustomItemSheet roomId={room.id} roomType={room.type} />)}
         >
           + {lang === 'fr' ? 'Divers / Objet non liste' : 'Misc / Unlisted item'}
         </button>
@@ -792,8 +855,27 @@ function BoxesSection() {
   );
 }
 
+function DeleteRoomModal({ roomId, roomName }) {
+  const { lang, deleteRoom, closeModal } = useApp();
+  const isFr = lang === 'fr';
+  return (
+    <>
+      <div className="modal-title">{isFr ? `Supprimer "${roomName}" ?` : `Delete "${roomName}"?`}</div>
+      <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '8px', textAlign: 'center' }}>
+        {isFr ? 'Tous les objets de cette pièce seront supprimés.' : 'All items in this room will be deleted.'}
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-secondary" onClick={closeModal}>{isFr ? 'Annuler' : 'Cancel'}</button>
+        <button className="btn btn-danger" onClick={() => { deleteRoom(roomId); closeModal(); }}>
+          {isFr ? 'Supprimer' : 'Delete'}
+        </button>
+      </div>
+    </>
+  );
+}
+
 export default function Step4Inventory() {
-  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, setRoomTab, selectRoom, openSheet } = useApp();
+  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, setRoomTab, selectRoom, openSheet, openModal, deleteRoom } = useApp();
 
   if (state.rooms.length === 0) {
     return (
@@ -862,6 +944,21 @@ export default function Step4Inventory() {
           +
         </button>
       </div>
+
+      {!showBoxes && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
+          <button
+            style={{
+              background: 'none', border: 'none', color: 'var(--danger)',
+              fontSize: '12px', cursor: 'pointer', padding: '4px 8px',
+              display: 'flex', alignItems: 'center', gap: '4px',
+            }}
+            onClick={() => openModal(<DeleteRoomModal roomId={room.id} roomName={room.name} />)}
+          >
+            🗑️ {lang === 'fr' ? 'Supprimer cette pièce' : 'Delete this room'}
+          </button>
+        </div>
+      )}
 
       {!showBoxes ? (
         <>

@@ -31,6 +31,8 @@ const baseClient = {
 const initialState = {
   client: { ...baseClient },
   housingType: '',
+  housingTypeOrigin: '',
+  housingTypeDestination: '',
   moveType: 'local',
   moveSegments: [],
   origin: { ...emptyAccess },
@@ -203,6 +205,8 @@ export function AppProvider({ children }) {
     setState(s => ({ ...s, destination: { ...s.destination, [field]: value } }));
 
   const setHousingType = (val) => setState(s => ({ ...s, housingType: val }));
+  const setHousingTypeOrigin = (val) => setState(s => ({ ...s, housingTypeOrigin: val }));
+  const setHousingTypeDestination = (val) => setState(s => ({ ...s, housingTypeDestination: val }));
   const setMoveType = (val) => setState(s => ({ ...s, moveType: val }));
   const setHouseholdPersons = (val) => setState(s => ({ ...s, householdPersons: Math.max(0, val) }));
   const setTransportOverride = (val) => setState(s => ({ ...s, transportOverride: val }));
@@ -642,6 +646,8 @@ export function AppProvider({ children }) {
       client_data: {
         ...state.client,
         housingType: state.housingType,
+        housingTypeOrigin: state.housingTypeOrigin,
+        housingTypeDestination: state.housingTypeDestination,
         moveType: state.moveType,
         moveSegments: state.moveSegments || [],
         householdPersons: state.householdPersons,
@@ -714,6 +720,8 @@ export function AppProvider({ children }) {
         notes: cd.notes || '',
       },
       housingType: cd.housingType || '',
+      housingTypeOrigin: cd.housingTypeOrigin || cd.housingType || '',
+      housingTypeDestination: cd.housingTypeDestination || cd.housingType || '',
       moveType: cd.moveType || (cd.isInternational ? 'sea' : 'local'),
       moveSegments: cd.moveSegments || [],
       origin: migrateAccess(visitData.origin_data),
@@ -816,7 +824,8 @@ export function AppProvider({ children }) {
       state,
       t, tCat,
       updateClient, updateOrigin, updateDestination,
-      setHousingType, setMoveType, setHouseholdPersons, setTransportOverride,
+      setHousingType, setHousingTypeOrigin, setHousingTypeDestination,
+      setMoveType, setHouseholdPersons, setTransportOverride,
       addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution,
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,

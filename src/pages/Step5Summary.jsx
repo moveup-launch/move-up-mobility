@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { sendConfirmationEmail } from '../lib/resend';
 
 const MOVE_TYPE_OPTIONS_FR = [
   { val: 'local', label: 'Local / National' },
@@ -97,7 +96,6 @@ export default function Step5Summary() {
 
   const [saveStatus, setSaveStatus] = useState('idle');
   const [transportPickerOpen, setTransportPickerOpen] = useState(false);
-  const [emailStatus, setEmailStatus] = useState('idle');
 
   const vol = getTotalVolume();
   const truckAuto = getRecommendedTruck(vol);
@@ -130,24 +128,29 @@ export default function Step5Summary() {
     }
   };
 
-  const handleSendEmail = async () => {
-    if (!state.client.email) return;
-    setEmailStatus('sending');
-    const { error } = await sendConfirmationEmail({
-      to: state.client.email,
-      clientName: state.client.name,
-      visitDate: state.client.visitDate,
-      visitTime: state.client.visitTime,
-      commercialName: state.client.surveyor,
-      originAddress: [state.origin.address, state.origin.postalCode, state.origin.city].filter(Boolean).join(', '),
-      lang,
-    });
-    if (error) {
-      setEmailStatus('error');
-      setTimeout(() => setEmailStatus('idle'), 4000);
-    } else {
-      setEmailStatus('sent');
-    }
+  const handleSendSMS = () => {
+    const phone = state.client.phone;
+    if (!phone) return;
+    const msg = isFr
+      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\nVolume estimé : ${vol.toFixed(1)} m³ — ${truck}.\n\nN'hésitez pas à nous contacter pour tout renseignement.`
+      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\nEstimated volume: ${vol.toFixed(1)} m³ — ${truck}.\n\nFeel free to contact us for any questions.`;
+    window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`);
+  };
+
+  const handleSendEmail = () => {
+    const email = state.client.email;
+    if (!email) return;
+    const subject = isFr
+      ? `Récapitulatif visite déménagement — ${state.client.visitDate}`
+      : `Moving visit summary — ${state.client.visitDate}`;
+    const origin = [state.origin.address, state.origin.postalCode, state.origin.city].filter(Boolean).join(', ');
+    const dest = state.destination.noFixedAddress
+      ? (isFr ? state.destination.city || 'Destination à définir' : state.destination.city || 'Destination TBD')
+      : [state.destination.address, state.destination.postalCode, state.destination.city].filter(Boolean).join(', ');
+    const body = isFr
+      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³\nTransport recommandé : ${truck}\n\nCordialement,\n${state.client.surveyor || ''}`
+      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³\nRecommended truck: ${truck}\n\nBest regards,\n${state.client.surveyor || ''}`;
+    window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
   return (
@@ -381,37 +384,35 @@ export default function Step5Summary() {
                 {isFr ? "Voir l'historique →" : 'View history →'}
               </button>
             </div>
-            {/* Bouton email confirmation */}
-            {state.client.email ? (
-              emailStatus === 'sent' ? (
-                <div style={{
-                  marginTop: '8px', padding: '12px 14px', background: '#F0FDF4',
-                  border: '1px solid #BBF7D0', borderRadius: '10px',
-                  textAlign: 'center', color: '#16A34A', fontWeight: '700', fontSize: '14px',
-                }}>
-                  ✅ {t('confirmEmailSent')} — {state.client.email}
-                </div>
-              ) : (
-                <button
-                  onClick={handleSendEmail}
-                  disabled={emailStatus === 'sending'}
-                  style={{
-                    width: '100%', marginTop: '8px', padding: '12px 14px',
-                    borderRadius: '10px', border: '2px solid var(--accent)',
-                    background: 'var(--accent-light)', color: 'var(--accent)',
-                    fontWeight: '700', fontSize: '14px',
-                    cursor: emailStatus === 'sending' ? 'default' : 'pointer',
-                    opacity: emailStatus === 'sending' ? 0.7 : 1,
-                  }}
-                >
-                  {emailStatus === 'sending'
-                    ? (isFr ? '⏳ Envoi…' : '⏳ Sending…')
-                    : emailStatus === 'error'
-                      ? `❌ ${t('confirmEmailError')} — ${isFr ? 'réessayer' : 'retry'}`
-                      : `✉️ ${t('sendConfirmEmail')}`}
-                </button>
-              )
-            ) : null}
+            {/* Boutons contact client */}
+            {(state.client.phone || state.client.email) && (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                {state.client.phone && (
+                  <button
+                    onClick={handleSendSMS}
+                    style={{
+                      flex: 1, padding: '11px 10px', borderRadius: '10px',
+                      border: '2px solid #16A34A', background: '#F0FDF4', color: '#16A34A',
+                      fontWeight: '700', fontSize: '13px', cursor: 'pointer',
+                    }}
+                  >
+                    📱 {isFr ? 'SMS client' : 'SMS client'}
+                  </button>
+                )}
+                {state.client.email && (
+                  <button
+                    onClick={handleSendEmail}
+                    style={{
+                      flex: 1, padding: '11px 10px', borderRadius: '10px',
+                      border: '2px solid var(--accent)', background: 'var(--accent-light)', color: 'var(--accent)',
+                      fontWeight: '700', fontSize: '13px', cursor: 'pointer',
+                    }}
+                  >
+                    📧 {isFr ? 'Email client' : 'Email client'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <button
