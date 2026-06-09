@@ -36,8 +36,8 @@ export default function LandingPage({ onSignIn, onSignUp }) {
             <button className="landing-btn-primary landing-btn-lg" onClick={onSignUp}>
               Essayer gratuitement →
             </button>
-            <button className="landing-btn-ghost landing-btn-lg" onClick={onSignIn}>
-              Voir une démo
+            <button className="landing-btn-ghost landing-btn-lg" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
+              Voir les fonctionnalités
             </button>
           </div>
           <p style={{ fontSize: 12, color: '#9E9C94', marginTop: 14 }}>3 visites gratuites · Sans carte bancaire</p>
@@ -75,7 +75,7 @@ export default function LandingPage({ onSignIn, onSignUp }) {
       </section>
 
       {/* ── Fonctionnalités ────────────────────────────── */}
-      <section className="landing-section landing-section-light">
+      <section className="landing-section landing-section-light" id="features">
         <div className="landing-container">
           <h2 className="landing-h2">Tout ce dont vous avez besoin</h2>
           <p className="landing-section-sub">Une solution complète de A à Z pour vos visites de déménagement</p>
