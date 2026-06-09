@@ -5,6 +5,7 @@ const STEP_ICONS = ['👤', '🏠', '📦', '📊', '📄'];
 export default function SidebarNav() {
   const { currentStep, goToStep, t, lang, user, profile, signOut, viewMode, setViewMode, startNewVisit } = useApp();
 
+
   const steps = [t('step1'), t('step2'), t('step3'), t('step4'), t('step5')];
   const isFr = lang === 'fr';
 
@@ -41,6 +42,14 @@ export default function SidebarNav() {
         >
           <span>⚙️</span> {isFr ? 'Paramètres' : 'Settings'}
         </button>
+        {profile?.is_admin && (
+          <button
+            className={`sidebar-nav-btn ${viewMode === 'admin' ? 'active' : ''}`}
+            onClick={() => setViewMode('admin')}
+          >
+            <span>🛡️</span> Admin
+          </button>
+        )}
       </div>
 
       {viewMode === 'wizard' && (

@@ -125,3 +125,84 @@ CREATE POLICY IF NOT EXISTS "Users manage their own profile"
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan text DEFAULT 'free';
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_status text DEFAULT 'inactive';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false;
+
+-- ============================================================
+-- ADMIN : vue + fonctions (exécuter dans Supabase SQL Editor)
+-- ============================================================
+
+-- Vue admin_users (pour requêtes SQL directes)
+CREATE OR REPLACE VIEW admin_users AS
+SELECT
+  p.id,
+  p.first_name,
+  p.last_name,
+  p.company_name,
+  p.plan,
+  p.is_admin,
+  p.created_at,
+  u.email
+FROM profiles p
+JOIN auth.users u ON p.id = u.id;
+
+-- Fonction get_admin_users() — SECURITY DEFINER pour accéder à auth.users
+-- Retourne la liste uniquement si l'appelant est admin
+CREATE OR REPLACE FUNCTION get_admin_users()
+RETURNS TABLE(
+  id            uuid,
+  email         text,
+  first_name    text,
+  last_name     text,
+  company_name  text,
+  plan          text,
+  is_admin      boolean,
+  created_at    timestamptz,
+  visit_count   bigint
+)
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE sql
+AS $$
+  SELECT
+    p.id,
+    u.email::text,
+    p.first_name,
+    p.last_name,
+    p.company_name,
+    p.plan,
+    p.is_admin,
+    p.created_at,
+    (SELECT COUNT(*) FROM visits v WHERE v.user_id = p.id)::bigint AS visit_count
+  FROM profiles p
+  JOIN auth.users u ON p.id = u.id
+  WHERE EXISTS (
+    SELECT 1 FROM profiles ap WHERE ap.id = auth.uid() AND ap.is_admin = true
+  )
+  ORDER BY p.created_at DESC;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_admin_users() TO authenticated;
+
+-- Fonction admin_set_user_plan() — modifie le plan d'un utilisateur
+CREATE OR REPLACE FUNCTION admin_set_user_plan(target_user_id uuid, new_plan text)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+  ) THEN
+    RAISE EXCEPTION 'Non autorisé';
+  END IF;
+  UPDATE profiles SET plan = new_plan WHERE id = target_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION admin_set_user_plan(uuid, text) TO authenticated;
+
+-- Pour activer votre compte admin (remplacer l'email) :
+-- UPDATE profiles SET is_admin = true WHERE id = (
+--   SELECT id FROM auth.users WHERE email = 'votre@email.com'
+-- );

@@ -21,6 +21,7 @@ import QuickVisitPage from './pages/QuickVisitPage';
 import SettingsPage from './pages/SettingsPage';
 import PricingPage from './pages/PricingPage';
 import LandingPage from './pages/LandingPage';
+import AdminPage from './pages/AdminPage';
 import OfflineBanner from './components/OfflineBanner';
 
 const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
@@ -77,6 +78,11 @@ function DesktopLayout() {
           {viewMode === 'pricing' && (
             <div className="desktop-content-full" ref={mainScrollRef}>
               <PricingPage />
+            </div>
+          )}
+          {viewMode === 'admin' && (
+            <div className="desktop-content-full" ref={mainScrollRef}>
+              <AdminPage />
             </div>
           )}
           {viewMode === 'wizard' && (
@@ -162,6 +168,17 @@ function MobileLayout() {
         <TopBar />
         <div className="main-scroll" ref={mainScrollRef}>
           <PricingPage />
+        </div>
+      </div>
+    );
+  }
+
+  if (viewMode === 'admin') {
+    return (
+      <div id="app">
+        <TopBar />
+        <div className="main-scroll main-scroll-nopad" ref={mainScrollRef}>
+          <AdminPage />
         </div>
       </div>
     );

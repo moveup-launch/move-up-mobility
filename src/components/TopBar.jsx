@@ -2,7 +2,7 @@ import { useApp } from '../context/AppContext';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 
 export default function TopBar() {
-  const { lang, setLang, user, signOut, viewMode, setViewMode, startNewVisit } = useApp();
+  const { lang, setLang, user, profile, signOut, viewMode, setViewMode, startNewVisit } = useApp();
   const isDesktop = useIsDesktop();
   const isFr = lang === 'fr';
 
@@ -47,6 +47,12 @@ export default function TopBar() {
             title={isFr ? 'Paramètres' : 'Settings'}
             style={{ opacity: viewMode === 'settings' ? 1 : 0.7 }}>
             ⚙️
+          </button>
+        )}
+        {!isDesktop && user && profile?.is_admin && (
+          <button className="topbar-icon-btn" onClick={() => setViewMode('admin')}
+            title="Admin" style={{ opacity: viewMode === 'admin' ? 1 : 0.7 }}>
+            🛡️
           </button>
         )}
         {!isDesktop && user && (
