@@ -437,6 +437,11 @@ export function AppProvider({ children }) {
   };
 
   const getRecommendedTruck = (vol) => {
+    const segments = state.moveSegments || [];
+    if (segments.length > 0) {
+      const primary = segments.reduce((a, b) => ((b.volume || 0) > (a.volume || 0) ? b : a));
+      return getSegmentSolution(primary.type, primary.volume || vol);
+    }
     const mt = state.moveType || 'local';
     return getSegmentSolution(mt, vol);
   };
@@ -499,7 +504,27 @@ export function AppProvider({ children }) {
     return { count: base, label, reasons };
   };
 
+  const MATTRESS_SIZE_MAP = {
+    mat_baby: '60cm', mat_child: '80cm', mat_single: '90cm',
+    mat_120: '120cm', mat_double: '140cm', mat_queen: '160cm', mat_king: '180cm',
+  };
+
+  const getMattressCovers = () => {
+    const allItems = state.rooms.flatMap(r => r.items || []).filter(i => i.qty > 0);
+    const mattressItems = allItems.filter(i => i.catalogId === 'mattress');
+    if (!mattressItems.length) return null;
+    const counts = {};
+    mattressItems.forEach(i => {
+      const variantId = i.itemId.replace('mattress_', '');
+      const size = MATTRESS_SIZE_MAP[variantId] || '?';
+      counts[size] = (counts[size] || 0) + i.qty;
+    });
+    const detail = Object.entries(counts).map(([size, qty]) => `${qty}x${size}`).join(', ');
+    return lang === 'fr' ? `Housses matelas (${detail})` : `Mattress covers (${detail})`;
+  };
+
   const getEquipment = () => {
+    const isFr = lang === 'fr';
     const equip = [];
     const allItems = state.rooms.flatMap(r => r.items || []).filter(i => i.qty > 0);
     const hasLift = allItems.some(i => i.possible_furniture_lift);
@@ -509,16 +534,27 @@ export function AppProvider({ children }) {
     const hasWardrobe = allItems.some(i => i.catalogId === 'wardrobe');
     const hasDressing = state.rooms.some(r => r.type === 'dressing');
     const hasBookshelf = allItems.some(i => i.catalogId === 'bookshelf');
+    const hasKitchen = state.rooms.some(r => r.type === 'kitchen');
+    const hasTV = allItems.some(i => i.catalogId === 'tv');
+    const hasPiano = allItems.some(i => ['piano_upright', 'piano_grand'].includes(i.catalogId));
 
-    equip.push(lang === 'fr' ? 'Couvertures de protection' : 'Protective blankets');
-    if (hasMattress) equip.push(lang === 'fr' ? 'Housses matelas' : 'Mattress covers');
-    equip.push(lang === 'fr' ? 'Cartons adaptes' : 'Appropriate boxes');
-    if (hasWardrobe || hasDressing) equip.push(lang === 'fr' ? 'Cartons penderie' : 'Wardrobe boxes');
-    if (hasBookshelf) equip.push(lang === 'fr' ? 'Cartons livres' : 'Book boxes');
-    if (hasFragile) equip.push(lang === 'fr' ? 'Papier bulle' : 'Bubble wrap');
-    if (hasHeavy) equip.push(lang === 'fr' ? 'Sangles' : 'Straps');
-    if (hasHeavy || hasLift) equip.push(lang === 'fr' ? 'Protection sol' : 'Floor protection');
-    if (hasLift) equip.push(lang === 'fr' ? 'Monte-meubles' : 'Furniture lift');
+    equip.push(isFr ? 'Couvertures de protection' : 'Protective blankets');
+
+    const mattressLine = getMattressCovers();
+    if (hasMattress && mattressLine) equip.push(mattressLine);
+
+    if (hasFragile) equip.push(isFr ? 'Papier bulle' : 'Bubble wrap');
+    if (hasFragile || hasKitchen) equip.push(isFr ? 'Cartons vaisselle' : 'Dish boxes');
+    if (hasBookshelf) equip.push(isFr ? 'Cartons livres' : 'Book boxes');
+    if (hasWardrobe || hasDressing) equip.push(isFr ? 'Cartons penderie' : 'Wardrobe boxes');
+    if (hasKitchen) equip.push(isFr ? 'Cartons cuisine' : 'Kitchen boxes');
+    equip.push(isFr ? 'Cartons standards' : 'Standard boxes');
+
+    if (hasTV) equip.push(isFr ? 'Carton TV / emballage écran' : 'TV box / screen wrapping');
+    if (hasPiano) equip.push(isFr ? 'Protection piano (couvertures + sangles spéciales)' : 'Piano protection (covers + special straps)');
+    if (hasHeavy) equip.push(isFr ? 'Sangles de portage' : 'Carrying straps');
+    if (hasHeavy || hasLift) equip.push(isFr ? 'Protection sol' : 'Floor protection');
+    if (hasLift) equip.push(isFr ? 'Monte-meubles' : 'Furniture lift');
 
     return equip;
   };
@@ -833,7 +869,7 @@ export function AppProvider({ children }) {
       changeBox, setBox, applyBoxSuggestions,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
-      getEquipment, getCheckPoints,
+      getEquipment, getMattressCovers, getCheckPoints,
       getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems,
       getTotalBoxes, getBoxVolume, getRoomIcon,
       getBoxSuggestions,

@@ -362,6 +362,23 @@ export const CATALOG = {
     { id: "garden_tools", name: { fr: "Outils de jardin", en: "Garden tools" }, icon: "🔧", variants: [
       { id: "garden_tools_lot", label: { fr: "Lot d'outils de jardin", en: "Garden tool set" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
     ]},
+    { id: "garden_trimmer", name: { fr: "Débroussailleuse", en: "Brush cutter" }, icon: "🌿", variants: [
+      { id: "trimmer_std", label: { fr: "Débroussailleuse standard", en: "Standard brush cutter" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_hedger", name: { fr: "Taille-haie", en: "Hedge trimmer" }, icon: "✂️", variants: [
+      { id: "hedger_electric", label: { fr: "Taille-haie électrique", en: "Electric hedge trimmer" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_blower", name: { fr: "Souffleur de feuilles", en: "Leaf blower" }, icon: "💨", variants: [
+      { id: "blower_std", label: { fr: "Souffleur de feuilles", en: "Leaf blower" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "garden_sandbox", name: { fr: "Bac à sable", en: "Sandpit" }, icon: "🏖️", variants: [
+      { id: "sandbox_small", label: { fr: "Petit bac à sable", en: "Small sandpit" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "sandbox_large", label: { fr: "Grand bac à sable / couvercle", en: "Large sandpit with cover" }, volume_m3: 0.6, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "garden_set", name: { fr: "Salon de jardin complet", en: "Complete garden set" }, icon: "🪑", variants: [
+      { id: "garden_set_4", label: { fr: "Salon jardin 4 places (table + chaises)", en: "4-seater garden set (table + chairs)" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "garden_set_6", label: { fr: "Salon jardin 6-8 places (table + chaises)", en: "6-8 seater garden set (table + chairs)" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
     { id: "garden_pot", name: { fr: "Pots / Jardinières", en: "Pots / Planters" }, icon: "🪴", variants: [
       { id: "pot_small_lot", label: { fr: "Petits pots (lot)", en: "Small pots (set)" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       { id: "pot_large", label: { fr: "Grand pot / jardinière", en: "Large pot / planter" }, volume_m3: 0.3, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },

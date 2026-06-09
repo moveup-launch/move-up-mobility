@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { useApp } from '../context/AppContext';
+import { CATALOG } from '../data/catalog';
 
 function safe(str) {
   return String(str || '')
@@ -84,8 +85,15 @@ export default function Step6PDF() {
       return isFr ? 'A verifier' : 'To check';
     }
 
-    function accessBlock(d, title) {
+    function accessBlock(d, title, housingType) {
       sectionTitle(title);
+      if (d.noFixedAddress) {
+        row(isFr ? 'Ville' : 'City', d.city || (isFr ? 'Non precisee' : 'Not specified'));
+        row(isFr ? 'Sans adresse fixe' : 'No fixed address', isFr ? 'Oui - ville uniquement' : 'Yes - city only');
+        divider();
+        return;
+      }
+      if (housingType) row(t('housingType'), t(housingType));
       row(isFr ? 'Adresse' : 'Address', `${d.address || ''} ${d.postalCode || ''} ${d.city || ''}`.trim());
       row(t('floor'), d.floor);
       if (d.elevator) row(t('elevator'), yesNoLabel(d.elevator));
@@ -123,9 +131,7 @@ export default function Step6PDF() {
     if (state.client.notes) row(t('notes'), state.client.notes);
     divider();
 
-    // Type logement
-    sectionTitle(t('housingType'));
-    row(t('housingType'), t(state.housingType));
+    // Type logement & déménagement
     const moveLabels = {
       local: isFr ? 'Local / National' : 'Local / National',
       road: isFr ? 'International routier' : 'International road',
@@ -133,12 +139,19 @@ export default function Step6PDF() {
       air: isFr ? 'Aerien' : 'Air freight',
       storage: isFr ? 'Stockage' : 'Storage',
     };
-    row(t('moveType'), moveLabels[state.moveType || 'local'] || '');
+    const segsForType = state.moveSegments || [];
+    const primaryMoveType = segsForType.length > 0
+      ? segsForType.reduce((a, b) => ((b.volume || 0) > (a.volume || 0) ? b : a)).type
+      : (state.moveType || 'local');
+    sectionTitle(isFr ? 'Type de logement et demenagement' : 'Housing type & move');
+    if (state.housingTypeOrigin) row(isFr ? 'Type logement depart' : 'Origin housing type', t(state.housingTypeOrigin));
+    if (state.housingTypeDestination) row(isFr ? 'Type logement arrivee' : 'Destination housing type', t(state.housingTypeDestination));
+    row(t('moveType'), moveLabels[primaryMoveType] || '');
     divider();
 
     // Accès
-    accessBlock(state.origin, t('origin'));
-    accessBlock(state.destination, t('destination'));
+    accessBlock(state.origin, t('origin'), state.housingTypeOrigin);
+    accessBlock(state.destination, t('destination'), state.housingTypeDestination);
 
     // Points à vérifier
     const checkPoints = getCheckPoints();
@@ -242,6 +255,26 @@ export default function Step6PDF() {
     const bRem = getTotalBoxes(state.boxesRemaining);
     row(t('boxesPacked'), `${bDone} ${isFr ? 'cartons' : 'boxes'} (${getBoxVolume(state.boxesDone).toFixed(2)} m3)`);
     row(t('boxesEstimated'), `${bRem} ${isFr ? 'cartons' : 'boxes'} (${getBoxVolume(state.boxesRemaining).toFixed(2)} m3)`);
+    // Per-type breakdown (prévisionnel)
+    const boxTotals = {};
+    [state.boxesDone, state.boxesRemaining].forEach(src => {
+      Object.entries(src).forEach(([id, qty]) => {
+        if (qty > 0) boxTotals[id] = (boxTotals[id] || 0) + qty;
+      });
+    });
+    if (Object.keys(boxTotals).length > 0) {
+      checkY(5);
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY);
+      doc.text(safe(isFr ? 'Detail par type (previsionnel) :' : 'Detail by type (estimate):'), 20, y); y += 5;
+      Object.entries(boxTotals).forEach(([id, qty]) => {
+        const bt = CATALOG.boxTypes.find(b => b.id === id);
+        if (!bt) return;
+        const btName = bt.name?.[lang] || bt.name?.fr || id;
+        checkY(4.5);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+        doc.text(safe(`  - ${btName} : ${qty} ${isFr ? 'carton(s)' : 'box(es)'}`), 22, y); y += 4.5;
+      });
+    }
     divider();
 
     // Solution logistique
@@ -259,8 +292,7 @@ export default function Step6PDF() {
     y += 22;
     const truck = state.transportOverride || getRecommendedTruck(vol);
     row(isFr ? 'Solution logistique' : 'Logistics solution', truck);
-    const mt = state.moveType || 'local';
-    if (mt === 'local' || mt === 'road') {
+    if (primaryMoveType === 'local' || primaryMoveType === 'road') {
       const team = getRecommendedTeam(vol);
       row(safe(t('recommendedTeam')), team.label);
       if (team.reasons.length > 0) {
