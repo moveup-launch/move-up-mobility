@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
@@ -27,11 +27,13 @@ export default function HistoryPage() {
   const [visitPhotos, setVisitPhotos] = useState({});
   const [photosLoading, setPhotosLoading] = useState({});
   const [lightboxUrl, setLightboxUrl] = useState(null);
+  const fetchedIds = useRef(new Set());
 
   useEffect(() => { fetchVisits(); }, []);
 
-  const fetchVisitPhotos = useCallback(async (visitId) => {
-    if (visitPhotos[visitId] !== undefined || photosLoading[visitId]) return;
+  const fetchVisitPhotos = async (visitId) => {
+    if (fetchedIds.current.has(visitId)) return;
+    fetchedIds.current.add(visitId);
     setPhotosLoading(prev => ({ ...prev, [visitId]: true }));
     const { data, error } = await supabase
       .from('photos').select('*').eq('visit_id', visitId).order('created_at');
@@ -47,7 +49,7 @@ export default function HistoryPage() {
     }));
     setVisitPhotos(prev => ({ ...prev, [visitId]: withUrls }));
     setPhotosLoading(prev => ({ ...prev, [visitId]: false }));
-  }, [visitPhotos, photosLoading]);
+  };
 
   const fetchVisits = async () => {
     setLoading(true);

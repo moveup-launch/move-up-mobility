@@ -55,6 +55,7 @@ export function AppProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [viewMode, setViewMode] = useState('dashboard');
   const mainScrollRef = useRef(null);
+  const lastSavedVisitIdRef = useRef(null);
 
   const [profile, setProfile] = useState(null);
   const [expertMode, setExpertModeState] = useState(
@@ -89,6 +90,16 @@ export function AppProvider({ children }) {
     supabase.from('profiles').select('*').eq('id', user.id).single()
       .then(({ data }) => { if (data) setProfile(data); });
   }, [user]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      if (lastSavedVisitIdRef.current) {
+        uploadPhotos(lastSavedVisitIdRef.current);
+      }
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
 
   const setLang = (l) => setLangState(l);
   const t = (key) => TRANSLATIONS[lang]?.[key] || key;
@@ -638,18 +649,20 @@ export function AppProvider({ children }) {
       },
       origin_data: state.origin,
       destination_data: state.destination,
-      rooms_data: state.rooms,
+      rooms_data: state.rooms.map(r => { const { photos, ...rest } = r; return rest; }),
       boxes_done: state.boxesDone,
       boxes_remaining: state.boxesRemaining,
     };
 
     if (state.editingVisitId) {
+      const editId = state.editingVisitId;
       const { data, error } = await supabase
-        .from('visits').update(payload).eq('id', state.editingVisitId).select().single();
+        .from('visits').update(payload).eq('id', editId).select().single();
       if (!error) {
         const roomsSnapshot = state.rooms;
+        lastSavedVisitIdRef.current = editId;
         setState(s => ({ ...s, editingVisitId: null }));
-        uploadPhotos(state.editingVisitId, roomsSnapshot);
+        uploadPhotos(editId, roomsSnapshot);
       }
       return { data, error };
     }
@@ -659,6 +672,7 @@ export function AppProvider({ children }) {
       ...payload,
     }).select().single();
     if (!error && data) {
+      lastSavedVisitIdRef.current = data.id;
       uploadPhotos(data.id, state.rooms);
     }
     return { data, error };
@@ -782,8 +796,10 @@ export function AppProvider({ children }) {
     }
   };
 
-  const retryPhotoUploads = async (visitId) => {
-    await uploadPhotos(visitId);
+  const retryPhotoUploads = async () => {
+    if (lastSavedVisitIdRef.current) {
+      await uploadPhotos(lastSavedVisitIdRef.current);
+    }
   };
 
   // ────────────────────────────────────────────────────────────────

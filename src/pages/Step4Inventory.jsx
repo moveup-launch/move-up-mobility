@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, CRATE_ELIGIBLE_IDS } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
@@ -454,13 +454,12 @@ function InventoryList({ room }) {
 }
 
 function RoomPhotosSection({ room }) {
-  const { lang, t, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto } = useApp();
+  const { lang, t, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, retryPhotoUploads } = useApp();
   const isFr = lang === 'fr';
   const cats = isFr ? PHOTO_CATEGORIES_FR : PHOTO_CATEGORIES_EN;
   const [lightbox, setLightbox] = useState(null);
-  const cameraRef = useRef(null);
-  const galleryRef = useRef(null);
   const photos = room.photos || [];
+  const hasErrors = photos.some(p => p.uploadStatus === 'error');
 
   const handleFiles = async (files) => {
     for (const file of Array.from(files || [])) {
@@ -496,11 +495,9 @@ function RoomPhotosSection({ room }) {
       <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
         <label style={{ flex: 1, cursor: 'pointer' }}>
           <input
-            ref={cameraRef}
             type="file"
             accept="image/*"
             capture="environment"
-            multiple
             onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
             style={{ display: 'none' }}
           />
@@ -513,7 +510,6 @@ function RoomPhotosSection({ room }) {
         </label>
         <label style={{ flex: 1, cursor: 'pointer' }}>
           <input
-            ref={galleryRef}
             type="file"
             accept="image/*"
             multiple
@@ -554,6 +550,21 @@ function RoomPhotosSection({ room }) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Bouton retry si des uploads ont échoué */}
+      {hasErrors && (
+        <button
+          onClick={() => retryPhotoUploads()}
+          style={{
+            width: '100%', padding: '8px', marginBottom: '8px',
+            borderRadius: '8px', border: '1px solid #DC2626',
+            background: '#FEF2F2', color: '#DC2626',
+            fontSize: '12px', cursor: 'pointer', fontWeight: '600',
+          }}
+        >
+          ↺ {t('uploadRetry')}
+        </button>
       )}
 
       {/* Détails photo (commentaire + catégorie) */}
