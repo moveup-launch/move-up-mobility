@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
+import { openProCheckout } from '../lib/stripe';
 import NewVisitModal from '../components/NewVisitModal';
 import VisitCard from '../components/VisitCard';
 
@@ -280,7 +281,7 @@ export default function DashboardPage() {
             <button
               className="btn btn-primary"
               style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
-              onClick={() => { setShowUpgradeModal(false); setViewMode('pricing'); }}
+              onClick={() => { setShowUpgradeModal(false); openProCheckout(user?.email); }}
             >
               {isFr ? 'S\'abonner au Plan Pro à 9,99€/mois →' : 'Subscribe to Pro at 9.99€/month →'}
             </button>

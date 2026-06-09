@@ -1,3 +1,5 @@
+import { openProCheckout } from '../lib/stripe';
+
 export default function LandingPage({ onSignIn, onSignUp }) {
   const ACCENT = '#2B6BE6';
   const GOLD = '#D4A017';
@@ -167,8 +169,8 @@ export default function LandingPage({ onSignIn, onSignUp }) {
                 <li>✓ Support email prioritaire</li>
                 <li style={{ color: 'rgba(255,255,255,0.4)' }}>✗ Multi-utilisateurs</li>
               </ul>
-              <button className="landing-plan-btn landing-plan-btn-white" onClick={onSignUp}>
-                Démarrer l'essai Pro
+              <button className="landing-plan-btn landing-plan-btn-white" onClick={() => openProCheckout()}>
+                S'abonner au plan Pro →
               </button>
             </div>
 
