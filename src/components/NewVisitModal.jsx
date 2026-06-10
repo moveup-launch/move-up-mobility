@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
+import { addOfflineVisit } from '../lib/offlineQueue';
 
 export default function NewVisitModal({ onClose, onCreated }) {
   const { user, lang } = useApp();
@@ -37,6 +38,36 @@ export default function NewVisitModal({ onClose, onCreated }) {
     }
     setSaving(true);
     setSaveError(null);
+
+    // ── Sauvegarde hors-ligne ─────────────────────────────────
+    if (!navigator.onLine) {
+      const visitData = {
+        user_id: user.id,
+        client_name: form.name.trim() || null,
+        client_phone: form.phone.trim() || null,
+        client_email: form.email.trim() || null,
+        visit_date: form.visitDate || null,
+        visit_time: form.visitTime || null,
+        visit_status: 'prevue',
+        agenda_notes: form.notes.trim() || null,
+        origin_data: {
+          address: form.address.trim(),
+          city: form.city.trim(),
+          postalCode: form.postalCode.trim(),
+        },
+        client_data: {
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          visitDate: form.visitDate,
+          visitTime: form.visitTime,
+          agendaNotes: form.notes.trim(),
+        },
+      };
+      const offlineVisit = addOfflineVisit(visitData);
+      onCreated(offlineVisit);
+      return;
+    }
 
     try {
       const { data, error } = await supabase

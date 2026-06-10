@@ -29,7 +29,9 @@
       "Bash(curl -sI http://localhost:4173/sw.js)",
       "Bash(curl -sI http://localhost:4173/registerSW.js)",
       "Bash(pkill -f \"vite preview\")",
-      "Bash(supabase --version)"
+      "Bash(supabase --version)",
+      "Bash(Get-ChildItem -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

@@ -94,9 +94,28 @@ export function AppProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    const handleOnline = () => {
+    const handleOnline = async () => {
       if (lastSavedVisitIdRef.current) {
         uploadPhotos(lastSavedVisitIdRef.current);
+      }
+      // Sync des sauvegardes d'inventaire en attente
+      try {
+        const pendingSaves = JSON.parse(localStorage.getItem('moveup_pending_saves') || '{}');
+        for (const [key, { userId, payload, editingVisitId }] of Object.entries(pendingSaves)) {
+          let err;
+          if (editingVisitId) {
+            ({ error: err } = await supabase.from('visits').update(payload).eq('id', editingVisitId));
+          } else {
+            ({ error: err } = await supabase.from('visits').insert({ user_id: userId, ...payload }));
+          }
+          if (!err) {
+            const current = JSON.parse(localStorage.getItem('moveup_pending_saves') || '{}');
+            delete current[key];
+            localStorage.setItem('moveup_pending_saves', JSON.stringify(current));
+          }
+        }
+      } catch (e) {
+        console.error('Sync pending saves error:', e);
       }
     };
     window.addEventListener('online', handleOnline);
@@ -666,6 +685,36 @@ export function AppProvider({ children }) {
 
   const saveVisit = async () => {
     if (!user) return { error: 'Not authenticated' };
+    if (!navigator.onLine) {
+      // Sauvegarde locale en attente de reconnexion
+      const vol = getTotalVolume();
+      const offlinePayload = {
+        client_name: state.client.name || null,
+        client_email: state.client.email || null,
+        client_phone: state.client.phone || null,
+        visit_date: state.client.visitDate || null,
+        move_date: state.client.moveDate || null,
+        visit_time: state.client.visitTime || null,
+        visit_status: state.client.visitStatus || 'prevue',
+        agenda_notes: state.client.agendaNotes || null,
+        commercial_name: state.client.surveyor || null,
+        total_volume: vol,
+        recommended_truck: getRecommendedTruck(vol),
+        client_data: { ...state.client, housingType: state.housingType, housingTypeOrigin: state.housingTypeOrigin, housingTypeDestination: state.housingTypeDestination, moveType: state.moveType, moveSegments: state.moveSegments || [], householdPersons: state.householdPersons, transportOverride: state.transportOverride || null },
+        origin_data: state.origin,
+        destination_data: state.destination,
+        rooms_data: state.rooms.map(r => { const { photos, ...rest } = r; return rest; }),
+        boxes_done: state.boxesDone,
+        boxes_remaining: state.boxesRemaining,
+      };
+      try {
+        const key = state.editingVisitId || `inv_${Date.now()}`;
+        const all = JSON.parse(localStorage.getItem('moveup_pending_saves') || '{}');
+        all[key] = { userId: user.id, payload: offlinePayload, editingVisitId: state.editingVisitId };
+        localStorage.setItem('moveup_pending_saves', JSON.stringify(all));
+      } catch (e) { console.error('LocalStorage save error:', e); }
+      return { data: { id: state.editingVisitId }, error: null, _pending: true };
+    }
     const vol = getTotalVolume();
     const payload = {
       client_name: state.client.name || null,

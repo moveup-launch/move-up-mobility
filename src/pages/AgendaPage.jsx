@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import VisitCard from '../components/VisitCard';
+import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
 
 function localToday() {
   const d = new Date();
@@ -19,6 +20,7 @@ export default function AgendaPage() {
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
+  const [offlineVisits, setOfflineVisits] = useState(() => getOfflineVisits());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [filter, setFilter] = useState('upcoming');
@@ -81,6 +83,13 @@ export default function AgendaPage() {
   };
 
   const handleDelete = async (id) => {
+    const offlineVisit = offlineVisits.find(v => v._offlineId === id);
+    if (offlineVisit) {
+      removeOfflineVisit(id);
+      setOfflineVisits(prev => prev.filter(v => v._offlineId !== id));
+      setConfirmDelete(null);
+      return;
+    }
     setDeleting(id);
     await supabase.from('visits').delete().eq('id', id);
     setVisits(prev => prev.filter(v => v.id !== id));
@@ -117,13 +126,15 @@ export default function AgendaPage() {
     { key: 'all',      label: t('filterAll') },
   ];
 
+  const allVisits = [...visits, ...offlineVisits];
+
   const getFiltered = () => {
-    let result = [...visits];
+    let result = [...allVisits];
     switch (filter) {
       case 'today':    result = result.filter(v => v.visit_date === today); break;
       case 'week':     result = result.filter(v => v.visit_date >= startOfWeek && v.visit_date <= endOfWeek); break;
       case 'upcoming': result = result.filter(v => v.visit_date >= today && (v.visit_status || 'prevue') !== 'annulee'); break;
-      case 'past':     result = result.filter(v => v.visit_date < today).reverse(); break;
+      case 'past':     result = result.filter(v => v.visit_date < today && !v._pending).reverse(); break;
       default: break;
     }
     if (search.trim()) {
@@ -160,8 +171,8 @@ export default function AgendaPage() {
         <div className="section-title">📅 {t('agenda')}</div>
         <div className="section-subtitle">
           {isFr
-            ? `${visits.length} visite${visits.length !== 1 ? 's' : ''}`
-            : `${visits.length} visit${visits.length !== 1 ? 's' : ''}`}
+            ? `${allVisits.length} visite${allVisits.length !== 1 ? 's' : ''}`
+            : `${allVisits.length} visit${allVisits.length !== 1 ? 's' : ''}`}
         </div>
       </div>
 
@@ -220,19 +231,21 @@ export default function AgendaPage() {
               </select>
             );
 
+            const vid = v._offlineId || v.id;
             return (
               <VisitCard
-                key={v.id}
+                key={vid}
                 visit={v}
-                isPast={v.visit_date < today}
-                isOpening={opening === v.id}
-                isConfirmingDelete={confirmDelete === v.id}
-                isDeleting={deleting === v.id}
+                isPast={!v._pending && v.visit_date < today}
+                isPending={!!v._pending}
+                isOpening={opening === vid}
+                isConfirmingDelete={confirmDelete === vid}
+                isDeleting={deleting === vid}
                 onOpen={openVisit}
                 onDeleteRequest={id => setConfirmDelete(id)}
                 onDeleteConfirm={handleDelete}
                 onDeleteCancel={() => setConfirmDelete(null)}
-                statusSelector={statusSel}
+                statusSelector={v._pending ? null : statusSel}
               />
             );
           })}

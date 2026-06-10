@@ -4,6 +4,8 @@ import { useApp } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
 import NewVisitModal from '../components/NewVisitModal';
 import VisitCard from '../components/VisitCard';
+import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
+import { scheduleVisitReminders, showSyncedNotification } from '../lib/notifications';
 
 function localToday() {
   const d = new Date();
@@ -38,15 +40,16 @@ export default function DashboardPage() {
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
+  const [offlineVisits, setOfflineVisits] = useState(() => getOfflineVisits());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [showNewVisit, setShowNewVisit] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [opening, setOpening] = useState(null);
   const [justCreated, setJustCreated] = useState(null);
+  const [syncedVisitName, setSyncedVisitName] = useState(null);
 
   const today = localToday();
   const firstOfMonth = (() => {
@@ -55,6 +58,34 @@ export default function DashboardPage() {
   })();
 
   useEffect(() => { loadData(); }, []);
+
+  // Sync hors-ligne → Supabase dès que la connexion revient
+  useEffect(() => {
+    const doSync = async () => {
+      const pending = getOfflineVisits();
+      if (!pending.length || !navigator.onLine) return;
+      for (const offlineVisit of pending) {
+        const { _offlineId, _pending, ...visitData } = offlineVisit;
+        const { data, error } = await supabase
+          .from('visits')
+          .insert(visitData)
+          .select()
+          .single();
+        if (!error && data) {
+          removeOfflineVisit(_offlineId);
+          setOfflineVisits(prev => prev.filter(v => v._offlineId !== _offlineId));
+          setVisits(prev => [...prev, data].sort(sortByDateTime));
+          setSyncedVisitName(data.client_name || '');
+          showSyncedNotification(data.client_name || '', isFr);
+          setTimeout(() => setSyncedVisitName(null), 4000);
+        }
+      }
+    };
+
+    if (navigator.onLine) doSync();
+    window.addEventListener('online', doSync);
+    return () => window.removeEventListener('online', doSync);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setLoading(true);
@@ -67,16 +98,23 @@ export default function DashboardPage() {
       console.error('DashboardPage loadData error:', error);
       setLoadError(error.message);
     } else {
-      setVisits((data || []).sort(sortByDateTime));
+      const sorted = (data || []).sort(sortByDateTime);
+      setVisits(sorted);
+      scheduleVisitReminders(sorted);
     }
     setLoading(false);
   };
 
   const handleVisitCreated = (newVisit) => {
-    setVisits(prev => [...prev, newVisit].sort(sortByDateTime));
-    setJustCreated(newVisit.id);
+    if (newVisit._pending) {
+      // Visite créée hors-ligne → file d'attente locale
+      setOfflineVisits(prev => [...prev, newVisit].sort(sortByDateTime));
+    } else {
+      setVisits(prev => [...prev, newVisit].sort(sortByDateTime));
+      setJustCreated(newVisit.id);
+      setTimeout(() => setJustCreated(null), 4000);
+    }
     setShowNewVisit(false);
-    setTimeout(() => setJustCreated(null), 4000);
   };
 
   const openVisit = async (visitId, step = 0) => {
@@ -93,6 +131,14 @@ export default function DashboardPage() {
   };
 
   const handleDelete = async (id) => {
+    // Suppression d'une visite hors-ligne (non encore synchronisée)
+    const offlineVisit = offlineVisits.find(v => v._offlineId === id);
+    if (offlineVisit) {
+      removeOfflineVisit(id);
+      setOfflineVisits(prev => prev.filter(v => v._offlineId !== id));
+      setConfirmDelete(null);
+      return;
+    }
     setDeleting(id);
     const { error } = await supabase.from('visits').delete().eq('id', id);
     if (!error) setVisits(prev => prev.filter(v => v.id !== id));
@@ -100,9 +146,10 @@ export default function DashboardPage() {
     setDeleting(null);
   };
 
+  const allVisits = [...visits, ...offlineVisits];
   const displayName = profile?.first_name || user?.email?.split('@')[0] || '';
-  const upcoming  = visits.filter(v => v.visit_date >= today && (v.visit_status || 'prevue') !== 'annulee');
-  const monthVisits = visits.filter(v => v.visit_date >= firstOfMonth && v.visit_date <= today);
+  const upcoming  = allVisits.filter(v => v.visit_date >= today && (v.visit_status || 'prevue') !== 'annulee');
+  const monthVisits = allVisits.filter(v => v.visit_date >= firstOfMonth && v.visit_date <= today);
   const nextVisit = upcoming[0];
 
   return (
@@ -136,7 +183,7 @@ export default function DashboardPage() {
               </span>
               {plan === 'free' && (
                 <span style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  {visits.length}/{FREE_VISIT_LIMIT} {isFr ? 'visites' : 'visits'}
+                  {allVisits.length}/{FREE_VISIT_LIMIT} {isFr ? 'visites' : 'visits'}
                 </span>
               )}
             </div>
@@ -145,12 +192,8 @@ export default function DashboardPage() {
 
         {/* CTA Nouvelle visite */}
         <button className="dashboard-cta" onClick={() => {
-          if (!navigator.onLine) {
-            setShowOfflineModal(true);
-            return;
-          }
           const plan = profile?.plan || 'free';
-          if (plan === 'free' && visits.length >= FREE_VISIT_LIMIT) {
+          if (plan === 'free' && allVisits.length >= FREE_VISIT_LIMIT) {
             setShowUpgradeModal(true);
           } else {
             setShowNewVisit(true);
@@ -203,6 +246,19 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Toast sync */}
+            {syncedVisitName && (
+              <div style={{
+                fontSize: '13px', fontWeight: '700', color: '#16A34A',
+                background: '#F0FDF4', border: '1px solid #BBF7D0',
+                borderRadius: '8px', padding: '10px 14px', marginBottom: '12px',
+              }}>
+                ✅ {isFr
+                  ? `Visite de ${syncedVisitName} synchronisée !`
+                  : `Visit for ${syncedVisitName} synced!`}
+              </div>
+            )}
+
             {/* Section Visites à venir */}
             <div style={{
               fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em',
@@ -228,29 +284,33 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                {upcoming.map(v => (
-                  <div key={v.id}>
-                    {justCreated === v.id && (
-                      <div style={{
-                        fontSize: '12px', fontWeight: '700', color: 'var(--accent)',
-                        marginBottom: '4px', letterSpacing: '0.04em',
-                      }}>
-                        ✅ {isFr ? 'Visite créée !' : 'Visit created!'}
-                      </div>
-                    )}
-                    <VisitCard
-                      visit={v}
-                      isPast={false}
-                      isOpening={opening === v.id}
-                      isConfirmingDelete={confirmDelete === v.id}
-                      isDeleting={deleting === v.id}
-                      onOpen={openVisit}
-                      onDeleteRequest={id => setConfirmDelete(id)}
-                      onDeleteConfirm={handleDelete}
-                      onDeleteCancel={() => setConfirmDelete(null)}
-                    />
-                  </div>
-                ))}
+                {upcoming.map(v => {
+                  const vid = v._offlineId || v.id;
+                  return (
+                    <div key={vid}>
+                      {justCreated === v.id && (
+                        <div style={{
+                          fontSize: '12px', fontWeight: '700', color: 'var(--accent)',
+                          marginBottom: '4px', letterSpacing: '0.04em',
+                        }}>
+                          ✅ {isFr ? 'Visite créée !' : 'Visit created!'}
+                        </div>
+                      )}
+                      <VisitCard
+                        visit={v}
+                        isPast={false}
+                        isPending={!!v._pending}
+                        isOpening={opening === vid}
+                        isConfirmingDelete={confirmDelete === vid}
+                        isDeleting={deleting === vid}
+                        onOpen={openVisit}
+                        onDeleteRequest={id => setConfirmDelete(id)}
+                        onDeleteConfirm={handleDelete}
+                        onDeleteCancel={() => setConfirmDelete(null)}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
           </>
@@ -262,53 +322,6 @@ export default function DashboardPage() {
           onClose={() => setShowNewVisit(false)}
           onCreated={handleVisitCreated}
         />
-      )}
-
-      {/* Modal hors ligne */}
-      {showOfflineModal && (
-        <div
-          onClick={() => setShowOfflineModal(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{ background: 'white', borderRadius: '20px 20px 0 0', padding: '28px 24px 40px', width: '100%', maxWidth: 480 }}
-          >
-            <div style={{ fontSize: 36, textAlign: 'center', marginBottom: 12 }}>📵</div>
-            <div style={{ fontWeight: 800, fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
-              {isFr ? 'Vous êtes hors ligne' : 'You are offline'}
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
-              {isFr
-                ? 'La création de visite nécessite une connexion internet.\nLes visites déjà créées restent accessibles et modifiables hors ligne.'
-                : 'Creating a visit requires an internet connection.\nVisits already created remain accessible and editable offline.'}
-            </div>
-            <button
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
-              onClick={() => {
-                if (navigator.onLine) {
-                  setShowOfflineModal(false);
-                  const plan = profile?.plan || 'free';
-                  if (plan === 'free' && visits.length >= FREE_VISIT_LIMIT) {
-                    setShowUpgradeModal(true);
-                  } else {
-                    setShowNewVisit(true);
-                  }
-                }
-              }}
-            >
-              {isFr ? '🔄 Réessayer' : '🔄 Retry'}
-            </button>
-            <button
-              className="btn btn-secondary"
-              style={{ width: '100%', padding: '12px', fontSize: 14 }}
-              onClick={() => setShowOfflineModal(false)}
-            >
-              {isFr ? 'Fermer' : 'Close'}
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Modal limite plan gratuit */}
@@ -335,7 +348,7 @@ export default function DashboardPage() {
               style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
               onClick={() => { setShowUpgradeModal(false); openProCheckout(user?.email); }}
             >
-              {isFr ? 'S\'abonner au Plan Pro à 9,99€/mois →' : 'Subscribe to Pro at 9.99€/month →'}
+              {isFr ? "S'abonner au Plan Pro à 9,99€/mois →" : 'Subscribe to Pro at 9.99€/month →'}
             </button>
             <button
               className="btn btn-secondary"

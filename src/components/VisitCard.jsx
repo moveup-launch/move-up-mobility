@@ -29,6 +29,7 @@ function formatTime(timeStr) {
 export default function VisitCard({
   visit,
   isPast = false,
+  isPending = false,
   isOpening = false,
   isConfirmingDelete = false,
   isDeleting = false,
@@ -38,7 +39,7 @@ export default function VisitCard({
   onDeleteCancel,
   statusSelector = null,
 }) {
-  const { lang } = useApp();
+  const { lang, profile } = useApp();
   const isFr = lang === 'fr';
   const v = visit;
 
@@ -54,6 +55,28 @@ export default function VisitCard({
 
   const dateStr = formatDate(v.visit_date, isFr);
   const timeStr = formatTime(v.visit_time);
+
+  // Identifiant universel (réel ou hors-ligne)
+  const visitId = v._offlineId || v.id;
+
+  // Boutons SMS + Email
+  const commercialFirstName = profile?.first_name || '';
+  const clientFirstName = (v.client_name || '').split(' ')[0] || '';
+
+  const smsBody = isFr
+    ? `Bonjour ${clientFirstName}, votre visite de déménagement est confirmée le ${dateStr}${timeStr ? ' à ' + timeStr : ''}. À bientôt, ${commercialFirstName ? commercialFirstName + ' - ' : ''}Move Up Mobility`
+    : `Hello ${clientFirstName}, your moving visit is confirmed on ${dateStr}${timeStr ? ' at ' + timeStr : ''}. See you soon, ${commercialFirstName ? commercialFirstName + ' - ' : ''}Move Up Mobility`;
+  const smsHref = phone ? `sms:${phone}?body=${encodeURIComponent(smsBody)}` : '';
+
+  const emailSubject = isFr
+    ? 'Confirmation de votre visite de déménagement'
+    : 'Moving visit confirmation';
+  const emailBodyText = isFr
+    ? `Bonjour ${clientFirstName},\n\nNous confirmons votre visite de déménagement :\n\nDate : ${dateStr}\nHeure : ${timeStr || 'À confirmer'}\nAdresse : ${address || 'À confirmer'}\n\nNotre équipe sera présente pour évaluer votre déménagement.\n\nCordialement,\n${commercialFirstName || "L'équipe"}\nMove Up Mobility`
+    : `Hello ${clientFirstName},\n\nWe confirm your moving visit:\n\nDate: ${dateStr}\nTime: ${timeStr || 'To be confirmed'}\nAddress: ${address || 'To be confirmed'}\n\nOur team will be there to assess your move.\n\nBest regards,\n${commercialFirstName || 'The team'}\nMove Up Mobility`;
+  const mailtoHref = email
+    ? `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBodyText)}`
+    : '';
 
   const btn = {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -74,7 +97,7 @@ export default function VisitCard({
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            onClick={() => onDeleteConfirm(v.id)}
+            onClick={() => onDeleteConfirm(visitId)}
             disabled={isDeleting}
             style={{ ...btn, background: 'var(--danger)', color: 'white', flex: 1 }}
           >
@@ -96,9 +119,21 @@ export default function VisitCard({
     <div style={{
       background: 'var(--surface)', border: '1px solid var(--border)',
       borderRadius: 'var(--radius-sm)', padding: '14px',
-      borderLeft: `4px solid ${status.color}`,
+      borderLeft: `4px solid ${isPending ? '#F59E0B' : status.color}`,
       opacity: v.visit_status === 'annulee' ? 0.65 : 1,
     }}>
+
+      {/* Badge hors-ligne */}
+      {isPending && (
+        <div style={{
+          fontSize: '11px', fontWeight: '700', color: '#92400E',
+          background: '#FEF3C7', border: '1px solid #FCD34D',
+          borderRadius: '6px', padding: '3px 8px', marginBottom: '8px',
+          display: 'inline-block',
+        }}>
+          ⏳ {isFr ? 'En attente de synchronisation' : 'Pending sync'}
+        </div>
+      )}
 
       {/* Ligne 1 : date + heure — statut */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px' }}>
@@ -118,7 +153,7 @@ export default function VisitCard({
         )}
       </div>
 
-      {/* Ligne 2 : Nom client */}
+      {/* Nom client */}
       <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text)', marginBottom: '8px', lineHeight: 1.2 }}>
         {v.client_name || (isFr ? 'Client sans nom' : 'Unnamed client')}
       </div>
@@ -153,11 +188,15 @@ export default function VisitCard({
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
         {!isPast && (
           <button
-            onClick={() => onOpen(v.id, 0)}
-            disabled={isOpening}
+            onClick={() => !isPending && onOpen(visitId, 0)}
+            disabled={isOpening || isPending}
             style={{
-              ...btn, background: 'var(--accent)', color: 'white',
-              flex: '2 1 120px', opacity: isOpening ? 0.7 : 1,
+              ...btn,
+              background: isPending ? 'var(--surface2)' : 'var(--accent)',
+              color: isPending ? 'var(--text3)' : 'white',
+              flex: '2 1 120px',
+              opacity: (isOpening || isPending) ? 0.6 : 1,
+              cursor: isPending ? 'default' : 'pointer',
             }}
           >
             {isOpening ? '⏳' : `▶ ${isFr ? 'Démarrer' : 'Start'}`}
@@ -165,11 +204,16 @@ export default function VisitCard({
         )}
 
         <button
-          onClick={() => onOpen(v.id, 0)}
-          disabled={isOpening}
+          onClick={() => !isPending && onOpen(visitId, 0)}
+          disabled={isOpening || isPending}
           style={{
-            ...btn, background: 'var(--surface2)', color: 'var(--text)',
-            border: '1px solid var(--border)', flex: '1 1 90px',
+            ...btn,
+            background: 'var(--surface2)',
+            color: isPending ? 'var(--text3)' : 'var(--text)',
+            border: '1px solid var(--border)',
+            flex: '1 1 90px',
+            opacity: isPending ? 0.5 : 1,
+            cursor: isPending ? 'default' : 'pointer',
           }}
         >
           ✏️ {isFr ? 'Modifier' : 'Edit'}
@@ -177,7 +221,7 @@ export default function VisitCard({
 
         {isPast && (
           <button
-            onClick={() => onOpen(v.id, 4)}
+            onClick={() => onOpen(visitId, 4)}
             disabled={isOpening}
             style={{
               ...btn, background: 'var(--accent-light)', color: 'var(--accent)',
@@ -202,7 +246,7 @@ export default function VisitCard({
         )}
 
         <button
-          onClick={() => onDeleteRequest(v.id)}
+          onClick={() => onDeleteRequest(visitId)}
           style={{
             ...btn, background: 'var(--danger-light)', color: 'var(--danger)',
             border: '1px solid var(--danger)', padding: '9px 11px', flexShrink: 0,
@@ -210,6 +254,52 @@ export default function VisitCard({
         >
           🗑️
         </button>
+      </div>
+
+      {/* Boutons confirmation SMS + Email */}
+      <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+        {phone ? (
+          <a
+            href={smsHref}
+            style={{
+              ...btn, flex: 1, background: '#FFF7ED', color: '#C2410C',
+              border: '1px solid #FED7AA', textDecoration: 'none',
+            }}
+          >
+            📱 SMS
+          </a>
+        ) : (
+          <button
+            disabled
+            style={{
+              ...btn, flex: 1, background: 'var(--surface2)', color: 'var(--text3)',
+              border: '1px solid var(--border)', opacity: 0.4, cursor: 'not-allowed',
+            }}
+          >
+            📱 SMS
+          </button>
+        )}
+        {email ? (
+          <a
+            href={mailtoHref}
+            style={{
+              ...btn, flex: 1, background: '#EFF6FF', color: '#1D4ED8',
+              border: '1px solid #BFDBFE', textDecoration: 'none',
+            }}
+          >
+            📧 Email
+          </a>
+        ) : (
+          <button
+            disabled
+            style={{
+              ...btn, flex: 1, background: 'var(--surface2)', color: 'var(--text3)',
+              border: '1px solid var(--border)', opacity: 0.4, cursor: 'not-allowed',
+            }}
+          >
+            📧 Email
+          </button>
+        )}
       </div>
     </div>
   );
