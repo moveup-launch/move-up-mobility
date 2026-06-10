@@ -6,49 +6,164 @@ import { CATALOG } from '../data/catalog';
 function safe(str) {
   return String(str || '')
     .replace(/[—–]/g, '-')
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
+    .replace(/['']/g, "'")
+    .replace(/[""]/g, '"')
     .replace(/[^\x00-\xFF]/g, '')
     .trim();
 }
 
+function hexToRgb(hex) {
+  const h = (hex || '#000000').replace('#', '');
+  return [
+    parseInt(h.slice(0, 2), 16) || 0,
+    parseInt(h.slice(2, 4), 16) || 0,
+    parseInt(h.slice(4, 6), 16) || 0,
+  ];
+}
+
+function loadImageAsDataUrl(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      resolve({ dataUrl: canvas.toDataURL('image/png'), w: img.width, h: img.height });
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 export default function Step6PDF() {
   const {
-    t, lang, state,
+    t, lang, state, profile,
     getTotalVolume, getRecommendedTruck, getRecommendedTeam, getEquipment, getCheckPoints, getSegmentSolution,
     getTotalBoxes, getBoxVolume, getRoomVolume, getAllCrateItems,
   } = useApp();
   const [pdfSuccess, setPdfSuccess] = useState(false);
   const isFr = lang === 'fr';
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const W = 210;
     let y = 0;
 
     const BLACK = [15, 15, 14];
-    const GRAY = [120, 118, 112];
+    const GRAY  = [120, 118, 112];
     const LIGHT = [245, 244, 240];
-    const BLUE = [43, 107, 230];
-    const WARN = [220, 140, 20];
+    const BLUE  = [43, 107, 230];
+    const WARN  = [220, 140, 20];
+
+    const FOOTER = isFr
+      ? 'Rapport genere avec Move Up Mobility - moveupapp.com'
+      : 'Report generated with Move Up Mobility - moveupapp.com';
+
+    function addFooters() {
+      const total = doc.internal.getNumberOfPages();
+      for (let p = 1; p <= total; p++) {
+        doc.setPage(p);
+        doc.setFontSize(6.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(180, 180, 180);
+        doc.text(FOOTER, W / 2, 293, { align: 'center' });
+      }
+    }
 
     function addPage() { doc.addPage(); y = 20; }
     function checkY(needed = 10) { if (y + needed > 270) addPage(); }
 
-    // En-tête
-    doc.setFillColor(...BLACK);
-    doc.rect(0, 0, W, 32, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MOVE UP MOBILITY', 16, 14);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(200, 200, 200);
-    doc.text(isFr ? 'Rapport de visite de demenagement' : 'Moving Survey Report', 16, 22);
-    doc.text(new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'), W - 16, 22, { align: 'right' });
-    y = 44;
+    // ── En-tête ──────────────────────────────────────────────────
+    const hasCompany = profile?.company_name || profile?.company_logo_url;
 
+    if (hasCompany) {
+      // Chargement logo
+      let logoInfo = null;
+      if (profile.company_logo_url) {
+        try { logoInfo = await loadImageAsDataUrl(profile.company_logo_url); }
+        catch { /* logo non disponible */ }
+      }
+
+      const brandColor = hexToRgb(profile?.company_color || '#000000');
+      const headerH = 42;
+      doc.setFillColor(...brandColor);
+      doc.rect(0, 0, W, headerH, 'F');
+
+      let textX = 16;
+
+      // Logo à gauche (max 20mm de hauteur)
+      if (logoInfo) {
+        const maxLogoH = 22;
+        const ratio = logoInfo.w / logoInfo.h;
+        const logoH = Math.min(maxLogoH, 22);
+        const logoW = Math.min(logoH * ratio, 45);
+        const logoY = (headerH - logoH) / 2;
+        try {
+          doc.addImage(logoInfo.dataUrl, 'PNG', 14, logoY, logoW, logoH);
+          textX = 14 + logoW + 8;
+        } catch { /* skip */ }
+      }
+
+      // Nom entreprise
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(15);
+      doc.setFont('helvetica', 'bold');
+      doc.text(safe(profile.company_name || ''), textX, 13);
+
+      // Détails (adresse · téléphone · email)
+      const details = [profile.company_address, profile.company_phone, profile.company_email]
+        .filter(Boolean).join('  |  ');
+      if (details) {
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(210, 210, 210);
+        doc.text(safe(details), textX, 21);
+      }
+
+      // Sous-titre rapport
+      doc.setFontSize(8);
+      doc.setTextColor(170, 170, 170);
+      doc.text(
+        isFr ? 'Rapport de visite de demenagement' : 'Moving Survey Report',
+        textX, 30
+      );
+
+      // Site web si disponible
+      if (profile.company_website) {
+        doc.setFontSize(7);
+        doc.setTextColor(150, 150, 150);
+        doc.text(safe(profile.company_website), textX, 37);
+      }
+
+      // Date à droite
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'),
+        W - 16, 30, { align: 'right' }
+      );
+
+      y = headerH + 12;
+    } else {
+      // En-tête Move Up par défaut
+      doc.setFillColor(...BLACK);
+      doc.rect(0, 0, W, 32, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('MOVE UP MOBILITY', 16, 14);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(200, 200, 200);
+      doc.text(isFr ? 'Rapport de visite de demenagement' : 'Moving Survey Report', 16, 22);
+      doc.text(new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'), W - 16, 22, { align: 'right' });
+      y = 44;
+    }
+
+    // ── Helpers contenu ──────────────────────────────────────────
     function sectionTitle(title) {
       checkY(14);
       doc.setFillColor(...LIGHT);
@@ -105,8 +220,6 @@ export default function Step6PDF() {
       if (d.accessDifficult && d.accessDifficult !== 'toCheck') row(isFr ? 'Acces difficile' : 'Difficult access', yesNoLabel(d.accessDifficult));
       const distMap = { front: 'Front', lt10: 'Less10', '10_30': '10_30', '30_50': '30_50', gt50: 'More50', unknown: 'Unknown' };
       if (d.truckDistance) row(isFr ? 'Distance stationnement camion' : 'Truck parking distance', t('truckDistance' + (distMap[d.truckDistance] || '')));
-
-      // Monte-meubles
       const liftSection = isFr ? 'Monte-meubles' : 'Furniture lift';
       if (d.furnitureLiftNeeded && d.furnitureLiftNeeded !== 'toCheck') {
         row(liftSection + ' ' + (isFr ? 'necessaire' : 'needed'), yesNoLabel(d.furnitureLiftNeeded));
@@ -120,7 +233,7 @@ export default function Step6PDF() {
       divider();
     }
 
-    // Infos client
+    // ── Infos client ─────────────────────────────────────────────
     sectionTitle(t('clientInfo'));
     row(t('clientName'), state.client.name);
     row(t('clientPhone'), state.client.phone);
@@ -131,12 +244,12 @@ export default function Step6PDF() {
     if (state.client.notes) row(t('notes'), state.client.notes);
     divider();
 
-    // Type logement & déménagement
+    // ── Type logement & déménagement ─────────────────────────────
     const moveLabels = {
-      local: isFr ? 'Local / National' : 'Local / National',
-      road: isFr ? 'International routier' : 'International road',
-      sea: isFr ? 'Maritime' : 'Sea freight',
-      air: isFr ? 'Aerien' : 'Air freight',
+      local:   isFr ? 'Local / National' : 'Local / National',
+      road:    isFr ? 'International routier' : 'International road',
+      sea:     isFr ? 'Maritime' : 'Sea freight',
+      air:     isFr ? 'Aerien' : 'Air freight',
       storage: isFr ? 'Stockage' : 'Storage',
     };
     const segsForType = state.moveSegments || [];
@@ -149,11 +262,11 @@ export default function Step6PDF() {
     row(t('moveType'), moveLabels[primaryMoveType] || '');
     divider();
 
-    // Accès
+    // ── Accès ────────────────────────────────────────────────────
     accessBlock(state.origin, t('origin'), state.housingTypeOrigin);
     accessBlock(state.destination, t('destination'), state.housingTypeDestination);
 
-    // Points à vérifier
+    // ── Points à vérifier ────────────────────────────────────────
     const checkPoints = getCheckPoints();
     if (checkPoints.length > 0) {
       checkY(12);
@@ -175,7 +288,7 @@ export default function Step6PDF() {
       divider();
     }
 
-    // Inventaire par pièce
+    // ── Inventaire par pièce ─────────────────────────────────────
     sectionTitle(isFr ? 'Inventaire par piece' : 'Inventory by room');
     state.rooms.forEach(room => {
       checkY(12);
@@ -217,11 +330,9 @@ export default function Step6PDF() {
         const PHOTO_W = 87; const PHOTO_H = 65;
         const PHOTO_GAP = 8; const TEXT_H = 14;
         const rows = Math.ceil(displayPhotos.length / 2);
-
         checkY(12);
         doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
         doc.text(safe(isFr ? 'Photos :' : 'Photos:'), 18, y); y += 6;
-
         for (let row = 0; row < rows; row++) {
           checkY(PHOTO_H + TEXT_H + 4);
           const rowY = y;
@@ -230,9 +341,7 @@ export default function Step6PDF() {
             if (idx >= displayPhotos.length) break;
             const photo = displayPhotos[idx];
             const x = 12 + col * (PHOTO_W + PHOTO_GAP);
-            try {
-              doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H);
-            } catch { /* skip if image fails */ }
+            try { doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H); } catch { /* skip */ }
             doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
             doc.text(safe(photo.category || ''), x, rowY + PHOTO_H + 4);
             if (photo.comment) {
@@ -244,23 +353,19 @@ export default function Step6PDF() {
           y = rowY + PHOTO_H + TEXT_H + 4;
         }
       }
-
       y += 3;
     });
     divider();
 
-    // Cartons
+    // ── Cartons ──────────────────────────────────────────────────
     sectionTitle(t('boxesSummary'));
     const bDone = getTotalBoxes(state.boxesDone);
-    const bRem = getTotalBoxes(state.boxesRemaining);
+    const bRem  = getTotalBoxes(state.boxesRemaining);
     row(t('boxesPacked'), `${bDone} ${isFr ? 'cartons' : 'boxes'} (${getBoxVolume(state.boxesDone).toFixed(2)} m3)`);
     row(t('boxesEstimated'), `${bRem} ${isFr ? 'cartons' : 'boxes'} (${getBoxVolume(state.boxesRemaining).toFixed(2)} m3)`);
-    // Per-type breakdown (prévisionnel)
     const boxTotals = {};
     [state.boxesDone, state.boxesRemaining].forEach(src => {
-      Object.entries(src).forEach(([id, qty]) => {
-        if (qty > 0) boxTotals[id] = (boxTotals[id] || 0) + qty;
-      });
+      Object.entries(src).forEach(([id, qty]) => { if (qty > 0) boxTotals[id] = (boxTotals[id] || 0) + qty; });
     });
     if (Object.keys(boxTotals).length > 0) {
       checkY(5);
@@ -277,7 +382,7 @@ export default function Step6PDF() {
     }
     divider();
 
-    // Solution logistique
+    // ── Solution logistique ──────────────────────────────────────
     const vol = getTotalVolume();
     sectionTitle(isFr ? 'Solution logistique recommandee' : 'Recommended logistics');
     doc.setFillColor(...BLUE);
@@ -298,13 +403,10 @@ export default function Step6PDF() {
       if (team.reasons.length > 0) {
         checkY(team.reasons.length * 5 + 4);
         doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY);
-        team.reasons.forEach(r => {
-          doc.text(safe(`    ${r}`), 100, y); y += 4.5;
-        });
+        team.reasons.forEach(r => { doc.text(safe(`    ${r}`), 100, y); y += 4.5; });
       }
     }
 
-    // Caisse bois
     const crateItems = getAllCrateItems();
     if (crateItems.length > 0) {
       checkY(6);
@@ -317,17 +419,16 @@ export default function Step6PDF() {
       });
     }
 
-    // Segments de déménagement
     const segments = state.moveSegments || [];
     if (segments.length > 0) {
       checkY(6);
       doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
       doc.text(safe(isFr ? 'Repartition du demenagement' : 'Move breakdown'), 16, y); y += 5;
       const segTypeLabels = {
-        local: isFr ? 'Local / National' : 'Local / National',
-        road: isFr ? 'Routier international' : 'International road',
-        sea: isFr ? 'Maritime' : 'Sea freight',
-        air: isFr ? 'Aerien' : 'Air freight',
+        local:   isFr ? 'Local / National' : 'Local / National',
+        road:    isFr ? 'Routier international' : 'International road',
+        sea:     isFr ? 'Maritime' : 'Sea freight',
+        air:     isFr ? 'Aerien' : 'Air freight',
         storage: isFr ? 'Stockage' : 'Storage',
       };
       segments.forEach(seg => {
@@ -341,6 +442,7 @@ export default function Step6PDF() {
         y += 5;
       });
     }
+
     const equip = getEquipment();
     if (equip.length > 0) {
       checkY(6);
@@ -354,7 +456,7 @@ export default function Step6PDF() {
     }
     divider();
 
-    // Signatures
+    // ── Signatures ───────────────────────────────────────────────
     checkY(40);
     sectionTitle(isFr ? 'Signatures' : 'Signatures');
     const sigY = y;
@@ -364,6 +466,17 @@ export default function Step6PDF() {
     doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
     doc.text(safe(t('clientSignature')), 50, sigY + 25, { align: 'center' });
     doc.text(safe(t('surveyorSignature')), W / 2 + 37, sigY + 25, { align: 'center' });
+
+    // ── SIRET en bas si renseigné ─────────────────────────────────
+    if (profile?.company_siret) {
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(180, 180, 180);
+      doc.text(safe(`SIRET : ${profile.company_siret}`), 16, 293);
+    }
+
+    // ── Pied de page sur toutes les pages ─────────────────────────
+    addFooters();
 
     doc.save(safe(`MoveUp_${state.client.name || 'client'}_${state.client.visitDate || 'visite'}.pdf`));
     setPdfSuccess(true);

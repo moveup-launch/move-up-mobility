@@ -60,20 +60,38 @@ export default function VisitCard({
   const visitId = v._offlineId || v.id;
 
   // Boutons SMS + Email
-  const commercialFirstName = profile?.first_name || '';
   const clientFirstName = (v.client_name || '').split(' ')[0] || '';
+  const commercialFullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ');
+  const companyName  = profile?.company_name  || '';
+  const companyPhone = profile?.company_phone || '';
+  const companyEmail = profile?.company_email || '';
+  const companyWeb   = profile?.company_website || '';
+
+  // Bloc signature — avec ou sans entreprise
+  const smsSignature = companyName
+    ? `${commercialFullName}${commercialFullName ? ' — ' : ''}${companyName}${companyPhone ? '\n' + companyPhone : ''}\nPowered by Move Up Mobility`
+    : (commercialFullName || 'Move Up Mobility');
 
   const smsBody = isFr
-    ? `Bonjour ${clientFirstName}, votre visite de déménagement est confirmée le ${dateStr}${timeStr ? ' à ' + timeStr : ''}. À bientôt, ${commercialFirstName ? commercialFirstName + ' - ' : ''}Move Up Mobility`
-    : `Hello ${clientFirstName}, your moving visit is confirmed on ${dateStr}${timeStr ? ' at ' + timeStr : ''}. See you soon, ${commercialFirstName ? commercialFirstName + ' - ' : ''}Move Up Mobility`;
+    ? `Bonjour ${clientFirstName}, votre visite de déménagement est confirmée le ${dateStr}${timeStr ? ' à ' + timeStr : ''}.\n\n${smsSignature}`
+    : `Hello ${clientFirstName}, your moving visit is confirmed on ${dateStr}${timeStr ? ' at ' + timeStr : ''}.\n\n${smsSignature}`;
   const smsHref = phone ? `sms:${phone}?body=${encodeURIComponent(smsBody)}` : '';
+
+  const emailSignature = [
+    commercialFullName,
+    companyName,
+    companyPhone,
+    companyEmail,
+    companyWeb,
+    'Powered by Move Up Mobility',
+  ].filter(Boolean).join('\n');
 
   const emailSubject = isFr
     ? 'Confirmation de votre visite de déménagement'
     : 'Moving visit confirmation';
   const emailBodyText = isFr
-    ? `Bonjour ${clientFirstName},\n\nNous confirmons votre visite de déménagement :\n\nDate : ${dateStr}\nHeure : ${timeStr || 'À confirmer'}\nAdresse : ${address || 'À confirmer'}\n\nNotre équipe sera présente pour évaluer votre déménagement.\n\nCordialement,\n${commercialFirstName || "L'équipe"}\nMove Up Mobility`
-    : `Hello ${clientFirstName},\n\nWe confirm your moving visit:\n\nDate: ${dateStr}\nTime: ${timeStr || 'To be confirmed'}\nAddress: ${address || 'To be confirmed'}\n\nOur team will be there to assess your move.\n\nBest regards,\n${commercialFirstName || 'The team'}\nMove Up Mobility`;
+    ? `Bonjour ${clientFirstName},\n\nNous confirmons votre visite de déménagement :\n\nDate : ${dateStr}\nHeure : ${timeStr || 'À confirmer'}\nAdresse : ${address || 'À confirmer'}\n\nNotre équipe sera présente pour évaluer votre déménagement.\n\n${emailSignature}`
+    : `Hello ${clientFirstName},\n\nWe confirm your moving visit:\n\nDate: ${dateStr}\nTime: ${timeStr || 'To be confirmed'}\nAddress: ${address || 'To be confirmed'}\n\nOur team will be there to assess your move.\n\n${emailSignature}`;
   const mailtoHref = email
     ? `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBodyText)}`
     : '';

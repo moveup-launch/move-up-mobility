@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
 
 const CATEGORIES_FR = ['chambre', 'salon', 'cuisine', 'bureau', 'garage', 'autre'];
@@ -95,6 +96,282 @@ function ProfileSection() {
         }}
       >
         {status === 'saving' ? '⏳…' : status === 'saved' ? `✅ ${t('profileSaved')}` : status === 'error' ? '❌ Erreur' : `💾 ${t('saveProfile')}`}
+      </button>
+    </Section>
+  );
+}
+
+/* ─── Mon Entreprise ─────────────────────────────────── */
+function CompanySection() {
+  const { lang, profile, saveProfile, user } = useApp();
+  const isFr = lang === 'fr';
+
+  const [form, setForm] = useState({
+    company_name:    profile?.company_name    || '',
+    company_address: profile?.company_address || '',
+    company_phone:   profile?.company_phone   || '',
+    company_email:   profile?.company_email   || '',
+    company_website: profile?.company_website || '',
+    company_siret:   profile?.company_siret   || '',
+    company_color:   profile?.company_color   || '#2B6BE6',
+  });
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [status, setStatus] = useState('idle');
+
+  const set = (field, val) => setForm(f => ({ ...f, [field]: val }));
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert(isFr ? 'Fichier trop lourd (max 2 Mo)' : 'File too large (max 2MB)');
+      e.target.value = '';
+      return;
+    }
+    // Aperçu local immédiat
+    const reader = new FileReader();
+    reader.onload = ev => setLogoPreview(ev.target.result);
+    reader.readAsDataURL(file);
+
+    // Upload Supabase Storage
+    setUploadingLogo(true);
+    const ext = file.name.split('.').pop().toLowerCase().replace('jpg', 'jpeg');
+    const path = `${user.id}/logo.${ext}`;
+    const { error } = await supabase.storage
+      .from('company-logos')
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(path);
+      const urlWithBust = `${publicUrl}?t=${Date.now()}`;
+      await saveProfile({ company_logo_url: urlWithBust });
+    }
+    setUploadingLogo(false);
+    e.target.value = '';
+  };
+
+  const handleRemoveLogo = async () => {
+    setLogoPreview(null);
+    await saveProfile({ company_logo_url: null });
+  };
+
+  const handleSave = async () => {
+    setStatus('saving');
+    const { error } = await saveProfile(form);
+    setStatus(error ? 'error' : 'saved');
+    setTimeout(() => setStatus('idle'), 3000);
+  };
+
+  const logoUrl = logoPreview || profile?.company_logo_url;
+  const headerColor = form.company_color || '#2B6BE6';
+
+  return (
+    <Section title={`🏢 ${isFr ? 'Mon entreprise' : 'My company'}`}>
+
+      {/* Logo */}
+      <div className="field">
+        <label>{isFr ? 'Logo (jpg/png max 2 Mo)' : 'Logo (jpg/png max 2MB)'}</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt="Logo"
+              style={{ height: '48px', maxWidth: '120px', objectFit: 'contain', borderRadius: '6px', border: '1px solid var(--border)', background: '#f8f8f8' }}
+            />
+          ) : (
+            <div style={{
+              width: '72px', height: '48px', borderRadius: '6px',
+              border: '2px dashed var(--border)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px', color: 'var(--text3)', flexShrink: 0,
+            }}>
+              🖼️
+            </div>
+          )}
+          <label style={{ cursor: uploadingLogo ? 'default' : 'pointer' }}>
+            <div style={{
+              padding: '8px 14px', borderRadius: '8px',
+              border: '1px solid var(--accent)', color: 'var(--accent)',
+              fontWeight: '700', fontSize: '12px', background: 'var(--surface)',
+              opacity: uploadingLogo ? 0.6 : 1, whiteSpace: 'nowrap',
+            }}>
+              {uploadingLogo ? '⏳…' : (isFr ? 'Choisir un logo' : 'Choose logo')}
+            </div>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleLogoChange}
+              style={{ display: 'none' }}
+              disabled={uploadingLogo}
+            />
+          </label>
+          {logoUrl && (
+            <button
+              onClick={handleRemoveLogo}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: '16px', lineHeight: 1 }}
+              title={isFr ? 'Supprimer le logo' : 'Remove logo'}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Nom entreprise */}
+      <div className="field">
+        <label>{isFr ? "Nom de l'entreprise" : 'Company name'}</label>
+        <input
+          type="text"
+          value={form.company_name}
+          onChange={e => set('company_name', e.target.value)}
+          placeholder={isFr ? 'Mon Entreprise Déménagement' : 'My Moving Company'}
+        />
+      </div>
+
+      {/* Adresse */}
+      <div className="field">
+        <label>{isFr ? 'Adresse entreprise' : 'Company address'}</label>
+        <input
+          type="text"
+          value={form.company_address}
+          onChange={e => set('company_address', e.target.value)}
+          placeholder="12 rue des Movers, 75001 Paris"
+        />
+      </div>
+
+      {/* Téléphone + Email */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div className="field">
+          <label>{isFr ? 'Téléphone' : 'Phone'}</label>
+          <input
+            type="tel"
+            value={form.company_phone}
+            onChange={e => set('company_phone', e.target.value)}
+            placeholder="+33 1 23 45 67 89"
+          />
+        </div>
+        <div className="field">
+          <label>Email</label>
+          <input
+            type="email"
+            value={form.company_email}
+            onChange={e => set('company_email', e.target.value)}
+            placeholder="contact@societe.fr"
+          />
+        </div>
+      </div>
+
+      {/* Site web + SIRET */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div className="field">
+          <label>{isFr ? 'Site web' : 'Website'}</label>
+          <input
+            type="text"
+            value={form.company_website}
+            onChange={e => set('company_website', e.target.value)}
+            placeholder="www.societe.fr"
+          />
+        </div>
+        <div className="field">
+          <label>{isFr ? 'SIRET (optionnel)' : 'SIRET (optional)'}</label>
+          <input
+            type="text"
+            value={form.company_siret}
+            onChange={e => set('company_siret', e.target.value)}
+            placeholder="123 456 789 00012"
+          />
+        </div>
+      </div>
+
+      {/* Couleur principale */}
+      <div className="field">
+        <label>{isFr ? 'Couleur principale' : 'Brand color'}</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="color"
+            value={form.company_color}
+            onChange={e => set('company_color', e.target.value)}
+            style={{
+              width: '44px', height: '36px', padding: '2px',
+              borderRadius: '6px', border: '1px solid var(--border)', cursor: 'pointer',
+            }}
+          />
+          <span style={{ fontSize: '13px', color: 'var(--text2)', fontFamily: 'monospace' }}>
+            {form.company_color}
+          </span>
+          {form.company_color !== '#2B6BE6' && (
+            <button
+              onClick={() => set('company_color', '#2B6BE6')}
+              style={{ fontSize: '11px', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              {isFr ? 'Réinitialiser' : 'Reset'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Aperçu en-tête PDF — temps réel */}
+      <div style={{ marginBottom: '14px' }}>
+        <div style={{
+          fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em',
+          textTransform: 'uppercase', color: 'var(--text3)', marginBottom: '8px',
+        }}>
+          {isFr ? 'Aperçu en-tête PDF' : 'PDF header preview'}
+        </div>
+        <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{
+            background: headerColor, padding: '12px 14px',
+            display: 'flex', alignItems: 'center', gap: '10px', minHeight: '58px',
+          }}>
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt=""
+                style={{ maxHeight: '36px', maxWidth: '72px', objectFit: 'contain', flexShrink: 0 }}
+              />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: 'white', fontWeight: '800', fontSize: '13px', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {form.company_name || profile?.first_name || (isFr ? 'Nom entreprise' : 'Company name')}
+              </div>
+              {(form.company_address || form.company_phone || form.company_email) && (
+                <div style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {[form.company_address, form.company_phone, form.company_email].filter(Boolean).join(' · ')}
+                </div>
+              )}
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '9px' }}>
+                {isFr ? 'Rapport de visite de déménagement' : 'Moving Survey Report'}
+              </div>
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: '9px', flexShrink: 0, textAlign: 'right', lineHeight: 1.4 }}>
+              {new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB')}
+            </div>
+          </div>
+          <div style={{ padding: '4px 8px', background: 'var(--surface2)', textAlign: 'center', fontSize: '8px', color: 'var(--text3)' }}>
+            Rapport généré avec Move Up Mobility — moveupapp.com
+          </div>
+        </div>
+      </div>
+
+      {/* Bouton sauvegarde */}
+      <button
+        onClick={handleSave}
+        disabled={status === 'saving'}
+        style={{
+          width: '100%', padding: '12px', borderRadius: '10px',
+          border: 'none', fontWeight: '700', fontSize: '14px',
+          cursor: status === 'saving' ? 'default' : 'pointer',
+          background: status === 'saved' ? '#16A34A' : status === 'error' ? 'var(--danger)' : 'var(--accent)',
+          color: 'white', opacity: status === 'saving' ? 0.7 : 1,
+        }}
+      >
+        {status === 'saving' ? '⏳…'
+          : status === 'saved' ? (isFr ? '✅ Sauvegardé !' : '✅ Saved!')
+          : status === 'error' ? '❌ Erreur'
+          : `💾 ${isFr ? 'Sauvegarder' : 'Save'}`}
       </button>
     </Section>
   );
@@ -287,7 +564,7 @@ function VolumeDefaultsSection() {
     <Section title={`📐 ${t('settingsVolumeDefaults')}`}>
       <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px' }}>
         {isFr
-          ? 'Modifiez le volume par défaut des objets du catalogue. Utilisé quand vous ajoutez un objet à l\'inventaire.'
+          ? "Modifiez le volume par défaut des objets du catalogue. Utilisé quand vous ajoutez un objet à l'inventaire."
           : 'Override default volumes for catalog items. Applied when adding items to inventory.'}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -337,7 +614,6 @@ function VolumeDefaultsSection() {
 /* ─── Préférences ─────────────────────────────────────── */
 function PrefsSection() {
   const { t, lang, setLang } = useApp();
-  const isFr = lang === 'fr';
   return (
     <Section title={`🌐 ${t('settingsPrefs')}`}>
       <div style={{ padding: '12px 14px', background: 'var(--surface2)', borderRadius: '10px' }}>
@@ -373,6 +649,7 @@ export default function SettingsPage() {
         <div className="section-subtitle">{user?.email}</div>
       </div>
       <ProfileSection />
+      <CompanySection />
       <ExpertSection />
       <CustomCatalogSection />
       <VolumeDefaultsSection />
