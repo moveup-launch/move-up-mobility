@@ -24,6 +24,8 @@ import SettingsPage from './pages/SettingsPage';
 import PricingPage from './pages/PricingPage';
 import LandingPage from './pages/LandingPage';
 import AdminPage from './pages/AdminPage';
+import QuotePage from './pages/QuotePage';
+import QuoteListPage from './pages/QuoteListPage';
 import OfflineBanner from './components/OfflineBanner';
 
 const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
@@ -74,6 +76,12 @@ function DesktopLayout() {
           )}
           {viewMode === 'admin' && (
             <div className="desktop-content-full" ref={mainScrollRef}><AdminPage /></div>
+          )}
+          {viewMode === 'quotes' && (
+            <div className="desktop-content-full" ref={mainScrollRef}><QuoteListPage /></div>
+          )}
+          {viewMode === 'quote-editor' && (
+            <div className="desktop-content-full" ref={mainScrollRef}><QuotePage /></div>
           )}
           {viewMode === 'wizard' && (
             <>
@@ -129,7 +137,9 @@ function MobileLayout() {
   if (viewMode === 'quickvisit') return shell(<QuickVisitPage />);
   if (viewMode === 'settings')  return shell(<SettingsPage />);
   if (viewMode === 'pricing')   return shell(<PricingPage />);
-  if (viewMode === 'admin')     return shell(<AdminPage />, true);
+  if (viewMode === 'admin')        return shell(<AdminPage />, true);
+  if (viewMode === 'quotes')       return shell(<QuoteListPage />, true);
+  if (viewMode === 'quote-editor') return shell(<QuotePage />);
 
   const StepComponent = STEPS[currentStep];
   return (

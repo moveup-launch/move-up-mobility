@@ -13,7 +13,7 @@ function getStatusInfo(status, isFr) {
 }
 
 export default function HistoryPage() {
-  const { lang, t, loadVisit, goToStep, user } = useApp();
+  const { lang, t, loadVisit, goToStep, user, openNewQuote } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
@@ -333,6 +333,16 @@ export default function HistoryPage() {
                       onClick={() => handleEdit(v)}
                     >
                       ✏️ {isFr ? 'Modifier' : 'Edit'}
+                    </button>
+                    <button
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: '8px', minWidth: '60px',
+                        border: '1px solid #7C3AED', background: '#F5F3FF',
+                        color: '#7C3AED', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
+                      }}
+                      onClick={() => openNewQuote(v)}
+                    >
+                      📋 {isFr ? 'Devis' : 'Quote'}
                     </button>
                     {phone && (
                       <a

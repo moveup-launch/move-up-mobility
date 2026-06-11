@@ -56,6 +56,8 @@ export function AppProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [viewMode, setViewMode] = useState('dashboard');
+  const [quoteVisit, setQuoteVisit] = useState(null);
+  const [editingQuoteId, setEditingQuoteId] = useState(null);
   const mainScrollRef = useRef(null);
   const lastSavedVisitIdRef = useRef(null);
 
@@ -203,6 +205,18 @@ export function AppProvider({ children }) {
     });
     setCurrentStepState(0);
     setViewMode('wizard');
+  };
+
+  const openNewQuote = (visitData) => {
+    setQuoteVisit(visitData || null);
+    setEditingQuoteId(null);
+    setViewMode('quote-editor');
+  };
+
+  const openEditQuote = (quoteId) => {
+    setEditingQuoteId(quoteId);
+    setQuoteVisit(null);
+    setViewMode('quote-editor');
   };
 
   const startQuickVisit = () => {
@@ -988,6 +1002,7 @@ export function AppProvider({ children }) {
       user, authLoading,
       viewMode, setViewMode,
       signOut, startNewVisit, startQuickVisit,
+      quoteVisit, editingQuoteId, openNewQuote, openEditQuote,
       saveVisit, loadVisit,
       profile, saveProfile,
       expertMode, setExpertMode,

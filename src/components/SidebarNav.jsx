@@ -37,6 +37,12 @@ export default function SidebarNav() {
           <span>🕓</span> {isFr ? 'Historique' : 'History'}
         </button>
         <button
+          className={`sidebar-nav-btn ${viewMode === 'quotes' || viewMode === 'quote-editor' ? 'active' : ''}`}
+          onClick={() => setViewMode('quotes')}
+        >
+          <span>📋</span> {isFr ? 'Devis' : 'Quotes'}
+        </button>
+        <button
           className={`sidebar-nav-btn ${viewMode === 'settings' ? 'active' : ''}`}
           onClick={() => setViewMode('settings')}
         >
