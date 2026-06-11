@@ -16,21 +16,6 @@ const MOVE_TYPE_OPTIONS_EN = [
   { val: 'storage', label: 'Storage' },
 ];
 
-const TRANSPORT_OVERRIDE_OPTIONS_FR = [
-  { val: 'Route / National', label: 'Route / National' },
-  { val: 'Maritime LCL - groupage', label: 'Maritime LCL - groupage' },
-  { val: 'Conteneur 20 pieds', label: 'Conteneur 20 pieds' },
-  { val: 'Conteneur 40 pieds', label: 'Conteneur 40 pieds' },
-  { val: 'Aerien', label: 'Aerien / Groupage aerien' },
-];
-const TRANSPORT_OVERRIDE_OPTIONS_EN = [
-  { val: 'Road / National', label: 'Road / National' },
-  { val: 'Sea LCL - groupage', label: 'Sea LCL - groupage' },
-  { val: '20ft container', label: '20ft container' },
-  { val: '40ft container', label: '40ft container' },
-  { val: 'Air freight', label: 'Air freight / groupage' },
-];
-
 function MoveSegmentRow({ seg }) {
   const { lang, updateMoveSegment, removeMoveSegment, getSegmentSolution } = useApp();
   const isFr = lang === 'fr';
@@ -88,19 +73,16 @@ function MoveSegmentRow({ seg }) {
 export default function Step5Summary() {
   const {
     t, lang, state,
-    getTotalVolume, getRecommendedTruck, getRecommendedTeam, getEquipment,
+    getTotalVolume, getRecommendedTeam, getEquipment,
     getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getCheckPoints,
     getTotalBoxes, getBoxVolume, getRoomVolume, getRoomIcon,
-    getItemsByTransportMode,
-    saveVisit, setViewMode, addMoveSegment, setTransportOverride,
+    getSegmentSolution, getItemsByTransportMode,
+    saveVisit, setViewMode, addMoveSegment,
   } = useApp();
 
   const [saveStatus, setSaveStatus] = useState('idle');
-  const [transportPickerOpen, setTransportPickerOpen] = useState(false);
 
   const vol = getTotalVolume();
-  const truckAuto = getRecommendedTruck(vol);
-  const truck = state.transportOverride || truckAuto;
   const team = getRecommendedTeam(vol);
   const equip = getEquipment();
   const fragile = getAllFragile();
@@ -114,8 +96,6 @@ export default function Step5Summary() {
   const isEditing = !!state.editingVisitId;
   const mt = state.moveType || 'local';
   const segments = state.moveSegments || [];
-  const transportLabel = t('recommendedTransport');
-  const transportOpts = isFr ? TRANSPORT_OVERRIDE_OPTIONS_FR : TRANSPORT_OVERRIDE_OPTIONS_EN;
 
   const handleSave = async () => {
     setSaveStatus('saving');
@@ -132,8 +112,8 @@ export default function Step5Summary() {
     const phone = state.client.phone;
     if (!phone) return;
     const msg = isFr
-      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\nVolume estimé : ${vol.toFixed(1)} m³ — ${truck}.\n\nN'hésitez pas à nous contacter pour tout renseignement.`
-      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\nEstimated volume: ${vol.toFixed(1)} m³ — ${truck}.\n\nFeel free to contact us for any questions.`;
+      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\nVolume estimé : ${vol.toFixed(1)} m³.\n\nN'hésitez pas à nous contacter pour tout renseignement.`
+      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\nEstimated volume: ${vol.toFixed(1)} m³.\n\nFeel free to contact us for any questions.`;
     window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`);
   };
 
@@ -148,8 +128,8 @@ export default function Step5Summary() {
       ? (isFr ? state.destination.city || 'Destination à définir' : state.destination.city || 'Destination TBD')
       : [state.destination.address, state.destination.postalCode, state.destination.city].filter(Boolean).join(', ');
     const body = isFr
-      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³\nTransport recommandé : ${truck}\n\nCordialement,\n${state.client.surveyor || ''}`
-      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³\nRecommended truck: ${truck}\n\nBest regards,\n${state.client.surveyor || ''}`;
+      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³\n\nCordialement,\n${state.client.surveyor || ''}`
+      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³\n\nBest regards,\n${state.client.surveyor || ''}`;
     window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
@@ -204,63 +184,6 @@ export default function Step5Summary() {
         </button>
       </div>
 
-      {/* Transport global — modifiable */}
-      <div className="summary-stat">
-        <div className="stat-icon">🚛</div>
-        <div className="stat-info" style={{ flex: 1 }}>
-          <div className="stat-label">{transportLabel}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <div className="stat-value">{truck}</div>
-            {state.transportOverride && (
-              <button
-                onClick={() => { setTransportOverride(null); setTransportPickerOpen(false); }}
-                style={{
-                  fontSize: '11px', padding: '2px 8px', borderRadius: '12px',
-                  background: 'var(--surface2)', border: '1px solid var(--border)',
-                  cursor: 'pointer', color: 'var(--text3)',
-                }}
-              >
-                {t('resetAuto')}
-              </button>
-            )}
-            <button
-              onClick={() => setTransportPickerOpen(o => !o)}
-              style={{
-                fontSize: '11px', padding: '2px 8px', borderRadius: '12px',
-                background: 'var(--accent-light)', border: '1px solid var(--accent)',
-                cursor: 'pointer', color: 'var(--accent)', fontWeight: '600',
-              }}
-            >
-              ✏️ {t('modifyTransport')}
-            </button>
-          </div>
-          {/* Picker de transport */}
-          {transportPickerOpen && (
-            <div style={{
-              marginTop: '8px', background: 'var(--surface2)',
-              borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)',
-              overflow: 'hidden',
-            }}>
-              {transportOpts.map(opt => (
-                <div
-                  key={opt.val}
-                  onClick={() => { setTransportOverride(opt.val); setTransportPickerOpen(false); }}
-                  style={{
-                    padding: '10px 14px', cursor: 'pointer', fontSize: '13px',
-                    background: truck === opt.val ? 'var(--accent-light)' : 'transparent',
-                    color: truck === opt.val ? 'var(--accent)' : 'var(--text)',
-                    fontWeight: truck === opt.val ? '700' : '400',
-                    borderBottom: '1px solid var(--border)',
-                  }}
-                >
-                  {truck === opt.val ? '→ ' : ''}{opt.label}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Équipe — ratio intelligent */}
       {(mt === 'local' || mt === 'road') && (
         <div className="summary-stat">
@@ -306,9 +229,10 @@ export default function Step5Summary() {
       {/* Répartition par mode transport */}
       {(() => {
         const modeMap = getItemsByTransportMode();
-        const defined = Object.entries(modeMap).filter(([k]) => k !== 'undefined');
-        if (defined.length === 0) return null;
-        const modeLabels = {
+        const ORDERED_MODES = ['road', 'sea', 'air', 'storage'];
+        const definedModes = ORDERED_MODES.filter(m => modeMap[m]);
+        if (definedModes.length === 0) return null;
+        const modeInfo = {
           road:    { fr: '🚛 Route',    en: '🚛 Road'    },
           sea:     { fr: '🚢 Maritime', en: '🚢 Sea'     },
           air:     { fr: '✈️ Aérien',  en: '✈️ Air'    },
@@ -319,20 +243,38 @@ export default function Step5Summary() {
             <div className="card-title">
               {isFr ? 'Répartition par mode de transport' : 'Breakdown by transport mode'}
             </div>
-            <ul className="item-list-summary">
-              {defined.map(([mode, data]) => (
-                <li key={mode}>
-                  <span>{modeLabels[mode]?.[isFr ? 'fr' : 'en'] || mode}</span>
-                  <strong>{data.volume.toFixed(2)} m³ — {data.count} {isFr ? 'obj.' : 'item(s)'}</strong>
-                </li>
-              ))}
-              {modeMap['undefined'] && (
-                <li>
-                  <span style={{ color: 'var(--text3)' }}>❓ {isFr ? 'Non défini' : 'Undefined'}</span>
-                  <strong style={{ color: 'var(--text3)' }}>{modeMap['undefined'].volume.toFixed(2)} m³</strong>
-                </li>
-              )}
-            </ul>
+            {definedModes.map((mode, idx) => {
+              const g = modeMap[mode];
+              const label = modeInfo[mode][isFr ? 'fr' : 'en'];
+              const containerReco = mode === 'sea' ? getSegmentSolution('sea', g.volume) : null;
+              return (
+                <div key={mode} style={{ marginBottom: idx < definedModes.length - 1 ? '14px' : '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>
+                    <span>{label}</span>
+                    <span>{g.volume.toFixed(2)} m³</span>
+                  </div>
+                  {containerReco && (
+                    <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', marginBottom: '6px' }}>
+                      → {containerReco}
+                    </div>
+                  )}
+                  <ul className="item-list-summary" style={{ margin: 0 }}>
+                    {g.items.map((it, i) => (
+                      <li key={i} style={{ fontSize: '12px' }}>
+                        <span>{it.icon} {it.name}</span>
+                        <strong>×{it.qty}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+            {modeMap['undefined'] && (
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text3)' }}>
+                <span>❓ {isFr ? 'Non défini' : 'Undefined'}</span>
+                <span>{modeMap['undefined'].volume.toFixed(2)} m³ — {modeMap['undefined'].count} {isFr ? 'obj.' : 'item(s)'}</span>
+              </div>
+            )}
           </div>
         );
       })()}

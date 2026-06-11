@@ -263,10 +263,10 @@ export function AppProvider({ children }) {
     const v = parseFloat(volume) || 0;
     const isFr = lang === 'fr';
     if (type === 'sea') {
-      if (v < 5) return isFr ? 'Maritime LCL - petit volume' : 'Sea LCL - small volume';
-      if (v < 30) return isFr ? 'Maritime LCL - groupage' : 'Sea LCL - groupage';
-      if (v < 60) return isFr ? 'Conteneur 20 pieds' : '20ft container';
-      return isFr ? 'Conteneur 40 pieds' : '40ft container';
+      if (v < 15) return isFr ? 'LCL Groupage maritime' : 'Sea LCL Groupage';
+      if (v <= 28) return isFr ? "Conteneur 20'" : "20' Container";
+      if (v <= 60) return isFr ? "Conteneur 40'" : "40' Container";
+      return isFr ? "Conteneur 40' HC" : "40' HC Container";
     }
     if (type === 'air') {
       if (v < 1) return isFr ? 'Colis express' : 'Express parcel';
@@ -596,6 +596,7 @@ export function AppProvider({ children }) {
     const points = [];
     ['origin', 'destination'].forEach(prefix => {
       const d = state[prefix];
+      if (d.noFixedAddress) return;
       const label = prefix === 'origin'
         ? (lang === 'fr' ? 'Origine' : 'Origin')
         : (lang === 'fr' ? 'Destination' : 'Destination');
@@ -642,9 +643,10 @@ export function AppProvider({ children }) {
     state.rooms.forEach(r => {
       (r.items || []).filter(i => i.qty > 0).forEach(i => {
         const m = i.transportMode || 'undefined';
-        if (!modes[m]) modes[m] = { count: 0, volume: 0 };
+        if (!modes[m]) modes[m] = { count: 0, volume: 0, items: [] };
         modes[m].count += i.qty;
         modes[m].volume += (i.volume_m3 || 0) * i.qty;
+        modes[m].items.push({ name: i.name, icon: i.icon || '📦', qty: i.qty, roomName: r.name });
       });
     });
     return modes;

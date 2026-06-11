@@ -3,13 +3,12 @@ import { useApp } from '../context/AppContext';
 export default function LiveVolumePanel() {
   const {
     lang, t,
-    getTotalVolume, getRecommendedTruck, getRecommendedTeam, getCheckPoints, getSegmentSolution,
-    getTotalBoxes, getRoomVolume, getRoomIcon, state,
+    getTotalVolume, getCheckPoints, getSegmentSolution,
+    getTotalBoxes, getRoomVolume, getRoomIcon, getItemsByTransportMode, state,
   } = useApp();
 
   const vol = getTotalVolume();
   const isFr = lang === 'fr';
-  const segments = state.moveSegments || [];
 
   const totalItems = state.rooms.reduce((sum, r) =>
     sum + (r.items || []).reduce((s, i) => s + i.qty, 0), 0);
@@ -20,6 +19,16 @@ export default function LiveVolumePanel() {
     sum + (r.items || []).filter(i => i.heavy && i.qty > 0).reduce((s, i) => s + i.qty, 0), 0);
   const checkPoints = getCheckPoints();
 
+  const modeMap = getItemsByTransportMode();
+  const ORDERED_MODES = ['road', 'sea', 'air', 'storage'];
+  const definedModes = ORDERED_MODES.filter(m => modeMap[m]);
+  const modeInfo = {
+    road:    { fr: '🚛 Route',    en: '🚛 Road'    },
+    sea:     { fr: '🚢 Maritime', en: '🚢 Sea'     },
+    air:     { fr: '✈️ Aérien',  en: '✈️ Air'    },
+    storage: { fr: '📦 Stockage', en: '📦 Storage' },
+  };
+
   const Stat = ({ label, value, color }) => (
     <div style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -29,26 +38,6 @@ export default function LiveVolumePanel() {
       <span style={{ fontSize: '14px', fontWeight: '700', color: color || 'var(--text)' }}>{value}</span>
     </div>
   );
-
-  const moveTypeLabel = {
-    local: isFr ? 'Local / National' : 'Local / National',
-    road: isFr ? 'Routier international' : 'International road',
-    sea: isFr ? 'Maritime' : 'Sea freight',
-    air: isFr ? 'Aerien' : 'Air freight',
-    storage: isFr ? 'Stockage' : 'Storage',
-  };
-
-  const mt = state.moveType || 'local';
-  const transportRec = getRecommendedTruck(vol);
-
-  const transportOptions = [
-    { label: isFr ? 'Route / National' : 'Road / National', match: 'Route / National' },
-    { label: isFr ? 'Maritime LCL - groupage' : 'Sea LCL - groupage', match: 'LCL' },
-    { label: isFr ? 'Conteneur 20 pieds' : '20ft container', match: '20 pieds' },
-    { label: isFr ? 'Conteneur 40 pieds' : '40ft container', match: '40 pieds' },
-    { label: isFr ? 'Aerien' : 'Air freight', match: 'aerien' },
-    { label: isFr ? 'Stockage' : 'Storage', match: 'Garde-meuble' },
-  ];
 
   return (
     <div className="live-panel">
@@ -71,45 +60,31 @@ export default function LiveVolumePanel() {
         <Stat label={t('liveHeavy')} value={heavyCount} color={heavyCount > 0 ? 'var(--warn)' : undefined} />
       </div>
 
-      {/* Solution logistique — liste des modes + recommandation */}
-      <div style={{ marginBottom: '12px' }}>
-        <div className="live-rooms-title" style={{ marginBottom: '6px' }}>{t('recommendedTransport')}</div>
-        {segments.length > 0 ? (
-          segments.map(seg => (
-            <div key={seg.id} style={{
-              fontSize: '12px', padding: '5px 8px', marginBottom: '4px',
-              background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)',
-              color: 'var(--accent)', fontWeight: '500',
-            }}>
-              <span style={{ color: 'var(--text2)', marginRight: '4px' }}>
-                {moveTypeLabel[seg.type] || seg.type} {seg.volume ? `${seg.volume}m³` : ''}
-              </span>
-              → {getSegmentSolution(seg.type, seg.volume)}
-            </div>
-          ))
-        ) : (
-          transportOptions.map(opt => {
-            const isRec = transportRec.toLowerCase().includes(opt.match.toLowerCase()) ||
-              (opt.match === 'Route / National' && (mt === 'local' || mt === 'road'));
+      {/* Récap modes de transport — uniquement si modes assignés */}
+      {definedModes.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <div className="live-rooms-title" style={{ marginBottom: '6px' }}>
+            {isFr ? 'Modes de transport' : 'Transport modes'}
+          </div>
+          {definedModes.map(mode => {
+            const g = modeMap[mode];
+            const label = modeInfo[mode][isFr ? 'fr' : 'en'];
+            const containerReco = mode === 'sea' ? getSegmentSolution('sea', g.volume) : null;
             return (
-              <div key={opt.match} style={{
-                fontSize: '12px', padding: '5px 8px', marginBottom: '3px',
-                borderRadius: 'var(--radius-sm)',
-                background: isRec ? 'var(--accent)' : 'var(--surface2)',
-                color: isRec ? 'white' : 'var(--text3)',
-                fontWeight: isRec ? '700' : '400',
+              <div key={mode} style={{
+                fontSize: '12px', padding: '5px 8px', marginBottom: '4px',
+                background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)',
+                color: 'var(--accent)', fontWeight: '600',
               }}>
-                {isRec ? '→ ' : ''}{opt.label}
-                {isRec && vol > 0 && (mt === 'local' || mt === 'road') && (
-                  <span style={{ marginLeft: '6px', fontWeight: '400', opacity: 0.85 }}>
-                    — {getRecommendedTeam(vol).label}
-                  </span>
+                {label} — {g.volume.toFixed(2)} m³
+                {containerReco && (
+                  <span style={{ fontWeight: '400', opacity: 0.85 }}> ({containerReco})</span>
                 )}
               </div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* Par pièce */}
       {state.rooms.length > 0 && (
