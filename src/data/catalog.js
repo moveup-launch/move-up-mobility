@@ -168,6 +168,16 @@ export const CATALOG = {
       ]
     },
     {
+      id: "living_tv",
+      name: { fr: "TV", en: "TV" },
+      icon: "📺",
+      variants: [
+        { id: "ltv_small",  label: { fr: 'TV < 43"',      en: 'TV < 43"'       }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "ltv_medium", label: { fr: 'TV 43" à 65"',  en: 'TV 43" to 65"'  }, volume_m3: 0.3,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "ltv_large",  label: { fr: 'TV > 65"',      en: 'TV > 65"'       }, volume_m3: 0.5,  fragile: true, heavy: true,  requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    {
       id: "buffet",
       name: { fr: "Buffet / Bahut", en: "Buffet / Sideboard" },
       icon: "🗄️",
@@ -365,6 +375,15 @@ export const CATALOG = {
     },
     { id: "office_shelf", name: { fr: "Étagère bureau", en: "Office shelf" }, icon: "📚", variants: [{ id: "oshelf_std", label: { fr: "Étagère standard", en: "Standard shelf" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false }] },
     { id: "office_wardrobe", name: { fr: "Armoire à dossiers", en: "Document wardrobe" }, icon: "🚪", variants: [{ id: "oward_std", label: { fr: "Armoire à dossiers standard", en: "Standard document wardrobe" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    {
+      id: "office_tv",
+      name: { fr: "TV / Écran TV", en: "TV / Screen" },
+      icon: "📺",
+      variants: [
+        { id: "otv_small",  label: { fr: 'TV < 43"',     en: 'TV < 43"'      }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "otv_medium", label: { fr: 'TV 43" à 65"', en: 'TV 43" to 65"' }, volume_m3: 0.3,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
   ],
 
   garden: [
@@ -766,10 +785,10 @@ export const CATALOG = {
 
   boxTypes: [
     { id: "box_books", nameKey: "boxBooks", icon: "📚", volume_m3: 0.04 },
-    { id: "box_standard", nameKey: "boxStandard", icon: "📦", volume_m3: 0.06 },
+    { id: "box_standard", nameKey: "boxStandard", icon: "📦", volume_m3: 0.07 },
     { id: "box_large", nameKey: "boxLarge", icon: "📦", volume_m3: 0.10 },
     { id: "box_dishes", nameKey: "boxDishes", icon: "🍽️", volume_m3: 0.07 },
-    { id: "box_wardrobe", nameKey: "boxWardrobe", icon: "👔", volume_m3: 0.20 },
+    { id: "box_wardrobe", nameKey: "boxWardrobe", icon: "👔", volume_m3: 0.4 },
     { id: "box_archives", nameKey: "boxArchives", icon: "🗂️", volume_m3: 0.04 },
     { id: "box_fragile", nameKey: "boxFragile", icon: "⚠️", volume_m3: 0.08 },
   ],
@@ -811,4 +830,4 @@ export const CATALOG = {
   }
 };
 
-export const CRATE_ELIGIBLE_IDS = new Set(['tv', 'mirror', 'artwork', 'piano_upright', 'piano_grand', 'aquarium']);
+export const CRATE_ELIGIBLE_IDS = new Set(['tv', 'mirror', 'artwork', 'piano_upright', 'piano_grand', 'aquarium', 'living_tv', 'dining_tv', 'office_tv']);

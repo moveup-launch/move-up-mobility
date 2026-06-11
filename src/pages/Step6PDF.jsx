@@ -315,6 +315,9 @@ export default function Step6PDF() {
           if (item.fragile) tags.push('Fragile');
           if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
           if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
+          const modeIcons = { road: '🚛', sea: '🚢', air: '✈', storage: '📦' };
+          if (item.transportMode && modeIcons[item.transportMode]) tags.push(modeIcons[item.transportMode]);
+          if (item.crate) tags.push(`Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
           if (tags.length) {
             doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
             doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
@@ -411,11 +414,14 @@ export default function Step6PDF() {
     if (crateItems.length > 0) {
       checkY(6);
       doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WARN);
-      doc.text(safe(isFr ? 'Objets necessitant une caisse' : 'Items requiring a crate'), 16, y); y += 5;
+      doc.text(safe(isFr ? 'Caisses sur mesure' : 'Custom crates'), 16, y); y += 5;
       crateItems.forEach(item => {
         checkY(5);
         doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
-        doc.text(safe(`  - ${item.name} (${item.roomName}) x${item.qty}`), 20, y); y += 5;
+        const crateStr = item.crate
+          ? ` — Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h} cm (${item.crate.vol} m3)`
+          : '';
+        doc.text(safe(`  - ${item.name} (${item.roomName}) x${item.qty}${crateStr}`), 20, y); y += 5;
       });
     }
 

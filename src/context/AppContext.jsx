@@ -407,7 +407,7 @@ export function AppProvider({ children }) {
       }),
     }));
 
-  const toggleItemCrate = (roomId, itemId) =>
+  const updateItemCrate = (roomId, itemId, crate) =>
     setState(s => ({
       ...s,
       rooms: s.rooms.map(r => {
@@ -415,7 +415,21 @@ export function AppProvider({ children }) {
         return {
           ...r,
           items: r.items.map(i =>
-            i.itemId === itemId ? { ...i, needsCrate: !i.needsCrate } : i
+            i.itemId === itemId ? { ...i, crate: crate || null } : i
+          ),
+        };
+      }),
+    }));
+
+  const updateItemTransportMode = (roomId, itemId, mode) =>
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return {
+          ...r,
+          items: r.items.map(i =>
+            i.itemId === itemId ? { ...i, transportMode: mode || null } : i
           ),
         };
       }),
@@ -616,11 +630,24 @@ export function AppProvider({ children }) {
   const getAllCrateItems = () => {
     const items = [];
     state.rooms.forEach(r =>
-      (r.items || []).filter(i => i.needsCrate && i.qty > 0).forEach(i =>
+      (r.items || []).filter(i => (i.crate || i.needsCrate) && i.qty > 0).forEach(i =>
         items.push({ ...i, roomName: r.name })
       )
     );
     return items;
+  };
+
+  const getItemsByTransportMode = () => {
+    const modes = {};
+    state.rooms.forEach(r => {
+      (r.items || []).filter(i => i.qty > 0).forEach(i => {
+        const m = i.transportMode || 'undefined';
+        if (!modes[m]) modes[m] = { count: 0, volume: 0 };
+        modes[m].count += i.qty;
+        modes[m].volume += (i.volume_m3 || 0) * i.qty;
+      });
+    });
+    return modes;
   };
 
   const getAllFragile = () => {
@@ -897,6 +924,37 @@ export function AppProvider({ children }) {
 
   // ────────────────────────────────────────────────────────────────
 
+  // Auto-save every 30s when editing an existing visit in wizard mode
+  const autoSaveRef = useRef(null);
+  autoSaveRef.current = async () => {
+    if (!state.editingVisitId || !navigator.onLine || viewMode !== 'wizard') return;
+    const vol = getTotalVolume();
+    const payload = {
+      total_volume: vol,
+      recommended_truck: getRecommendedTruck(vol),
+      client_data: {
+        ...state.client,
+        housingType: state.housingType,
+        housingTypeOrigin: state.housingTypeOrigin,
+        housingTypeDestination: state.housingTypeDestination,
+        moveType: state.moveType,
+        moveSegments: state.moveSegments || [],
+        householdPersons: state.householdPersons,
+        transportOverride: state.transportOverride || null,
+      },
+      origin_data: state.origin,
+      destination_data: state.destination,
+      rooms_data: state.rooms.map(r => { const { photos, ...rest } = r; return rest; }),
+      boxes_done: state.boxesDone,
+      boxes_remaining: state.boxesRemaining,
+    };
+    await supabase.from('visits').update(payload).eq('id', state.editingVisitId);
+  };
+  useEffect(() => {
+    const id = setInterval(() => { autoSaveRef.current?.(); }, 30000);
+    return () => clearInterval(id);
+  }, []);
+
   const openSheet = (content) => setSheet({ isOpen: true, content });
   const closeSheet = () => setSheet({ isOpen: false, content: null });
   const openModal = (content) => setModal({ isOpen: true, content });
@@ -914,12 +972,12 @@ export function AppProvider({ children }) {
       addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution,
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
-      updateItemVolume, toggleItemCrate,
+      updateItemVolume, updateItemCrate, updateItemTransportMode,
       changeBox, setBox, applyBoxSuggestions,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
       getEquipment, getMattressCovers, getCheckPoints,
-      getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems,
+      getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getItemsByTransportMode,
       getTotalBoxes, getBoxVolume, getRoomIcon,
       getBoxSuggestions,
       sheet, openSheet, closeSheet,

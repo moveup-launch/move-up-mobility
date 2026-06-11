@@ -400,10 +400,20 @@ function CatalogSection({ room }) {
   );
 }
 
+const TRANSPORT_MODES = [
+  { val: 'road',    icon: '🚛', labelFr: 'Route',     labelEn: 'Road'    },
+  { val: 'sea',     icon: '🚢', labelFr: 'Maritime',  labelEn: 'Sea'     },
+  { val: 'air',     icon: '✈️', labelFr: 'Aérien',   labelEn: 'Air'     },
+  { val: 'storage', icon: '📦', labelFr: 'Stockage',  labelEn: 'Storage' },
+  { val: null,      icon: '❓', labelFr: 'Non défini', labelEn: 'Undef.' },
+];
+
 function InventoryList({ room }) {
-  const { t, lang, changeQty, updateItemVolume, toggleItemCrate } = useApp();
+  const { t, lang, changeQty, updateItemVolume, updateItemCrate, updateItemTransportMode } = useApp();
   const [editingItemId, setEditingItemId] = useState(null);
   const [editVolume, setEditVolume] = useState('');
+  const [crateEditId, setCrateEditId] = useState(null);
+  const [crateForm, setCrateForm] = useState({ l: '', w: '', h: '' });
   const items = (room.items || []).filter(i => i.qty > 0);
   const isFr = lang === 'fr';
 
@@ -416,6 +426,30 @@ function InventoryList({ room }) {
     const v = parseFloat(editVolume);
     if (v > 0) updateItemVolume(room.id, itemId, v);
     setEditingItemId(null);
+  };
+
+  const openCrateForm = (item) => {
+    if (item.crate) {
+      setCrateForm({ l: String(item.crate.l), w: String(item.crate.w), h: String(item.crate.h) });
+    } else {
+      setCrateForm({ l: '', w: '', h: '' });
+    }
+    setCrateEditId(item.itemId);
+  };
+
+  const commitCrate = (itemId) => {
+    const l = parseFloat(crateForm.l);
+    const w = parseFloat(crateForm.w);
+    const h = parseFloat(crateForm.h);
+    if (l > 0 && w > 0 && h > 0) {
+      updateItemCrate(room.id, itemId, { l, w, h, vol: parseFloat((l * w * h / 1000000).toFixed(4)) });
+    }
+    setCrateEditId(null);
+  };
+
+  const removeCrate = (itemId) => {
+    updateItemCrate(room.id, itemId, null);
+    setCrateEditId(null);
   };
 
   if (items.length === 0) {
@@ -435,32 +469,59 @@ function InventoryList({ room }) {
         <div key={item.itemId} className="inv-item" style={{ alignItems: 'flex-start' }}>
           <div className="inv-icon">{item.icon}</div>
           <div className="inv-info" style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <div className="inv-name">{item.name}</div>
-              {/* Tâche 5 : icône caisse pour objets éligibles */}
+              {/* Crate button */}
               {CRATE_ELIGIBLE_IDS.has(item.catalogId) && (
                 <button
-                  title={t('crateNeeded')}
-                  onClick={() => toggleItemCrate(room.id, item.itemId)}
+                  title={isFr ? 'Caisse sur mesure' : 'Custom crate'}
+                  onClick={() => crateEditId === item.itemId ? setCrateEditId(null) : openCrateForm(item)}
                   style={{
-                    background: item.needsCrate ? 'var(--warn)' : 'var(--surface2)',
-                    color: item.needsCrate ? 'white' : 'var(--text3)',
-                    border: `1px solid ${item.needsCrate ? 'var(--warn)' : 'var(--border)'}`,
+                    background: item.crate ? '#FEF3C7' : 'var(--surface2)',
+                    color: item.crate ? '#92400E' : 'var(--text3)',
+                    border: `1px solid ${item.crate ? '#FCD34D' : 'var(--border)'}`,
                     borderRadius: '4px', padding: '1px 5px', fontSize: '11px',
                     cursor: 'pointer', lineHeight: 1.4, fontWeight: '600',
                   }}
                 >
-                  🗃️
+                  🗃️ {item.crate ? `${item.crate.vol} m³` : (isFr ? 'Caisse' : 'Crate')}
                 </button>
               )}
-              {item.needsCrate && (
-                <span style={{ fontSize: '11px', color: 'var(--warn)', fontWeight: '600' }}>
-                  {t('crateNeeded')}
-                </span>
-              )}
             </div>
+
+            {/* Crate form (L×W×H) */}
+            {crateEditId === item.itemId && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>L</span>
+                <input type="number" min="1" value={crateForm.l} onChange={e => setCrateForm(f => ({ ...f, l: e.target.value }))}
+                  placeholder="cm" style={{ width: '52px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)' }} />
+                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>×W</span>
+                <input type="number" min="1" value={crateForm.w} onChange={e => setCrateForm(f => ({ ...f, w: e.target.value }))}
+                  placeholder="cm" style={{ width: '52px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)' }} />
+                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>×H</span>
+                <input type="number" min="1" value={crateForm.h} onChange={e => setCrateForm(f => ({ ...f, h: e.target.value }))}
+                  placeholder="cm" style={{ width: '52px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)' }} />
+                <span style={{ fontSize: '10px', color: 'var(--text3)' }}>cm</span>
+                {crateForm.l && crateForm.w && crateForm.h && (
+                  <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: '600' }}>
+                    = {(parseFloat(crateForm.l) * parseFloat(crateForm.w) * parseFloat(crateForm.h) / 1000000).toFixed(4)} m³
+                  </span>
+                )}
+                <button onClick={() => commitCrate(item.itemId)}
+                  style={{ padding: '2px 8px', fontSize: '11px', borderRadius: '4px', background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer' }}>
+                  OK
+                </button>
+                {item.crate && (
+                  <button onClick={() => removeCrate(item.itemId)}
+                    style={{ padding: '2px 6px', fontSize: '11px', borderRadius: '4px', background: 'var(--danger-light)', color: 'var(--danger)', border: 'none', cursor: 'pointer' }}>
+                    ×
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="inv-variant">{item.variantLabel}</div>
-            {/* Tâche 4 : cubage manuel */}
+            {/* Volume edit */}
             {editingItemId === item.itemId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                 <input
@@ -470,35 +531,45 @@ function InventoryList({ room }) {
                   onBlur={() => commitEdit(item.itemId)}
                   onKeyDown={e => e.key === 'Enter' && commitEdit(item.itemId)}
                   autoFocus
-                  style={{
-                    width: '70px', padding: '3px 6px', fontSize: '12px',
-                    borderRadius: '4px', border: '1px solid var(--accent)',
-                  }}
+                  style={{ width: '70px', padding: '3px 6px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--accent)' }}
                 />
                 <span style={{ fontSize: '11px', color: 'var(--text3)' }}>m³</span>
-                <button
-                  onClick={() => commitEdit(item.itemId)}
-                  style={{ padding: '2px 8px', fontSize: '11px', borderRadius: '4px', background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer' }}
-                >
+                <button onClick={() => commitEdit(item.itemId)}
+                  style={{ padding: '2px 8px', fontSize: '11px', borderRadius: '4px', background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer' }}>
                   OK
                 </button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div className="inv-vol">{(item.volume_m3 * item.qty).toFixed(3)} m³</div>
-                <button
-                  title={t('editVolume')}
-                  onClick={() => startEdit(item)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: '12px', color: 'var(--text3)', padding: '0 2px', lineHeight: 1,
-                  }}
-                >
+                <button title={t('editVolume')} onClick={() => startEdit(item)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)', padding: '0 2px', lineHeight: 1 }}>
                   ✏️
                 </button>
               </div>
             )}
-            <div className="inv-tags">
+
+            {/* Transport mode selector */}
+            <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+              {TRANSPORT_MODES.map(m => (
+                <button
+                  key={String(m.val)}
+                  title={isFr ? m.labelFr : m.labelEn}
+                  onClick={() => updateItemTransportMode(room.id, item.itemId, m.val)}
+                  style={{
+                    padding: '2px 6px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer',
+                    border: `1px solid ${item.transportMode === m.val ? 'var(--accent)' : 'var(--border)'}`,
+                    background: item.transportMode === m.val ? 'var(--accent)' : 'var(--surface2)',
+                    color: item.transportMode === m.val ? 'white' : 'var(--text3)',
+                    fontWeight: item.transportMode === m.val ? '700' : '400',
+                  }}
+                >
+                  {m.icon}
+                </button>
+              ))}
+            </div>
+
+            <div className="inv-tags" style={{ marginTop: '3px' }}>
               {item.fragile && <span className="tag tag-fragile">{t('tagFragile')}</span>}
               {item.heavy && <span className="tag tag-heavy">{t('tagHeavy')}</span>}
               {item.requires_disassembly && <span className="tag tag-disassembly">{t('tagDisassembly')}</span>}
@@ -512,6 +583,131 @@ function InventoryList({ room }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+const CROSS_CATALOG_MAP = {
+  bedroom:      ['office', 'livingRoom'],
+  childBedroom: ['office', 'livingRoom'],
+  dressing:     ['bedroom'],
+  livingRoom:   ['office', 'diningRoom'],
+  office:       ['bedroom', 'livingRoom'],
+  kitchen:      ['diningRoom'],
+  diningRoom:   [],
+  bathroom:     [],
+  laundry:      [],
+  garage:       ['garageBasement'],
+  basement:     ['garageBasement'],
+  attic:        ['garageBasement'],
+  garden:       [],
+  storageBox:   ['garageBasement'],
+  misc:         ['livingRoom', 'bedroom', 'office'],
+};
+
+const CROSS_CAT_LABELS = {
+  bedroom:       { fr: 'Chambre / Bureau',          en: 'Bedroom / Office' },
+  livingRoom:    { fr: 'Salon / Séjour',             en: 'Living room' },
+  kitchen:       { fr: 'Cuisine',                    en: 'Kitchen' },
+  diningRoom:    { fr: 'Salle à manger',             en: 'Dining room' },
+  office:        { fr: 'Bureau',                     en: 'Office' },
+  garageBasement:{ fr: 'Garage / Cave',              en: 'Garage / Basement' },
+  garden:        { fr: 'Jardin',                     en: 'Garden' },
+  babyEquip:     { fr: 'Équipement bébé',            en: 'Baby equipment' },
+  laundry:       { fr: 'Buanderie',                  en: 'Laundry' },
+  bathroom:      { fr: 'Salle de bain',              en: 'Bathroom' },
+};
+
+function CrossCatalogSection({ room }) {
+  const { tCat, lang, state, addItemToRoom, openSheet, changeQty } = useApp();
+  const [expanded, setExpanded] = useState(false);
+  const isFr = lang === 'fr';
+
+  const crossCats = (CROSS_CATALOG_MAP[room.type] || []).filter(k => CATALOG[k] && CATALOG[k].length > 0);
+  if (crossCats.length === 0) return null;
+
+  const handleItemClick = (item, catKey) => {
+    if (item.variants.length === 1) {
+      addItemToRoom(room.id, catKey, item.id, item.variants[0].id);
+    } else {
+      openSheet(<QuickAdjustSheet roomId={room.id} catKey={catKey} itemId={item.id} />);
+    }
+  };
+
+  const handleMinus = (e, item, catKey) => {
+    e.stopPropagation();
+    for (const v of item.variants) {
+      const uid = `${item.id}_${v.id}`;
+      const inv = (room.items || []).find(i => i.itemId === uid);
+      if (inv && inv.qty > 0) { changeQty(room.id, uid, -1); break; }
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '8px' }}>
+      <button
+        onClick={() => setExpanded(e => !e)}
+        style={{
+          width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-sm)',
+          border: '1px dashed var(--border)', background: 'var(--surface2)',
+          color: 'var(--text2)', fontSize: '13px', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: '600',
+        }}
+      >
+        <span>🔗 {isFr ? 'Autres objets référencés' : 'Cross-catalog items'}</span>
+        <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{expanded ? '▲' : '▼'}</span>
+      </button>
+      {expanded && (
+        <div style={{ marginTop: '6px' }}>
+          {crossCats.map(catKey => {
+            const label = CROSS_CAT_LABELS[catKey]?.[isFr ? 'fr' : 'en'] || catKey;
+            return (
+              <div key={catKey} className="catalog-category">
+                <div className="catalog-category-title" style={{ fontSize: '11px', color: 'var(--text3)' }}>
+                  {label}
+                </div>
+                <div className="item-grid">
+                  {CATALOG[catKey].map(item => {
+                    const qty = (room.items || []).filter(i => i.catalogId === item.id).reduce((s, i) => s + i.qty, 0);
+                    const isSingle = item.variants.length === 1;
+                    const singleUid = isSingle ? `${item.id}_${item.variants[0].id}` : null;
+                    return (
+                      <div
+                        key={item.id}
+                        className={`item-card ${qty > 0 ? 'in-inventory' : ''}`}
+                        style={{ position: 'relative' }}
+                        onClick={() => handleItemClick(item, catKey)}
+                      >
+                        {qty > 0 && <div className="item-qty-badge">{qty}</div>}
+                        <span className="item-icon">{item.icon}</span>
+                        <div className="item-name">{tCat(item.name)}</div>
+                        {qty > 0 && (
+                          <button
+                            onClick={(e) => {
+                              if (isSingle) { e.stopPropagation(); changeQty(room.id, singleUid, -1); }
+                              else handleMinus(e, item, catKey);
+                            }}
+                            style={{
+                              position: 'absolute', bottom: '4px', right: '4px',
+                              width: '20px', height: '20px', borderRadius: '50%',
+                              background: 'var(--danger-light)', color: 'var(--danger)',
+                              border: 'none', cursor: 'pointer', fontSize: '14px',
+                              fontWeight: '700', lineHeight: '1',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                            }}
+                          >
+                            −
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -963,6 +1159,7 @@ export default function Step4Inventory() {
       {!showBoxes ? (
         <>
           <CatalogSection room={room} />
+          <CrossCatalogSection room={room} />
           <RoomBoxSection room={room} />
           <InventoryList room={room} />
           <RoomPhotosSection room={room} />

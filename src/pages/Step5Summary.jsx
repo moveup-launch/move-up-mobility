@@ -91,6 +91,7 @@ export default function Step5Summary() {
     getTotalVolume, getRecommendedTruck, getRecommendedTeam, getEquipment,
     getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getCheckPoints,
     getTotalBoxes, getBoxVolume, getRoomVolume, getRoomIcon,
+    getItemsByTransportMode,
     saveVisit, setViewMode, addMoveSegment, setTransportOverride,
   } = useApp();
 
@@ -124,7 +125,6 @@ export default function Step5Summary() {
       setTimeout(() => setSaveStatus('idle'), 3000);
     } else {
       setSaveStatus('saved');
-      setEmailStatus('idle');
     }
   };
 
@@ -302,6 +302,40 @@ export default function Step5Summary() {
           ))}
         </ul>
       </div>
+
+      {/* Répartition par mode transport */}
+      {(() => {
+        const modeMap = getItemsByTransportMode();
+        const defined = Object.entries(modeMap).filter(([k]) => k !== 'undefined');
+        if (defined.length === 0) return null;
+        const modeLabels = {
+          road:    { fr: '🚛 Route',    en: '🚛 Road'    },
+          sea:     { fr: '🚢 Maritime', en: '🚢 Sea'     },
+          air:     { fr: '✈️ Aérien',  en: '✈️ Air'    },
+          storage: { fr: '📦 Stockage', en: '📦 Storage' },
+        };
+        return (
+          <div className="card">
+            <div className="card-title">
+              {isFr ? 'Répartition par mode de transport' : 'Breakdown by transport mode'}
+            </div>
+            <ul className="item-list-summary">
+              {defined.map(([mode, data]) => (
+                <li key={mode}>
+                  <span>{modeLabels[mode]?.[isFr ? 'fr' : 'en'] || mode}</span>
+                  <strong>{data.volume.toFixed(2)} m³ — {data.count} {isFr ? 'obj.' : 'item(s)'}</strong>
+                </li>
+              ))}
+              {modeMap['undefined'] && (
+                <li>
+                  <span style={{ color: 'var(--text3)' }}>❓ {isFr ? 'Non défini' : 'Undefined'}</span>
+                  <strong style={{ color: 'var(--text3)' }}>{modeMap['undefined'].volume.toFixed(2)} m³</strong>
+                </li>
+              )}
+            </ul>
+          </div>
+        );
+      })()}
 
       {/* Caisse bois */}
       {crateItems.length > 0 && (
