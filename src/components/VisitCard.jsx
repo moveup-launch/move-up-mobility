@@ -154,8 +154,8 @@ export default function VisitCard({
       )}
 
       {/* Ligne 1 : date + heure — statut */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px' }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', fontWeight: '600', lineHeight: 1.4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px', overflow: 'hidden' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', fontWeight: '600', lineHeight: 1.4, flex: 1, minWidth: 0, overflow: 'hidden' }}>
           {dateStr}
           {timeStr && (
             <span style={{ color: 'var(--accent)', fontWeight: '700' }}> — {timeStr}</span>
@@ -164,7 +164,8 @@ export default function VisitCard({
         {statusSelector || (
           <span style={{
             fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px',
-            background: status.bg, color: status.color, whiteSpace: 'nowrap', flexShrink: 0,
+            background: status.bg, color: status.color, whiteSpace: 'nowrap',
+            flexShrink: 0, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {status.label}
           </span>
