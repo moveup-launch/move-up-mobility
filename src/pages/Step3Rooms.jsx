@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 export function AddRoomSheet() {
-  const { t, getRoomIcon, addRoom, closeSheet } = useApp();
+  const { t, lang, getRoomIcon, addRoom, closeSheet } = useApp();
+  const [showCustom, setShowCustom] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const isFr = lang === 'fr';
+
   const roomTypes = ['livingRoom', 'diningRoom', 'kitchen', 'bedroom', 'childBedroom', 'office', 'bathroom', 'dressing', 'laundry', 'garage', 'basement', 'attic', 'garden', 'storageBox', 'misc'];
 
   const handleAdd = (rt) => {
@@ -10,11 +14,17 @@ export function AddRoomSheet() {
     closeSheet();
   };
 
+  const handleCustom = () => {
+    if (!customName.trim()) return;
+    addRoom('misc', customName.trim());
+    closeSheet();
+  };
+
   return (
     <>
       <div className="sheet-handle" />
       <div className="sheet-title">{t('addRoom')}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
         {roomTypes.map(rt => (
           <div key={rt} className="radio-option" style={{ padding: '14px 10px' }} onClick={() => handleAdd(rt)}>
             <span className="radio-icon" style={{ fontSize: '24px' }}>{getRoomIcon(rt)}</span>
@@ -22,6 +32,41 @@ export function AddRoomSheet() {
           </div>
         ))}
       </div>
+      {!showCustom ? (
+        <div style={{ padding: '0 0 16px' }}>
+          <button
+            className="btn btn-secondary"
+            style={{ width: '100%', padding: '12px', borderStyle: 'dashed', fontSize: '13px' }}
+            onClick={() => setShowCustom(true)}
+          >
+            ✏️ {isFr ? 'Pièce personnalisée' : 'Custom room'}
+          </button>
+        </div>
+      ) : (
+        <div style={{ padding: '0 0 16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            type="text"
+            autoFocus
+            value={customName}
+            onChange={e => setCustomName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCustom()}
+            placeholder={isFr ? 'Ex: Bureau Thomas, Cave box 12...' : 'Ex: Thomas office, Storage 1...'}
+            style={{
+              flex: 1, padding: '10px 12px', borderRadius: '8px',
+              border: '1px solid var(--accent)', fontSize: '14px',
+              background: 'var(--bg)', color: 'var(--text)',
+            }}
+          />
+          <button
+            className="btn btn-primary"
+            style={{ padding: '10px 16px', flexShrink: 0, opacity: customName.trim() ? 1 : 0.5 }}
+            onClick={handleCustom}
+            disabled={!customName.trim()}
+          >
+            {isFr ? 'Ajouter' : 'Add'}
+          </button>
+        </div>
+      )}
     </>
   );
 }

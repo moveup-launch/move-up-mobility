@@ -236,7 +236,7 @@ export function AppProvider({ children }) {
       ...s,
       moveSegments: [...(s.moveSegments || []), {
         id: `seg_${Date.now()}`,
-        type: 'local',
+        type: '',
         volume: 0,
         comment: '',
       }],
@@ -278,11 +278,11 @@ export function AppProvider({ children }) {
     return isFr ? 'Route / National' : 'Road / National';
   };
 
-  const addRoom = (type) => {
+  const addRoom = (type, customName) => {
     setState(s => {
       const count = s.rooms.filter(r => r.type === type).length + 1;
       const baseName = TRANSLATIONS[lang]?.[type] || type;
-      const name = count > 1 ? `${baseName} ${count}` : baseName;
+      const name = customName || (count > 1 ? `${baseName} ${count}` : baseName);
       const id = `room_${s.nextRoomId}`;
       return {
         ...s,

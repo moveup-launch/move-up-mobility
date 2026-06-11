@@ -20,7 +20,7 @@ function MoveSegmentRow({ seg }) {
   const { lang, updateMoveSegment, removeMoveSegment, getSegmentSolution } = useApp();
   const isFr = lang === 'fr';
   const opts = isFr ? MOVE_TYPE_OPTIONS_FR : MOVE_TYPE_OPTIONS_EN;
-  const solution = getSegmentSolution(seg.type, seg.volume);
+  const solution = seg.type ? getSegmentSolution(seg.type, seg.volume) : null;
 
   return (
     <div style={{
@@ -33,6 +33,7 @@ function MoveSegmentRow({ seg }) {
           onChange={e => updateMoveSegment(seg.id, 'type', e.target.value)}
           style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px', background: 'var(--bg)' }}
         >
+          <option value="">{isFr ? '— Choisir un mode —' : '— Choose mode —'}</option>
           {opts.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
         </select>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -56,9 +57,11 @@ function MoveSegmentRow({ seg }) {
           ×
         </button>
       </div>
-      <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', marginBottom: '8px' }}>
-        → {solution}
-      </div>
+      {solution && (
+        <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', marginBottom: '8px' }}>
+          → {solution}
+        </div>
+      )}
       <input
         type="text"
         value={seg.comment || ''}
@@ -164,25 +167,32 @@ export default function Step5Summary() {
         </div>
       )}
 
-      {/* Répartition du déménagement */}
-      <div className="card">
-        <div className="card-title">{t('moveBreakdown')}</div>
-        {segments.length === 0 && (
-          <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '10px' }}>
-            {isFr
-              ? 'Ajoutez une ligne pour détailler la répartition (maritime, aérien, stockage...)'
-              : 'Add a line to detail the breakdown (sea, air, storage...)'}
+      {/* Répartition du déménagement — uniquement si plusieurs modes sur les objets */}
+      {(() => {
+        const modeMap = getItemsByTransportMode();
+        const definedCount = ['road', 'sea', 'air', 'storage'].filter(m => modeMap[m]).length;
+        if (definedCount < 2 && segments.length === 0) return null;
+        return (
+          <div className="card">
+            <div className="card-title">{t('moveBreakdown')}</div>
+            {segments.length === 0 && (
+              <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '10px' }}>
+                {isFr
+                  ? 'Ajoutez une ligne pour détailler la répartition (maritime, aérien, stockage...)'
+                  : 'Add a line to detail the breakdown (sea, air, storage...)'}
+              </div>
+            )}
+            {segments.map(seg => <MoveSegmentRow key={seg.id} seg={seg} />)}
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', padding: '10px', fontSize: '13px', borderStyle: 'dashed' }}
+              onClick={addMoveSegment}
+            >
+              + {t('addSegment')}
+            </button>
           </div>
-        )}
-        {segments.map(seg => <MoveSegmentRow key={seg.id} seg={seg} />)}
-        <button
-          className="btn btn-secondary"
-          style={{ width: '100%', padding: '10px', fontSize: '13px', borderStyle: 'dashed' }}
-          onClick={addMoveSegment}
-        >
-          + {t('addSegment')}
-        </button>
-      </div>
+        );
+      })()}
 
       {/* Équipe — ratio intelligent */}
       {(mt === 'local' || mt === 'road') && (

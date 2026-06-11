@@ -256,11 +256,28 @@ export default function Step6PDF() {
     const primaryMoveType = segsForType.length > 0
       ? segsForType.reduce((a, b) => ((b.volume || 0) > (a.volume || 0) ? b : a)).type
       : (state.moveType || 'local');
-    sectionTitle(isFr ? 'Type de logement et demenagement' : 'Housing type & move');
+
+    // Type de logement (toujours affiché)
+    sectionTitle(isFr ? 'Type de logement' : 'Housing type');
     if (state.housingTypeOrigin) row(isFr ? 'Type logement depart' : 'Origin housing type', t(state.housingTypeOrigin));
     if (state.housingTypeDestination) row(isFr ? 'Type logement arrivee' : 'Destination housing type', t(state.housingTypeDestination));
-    row(t('moveType'), moveLabels[primaryMoveType] || '');
     divider();
+
+    // Répartition du déménagement (seulement si plusieurs modes sur les objets)
+    const pdfModeGroups = {};
+    state.rooms.forEach(room => {
+      (room.items || []).filter(i => i.qty > 0).forEach(item => {
+        const m = item.transportMode || 'none';
+        if (!pdfModeGroups[m]) pdfModeGroups[m] = [];
+        pdfModeGroups[m].push({ ...item, roomName: room.name });
+      });
+    });
+    const pdfDefinedModes = ['road', 'sea', 'air', 'storage'].filter(m => pdfModeGroups[m]?.length > 0);
+    if (pdfDefinedModes.length >= 2) {
+      sectionTitle(isFr ? 'Repartition du demenagement' : 'Move breakdown');
+      row(t('moveType'), moveLabels[primaryMoveType] || '');
+      divider();
+    }
 
     // ── Accès ────────────────────────────────────────────────────
     accessBlock(state.origin, t('origin'), state.housingTypeOrigin);
@@ -288,76 +305,142 @@ export default function Step6PDF() {
       divider();
     }
 
-    // ── Inventaire par pièce ─────────────────────────────────────
-    sectionTitle(isFr ? 'Inventaire par piece' : 'Inventory by room');
-    state.rooms.forEach(room => {
-      checkY(12);
-      doc.setFillColor(...BLACK);
-      doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text(safe(`${room.name}  -  ${getRoomVolume(room).toFixed(2)} m3`), 16, y + 4.8);
-      y += 10;
+    // ── Inventaire ───────────────────────────────────────────────
+    // Helper: afficher les items d'une liste avec tags et photos de pièce
+    function renderItemList(items) {
+      items.forEach(item => {
+        checkY(6);
+        doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+        doc.text(safe(`  ${item.name} - ${item.variantLabel}`), 16, y);
+        doc.setFont('helvetica', 'bold');
+        doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
+        const tags = [];
+        if (item.fragile) tags.push('Fragile');
+        if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
+        if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
+        if (item.crate) tags.push(`Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
+        if (item.roomName) {
+          doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
+          const tagStr = tags.length ? ` [${tags.join(', ')}]` : '';
+          doc.text(safe(`    ${item.roomName}${tagStr}`), 16, y + 4);
+          y += 9;
+        } else if (tags.length) {
+          doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
+          doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
+          y += 9;
+        } else { y += 6; }
+      });
+    }
 
-      const items = (room.items || []).filter(i => i.qty > 0);
-      if (items.length === 0) {
-        doc.setTextColor(...GRAY); doc.setFontSize(8); doc.setFont('helvetica', 'italic');
-        doc.text(t('noItems'), 20, y); y += 5;
-      } else {
-        items.forEach(item => {
-          checkY(6);
-          doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-          doc.text(safe(`  ${item.name} - ${item.variantLabel}`), 16, y);
-          doc.setFont('helvetica', 'bold');
-          doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
-          const tags = [];
-          if (item.fragile) tags.push('Fragile');
-          if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
-          if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
-          const modeIcons = { road: '🚛', sea: '🚢', air: '✈', storage: '📦' };
-          if (item.transportMode && modeIcons[item.transportMode]) tags.push(modeIcons[item.transportMode]);
-          if (item.crate) tags.push(`Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
-          if (tags.length) {
-            doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
-            doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
-            y += 9;
-          } else { y += 6; }
-        });
-      }
-
-      // Photos de la pièce (max 4, 2 par ligne)
-      const roomPhotos = (room.photos || []).filter(p => p.dataURL);
-      if (roomPhotos.length > 0) {
-        const displayPhotos = roomPhotos.slice(0, 4);
-        const PHOTO_W = 87; const PHOTO_H = 65;
-        const PHOTO_GAP = 8; const TEXT_H = 14;
-        const rows = Math.ceil(displayPhotos.length / 2);
+    if (pdfDefinedModes.length >= 2) {
+      // Inventaire groupé par mode de transport
+      const modeHeaders = {
+        road:    isFr ? 'ROUTE / NATIONAL' : 'ROAD / NATIONAL',
+        sea:     isFr ? 'MARITIME' : 'SEA',
+        air:     isFr ? 'AERIEN' : 'AIR',
+        storage: isFr ? 'STOCKAGE' : 'STORAGE',
+      };
+      pdfDefinedModes.forEach(mode => {
+        const modeItems = pdfModeGroups[mode] || [];
+        const modeVol = modeItems.reduce((s, i) => s + (i.volume_m3 || 0) * i.qty, 0);
+        const containerReco = mode === 'sea' ? getSegmentSolution('sea', modeVol) : null;
+        const header = `${modeHeaders[mode]}${containerReco ? '  -  ' + containerReco : ''}  (${modeVol.toFixed(2)} m3)`;
         checkY(12);
-        doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
-        doc.text(safe(isFr ? 'Photos :' : 'Photos:'), 18, y); y += 6;
-        for (let row = 0; row < rows; row++) {
-          checkY(PHOTO_H + TEXT_H + 4);
-          const rowY = y;
-          for (let col = 0; col < 2; col++) {
-            const idx = row * 2 + col;
-            if (idx >= displayPhotos.length) break;
-            const photo = displayPhotos[idx];
-            const x = 12 + col * (PHOTO_W + PHOTO_GAP);
-            try { doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H); } catch { /* skip */ }
-            doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
-            doc.text(safe(photo.category || ''), x, rowY + PHOTO_H + 4);
-            if (photo.comment) {
-              doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
-              const lines = doc.splitTextToSize(safe(photo.comment), PHOTO_W);
-              doc.text(lines[0] || '', x, rowY + PHOTO_H + 9);
-            }
-          }
-          y = rowY + PHOTO_H + TEXT_H + 4;
-        }
+        doc.setFillColor(...BLACK);
+        doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(safe(header), 16, y + 4.8);
+        y += 10;
+        renderItemList(modeItems);
+        y += 3;
+      });
+      // Items sans mode défini
+      if (pdfModeGroups['none']?.length > 0) {
+        checkY(12);
+        doc.setFillColor(...GRAY);
+        doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(safe(isFr ? 'MODE NON DEFINI' : 'UNDEFINED MODE'), 16, y + 4.8);
+        y += 10;
+        renderItemList(pdfModeGroups['none']);
+        y += 3;
       }
-      y += 3;
-    });
+    } else {
+      // Inventaire normal par pièce
+      sectionTitle(isFr ? 'Inventaire par piece' : 'Inventory by room');
+      state.rooms.forEach(room => {
+        checkY(12);
+        doc.setFillColor(...BLACK);
+        doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(safe(`${room.name}  -  ${getRoomVolume(room).toFixed(2)} m3`), 16, y + 4.8);
+        y += 10;
+
+        const items = (room.items || []).filter(i => i.qty > 0);
+        if (items.length === 0) {
+          doc.setTextColor(...GRAY); doc.setFontSize(8); doc.setFont('helvetica', 'italic');
+          doc.text(t('noItems'), 20, y); y += 5;
+        } else {
+          items.forEach(item => {
+            checkY(6);
+            doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+            doc.text(safe(`  ${item.name} - ${item.variantLabel}`), 16, y);
+            doc.setFont('helvetica', 'bold');
+            doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
+            const tags = [];
+            if (item.fragile) tags.push('Fragile');
+            if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
+            if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
+            const modeIcons = { road: '🚛', sea: '🚢', air: '✈', storage: '📦' };
+            if (item.transportMode && modeIcons[item.transportMode]) tags.push(modeIcons[item.transportMode]);
+            if (item.crate) tags.push(`Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
+            if (tags.length) {
+              doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
+              doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
+              y += 9;
+            } else { y += 6; }
+          });
+        }
+
+        // Photos de la pièce (max 4, 2 par ligne)
+        const roomPhotos = (room.photos || []).filter(p => p.dataURL);
+        if (roomPhotos.length > 0) {
+          const displayPhotos = roomPhotos.slice(0, 4);
+          const PHOTO_W = 87; const PHOTO_H = 65;
+          const PHOTO_GAP = 8; const TEXT_H = 14;
+          const photoRows = Math.ceil(displayPhotos.length / 2);
+          checkY(12);
+          doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+          doc.text(safe(isFr ? 'Photos :' : 'Photos:'), 18, y); y += 6;
+          for (let pr = 0; pr < photoRows; pr++) {
+            checkY(PHOTO_H + TEXT_H + 4);
+            const rowY = y;
+            for (let col = 0; col < 2; col++) {
+              const idx = pr * 2 + col;
+              if (idx >= displayPhotos.length) break;
+              const photo = displayPhotos[idx];
+              const x = 12 + col * (PHOTO_W + PHOTO_GAP);
+              try { doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H); } catch { /* skip */ }
+              doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+              doc.text(safe(photo.category || ''), x, rowY + PHOTO_H + 4);
+              if (photo.comment) {
+                doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
+                const lines = doc.splitTextToSize(safe(photo.comment), PHOTO_W);
+                doc.text(lines[0] || '', x, rowY + PHOTO_H + 9);
+              }
+            }
+            y = rowY + PHOTO_H + TEXT_H + 4;
+          }
+        }
+        y += 3;
+      });
+    }
     divider();
 
     // ── Cartons ──────────────────────────────────────────────────

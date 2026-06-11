@@ -138,9 +138,11 @@ const MISC_SUGGESTIONS_EN = {
 function CustomItemSheet({ roomId, roomType }) {
   const { lang, addCustomItemToRoom, closeSheet } = useApp();
   const [name, setName] = useState('');
-  const [volume, setVolume] = useState(0.3);
+  const [volumeStr, setVolumeStr] = useState('0.3');
   const [qty, setQty] = useState(1);
   const isFr = lang === 'fr';
+
+  const volume = parseFloat(volumeStr) || 0.1;
 
   const suggestions = (isFr ? MISC_SUGGESTIONS_FR : MISC_SUGGESTIONS_EN)[roomType] || [];
 
@@ -159,7 +161,7 @@ function CustomItemSheet({ roomId, roomType }) {
 
   const pickSuggestion = (s) => {
     setName(s.n);
-    setVolume(s.v);
+    setVolumeStr(String(s.v));
   };
 
   return (
@@ -200,16 +202,17 @@ function CustomItemSheet({ roomId, roomType }) {
       <div className="field" style={{ padding: '0 16px 12px' }}>
         <label>{isFr ? 'Volume en m³' : 'Volume in m³'}</label>
         <input
-          type="number" step="0.01" min="0.01"
-          value={volume}
-          onChange={e => setVolume(parseFloat(e.target.value) || 0.1)}
+          type="number" step="0.01" min="0.01" inputMode="decimal"
+          value={volumeStr}
+          onChange={e => setVolumeStr(e.target.value)}
+          onBlur={e => { const v = parseFloat(e.target.value); if (v > 0) setVolumeStr(String(v)); }}
           style={{ fontSize: '16px', fontWeight: '600' }}
         />
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
           {volumePresets.map(p => (
             <button
               key={p.val}
-              onClick={() => setVolume(p.val)}
+              onClick={() => setVolumeStr(String(p.val))}
               style={{
                 padding: '4px 10px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer',
                 background: volume === p.val ? 'var(--accent)' : 'var(--surface2)',
@@ -469,63 +472,14 @@ function InventoryList({ room }) {
         <div key={item.itemId} className="inv-item" style={{ alignItems: 'flex-start' }}>
           <div className="inv-icon">{item.icon}</div>
           <div className="inv-info" style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <div className="inv-name">{item.name}</div>
-              {/* Crate button */}
-              {CRATE_ELIGIBLE_IDS.has(item.catalogId) && (
-                <button
-                  title={isFr ? 'Caisse sur mesure' : 'Custom crate'}
-                  onClick={() => crateEditId === item.itemId ? setCrateEditId(null) : openCrateForm(item)}
-                  style={{
-                    background: item.crate ? '#FEF3C7' : 'var(--surface2)',
-                    color: item.crate ? '#92400E' : 'var(--text3)',
-                    border: `1px solid ${item.crate ? '#FCD34D' : 'var(--border)'}`,
-                    borderRadius: '4px', padding: '1px 5px', fontSize: '11px',
-                    cursor: 'pointer', lineHeight: 1.4, fontWeight: '600',
-                  }}
-                >
-                  🗃️ {item.crate ? `${item.crate.vol} m³` : (isFr ? 'Caisse' : 'Crate')}
-                </button>
-              )}
-            </div>
-
-            {/* Crate form (L×W×H) */}
-            {crateEditId === item.itemId && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>L</span>
-                <input type="number" min="1" value={crateForm.l} onChange={e => setCrateForm(f => ({ ...f, l: e.target.value }))}
-                  placeholder="cm" style={{ width: '52px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)' }} />
-                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>×W</span>
-                <input type="number" min="1" value={crateForm.w} onChange={e => setCrateForm(f => ({ ...f, w: e.target.value }))}
-                  placeholder="cm" style={{ width: '52px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)' }} />
-                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>×H</span>
-                <input type="number" min="1" value={crateForm.h} onChange={e => setCrateForm(f => ({ ...f, h: e.target.value }))}
-                  placeholder="cm" style={{ width: '52px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)' }} />
-                <span style={{ fontSize: '10px', color: 'var(--text3)' }}>cm</span>
-                {crateForm.l && crateForm.w && crateForm.h && (
-                  <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: '600' }}>
-                    = {(parseFloat(crateForm.l) * parseFloat(crateForm.w) * parseFloat(crateForm.h) / 1000000).toFixed(4)} m³
-                  </span>
-                )}
-                <button onClick={() => commitCrate(item.itemId)}
-                  style={{ padding: '2px 8px', fontSize: '11px', borderRadius: '4px', background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer' }}>
-                  OK
-                </button>
-                {item.crate && (
-                  <button onClick={() => removeCrate(item.itemId)}
-                    style={{ padding: '2px 6px', fontSize: '11px', borderRadius: '4px', background: 'var(--danger-light)', color: 'var(--danger)', border: 'none', cursor: 'pointer' }}>
-                    ×
-                  </button>
-                )}
-              </div>
-            )}
-
+            <div className="inv-name">{item.name}</div>
             <div className="inv-variant">{item.variantLabel}</div>
+
             {/* Volume edit */}
             {editingItemId === item.itemId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                 <input
-                  type="number" step="0.01" min="0.001"
+                  type="number" step="0.01" min="0.001" inputMode="decimal"
                   value={editVolume}
                   onChange={e => setEditVolume(e.target.value)}
                   onBlur={() => commitEdit(item.itemId)}
@@ -569,6 +523,53 @@ function InventoryList({ room }) {
               ))}
             </div>
 
+            {/* Bouton caisse — visible, dans la colonne info */}
+            <div style={{ marginTop: '5px' }}>
+              <button
+                onClick={() => crateEditId === item.itemId ? setCrateEditId(null) : openCrateForm(item)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  background: item.crate ? '#FEF3C7' : 'var(--surface2)',
+                  color: item.crate ? '#92400E' : 'var(--text2)',
+                  border: `1px solid ${item.crate ? '#FCD34D' : 'var(--border)'}`,
+                  borderRadius: '8px', padding: '5px 10px', fontSize: '12px',
+                  cursor: 'pointer', fontWeight: item.crate ? '700' : '500',
+                }}
+              >
+                📦 {item.crate ? `${item.crate.l}×${item.crate.w}×${item.crate.h} cm` : (isFr ? 'Ajouter caisse' : 'Add crate')}
+              </button>
+            </div>
+
+            {/* Crate form (L×l×H) — affiché quand ouvert */}
+            {crateEditId === item.itemId && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', flexWrap: 'wrap', background: 'var(--surface2)', borderRadius: '6px', padding: '6px 8px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600' }}>L</span>
+                <input type="number" min="1" inputMode="numeric" value={crateForm.l} onChange={e => setCrateForm(f => ({ ...f, l: e.target.value }))}
+                  placeholder="cm" style={{ width: '50px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)', textAlign: 'center' }} />
+                <span style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600' }}>×l</span>
+                <input type="number" min="1" inputMode="numeric" value={crateForm.w} onChange={e => setCrateForm(f => ({ ...f, w: e.target.value }))}
+                  placeholder="cm" style={{ width: '50px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)', textAlign: 'center' }} />
+                <span style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600' }}>×H</span>
+                <input type="number" min="1" inputMode="numeric" value={crateForm.h} onChange={e => setCrateForm(f => ({ ...f, h: e.target.value }))}
+                  placeholder="cm" style={{ width: '50px', padding: '3px 5px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border)', textAlign: 'center' }} />
+                {crateForm.l && crateForm.w && crateForm.h && (
+                  <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: '700' }}>
+                    = {(parseFloat(crateForm.l) * parseFloat(crateForm.w) * parseFloat(crateForm.h) / 1000000).toFixed(4)} m³
+                  </span>
+                )}
+                <button onClick={() => commitCrate(item.itemId)}
+                  style={{ padding: '3px 10px', fontSize: '11px', borderRadius: '4px', background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700' }}>
+                  OK
+                </button>
+                {item.crate && (
+                  <button onClick={() => removeCrate(item.itemId)}
+                    style={{ padding: '3px 8px', fontSize: '11px', borderRadius: '4px', background: 'var(--danger-light)', color: 'var(--danger)', border: 'none', cursor: 'pointer' }}>
+                    ✕ {isFr ? 'Retirer' : 'Remove'}
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="inv-tags" style={{ marginTop: '3px' }}>
               {item.fragile && <span className="tag tag-fragile">{t('tagFragile')}</span>}
               {item.heavy && <span className="tag tag-heavy">{t('tagHeavy')}</span>}
@@ -576,10 +577,14 @@ function InventoryList({ room }) {
               {item.possible_furniture_lift && <span className="tag tag-lift">{t('tagLift')}</span>}
             </div>
           </div>
-          <div className="inv-qty">
-            <button className="qty-btn" onClick={() => changeQty(room.id, item.itemId, -1)}>−</button>
-            <span className="qty-num">{item.qty}</span>
-            <button className="qty-btn" onClick={() => changeQty(room.id, item.itemId, 1)}>+</button>
+
+          {/* Colonne droite : +/- */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+            <div className="inv-qty">
+              <button className="qty-btn" onClick={() => changeQty(room.id, item.itemId, -1)}>−</button>
+              <span className="qty-num">{item.qty}</span>
+              <button className="qty-btn" onClick={() => changeQty(room.id, item.itemId, 1)}>+</button>
+            </div>
           </div>
         </div>
       ))}
