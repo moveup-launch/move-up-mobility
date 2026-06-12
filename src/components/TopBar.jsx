@@ -2,7 +2,7 @@ import { useApp } from '../context/AppContext';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 
 export default function TopBar() {
-  const { lang, setLang, user, profile, signOut, viewMode, setViewMode, startNewVisit } = useApp();
+  const { lang, setLang, user, profile, signOut, viewMode, setViewMode, openPlanVisit } = useApp();
   const isDesktop = useIsDesktop();
   const isFr = lang === 'fr';
 
@@ -34,8 +34,8 @@ export default function TopBar() {
           </button>
         )}
         {!isDesktop && user && (
-          <button className="topbar-icon-btn" onClick={startNewVisit} title={isFr ? 'Nouvelle visite' : 'New visit'}>
-            ✏️
+          <button className="topbar-icon-btn" onClick={openPlanVisit} title={isFr ? 'Planifier une visite' : 'Schedule a visit'}>
+            📅
           </button>
         )}
         <div className="lang-toggle">

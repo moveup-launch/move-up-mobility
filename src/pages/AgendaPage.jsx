@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import VisitCard from '../components/VisitCard';
+import NewVisitModal from '../components/NewVisitModal';
 import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
 
 function localToday() {
@@ -16,7 +17,7 @@ function sortByDateTime(a, b) {
 }
 
 export default function AgendaPage() {
-  const { t, lang, loadVisit, goToStep } = useApp();
+  const { t, lang, loadVisit, goToStep, planVisitSignal } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
@@ -29,6 +30,7 @@ export default function AgendaPage() {
   const [deleting, setDeleting] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(null);
   const [opening, setOpening] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const today = localToday();
 
@@ -45,6 +47,19 @@ export default function AgendaPage() {
   })();
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    if (planVisitSignal > 0) setShowModal(true);
+  }, [planVisitSignal]);
+
+  const handleVisitCreated = (newVisit) => {
+    if (newVisit._pending) {
+      setOfflineVisits(prev => [...prev, newVisit].sort(sortByDateTime));
+    } else {
+      setVisits(prev => [...prev, newVisit].sort(sortByDateTime));
+    }
+    setShowModal(false);
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -166,14 +181,28 @@ export default function AgendaPage() {
   }
 
   return (
+    <>
     <div style={{ padding: '16px', maxWidth: '640px', margin: '0 auto' }}>
       <div className="section-header">
-        <div className="section-title">📅 {t('agenda')}</div>
-        <div className="section-subtitle">
-          {isFr
-            ? `${allVisits.length} visite${allVisits.length !== 1 ? 's' : ''}`
-            : `${allVisits.length} visit${allVisits.length !== 1 ? 's' : ''}`}
+        <div>
+          <div className="section-title">🗓️ {t('agenda')}</div>
+          <div className="section-subtitle">
+            {isFr
+              ? `${allVisits.length} visite${allVisits.length !== 1 ? 's' : ''}`
+              : `${allVisits.length} visit${allVisits.length !== 1 ? 's' : ''}`}
+          </div>
         </div>
+        <button
+          onClick={() => setShowModal(true)}
+          style={{
+            padding: '9px 16px', borderRadius: '10px', border: 'none',
+            background: 'var(--accent)', color: 'white',
+            fontWeight: '700', fontSize: '14px', cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          + {isFr ? 'Planifier' : 'Schedule'}
+        </button>
       </div>
 
       {/* Recherche */}
@@ -252,5 +281,13 @@ export default function AgendaPage() {
         </div>
       )}
     </div>
+
+    {showModal && (
+      <NewVisitModal
+        onClose={() => setShowModal(false)}
+        onCreated={handleVisitCreated}
+      />
+    )}
+    </>
   );
 }

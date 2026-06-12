@@ -207,6 +207,12 @@ export function AppProvider({ children }) {
     setViewMode('wizard');
   };
 
+  const [planVisitSignal, setPlanVisitSignal] = useState(0);
+  const openPlanVisit = () => {
+    setViewMode('agenda');
+    setPlanVisitSignal(n => n + 1);
+  };
+
   const openNewQuote = (visitData) => {
     setQuoteVisit(visitData || null);
     setEditingQuoteId(null);
@@ -1002,6 +1008,7 @@ export function AppProvider({ children }) {
       user, authLoading,
       viewMode, setViewMode,
       signOut, startNewVisit, startQuickVisit,
+      planVisitSignal, openPlanVisit,
       quoteVisit, editingQuoteId, openNewQuote, openEditQuote,
       saveVisit, loadVisit,
       profile, saveProfile,

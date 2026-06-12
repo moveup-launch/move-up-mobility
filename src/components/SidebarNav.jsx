@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 const STEP_ICONS = ['👤', '🏠', '📦', '📊', '📄'];
 
 export default function SidebarNav() {
-  const { currentStep, goToStep, t, lang, user, profile, signOut, viewMode, setViewMode, startNewVisit } = useApp();
+  const { currentStep, goToStep, t, lang, user, profile, signOut, viewMode, setViewMode, openPlanVisit } = useApp();
 
 
   const steps = [t('step1'), t('step2'), t('step3'), t('step4'), t('step5')];
@@ -20,15 +20,15 @@ export default function SidebarNav() {
         </button>
         <button
           className="sidebar-nav-btn sidebar-new-visit"
-          onClick={startNewVisit}
+          onClick={openPlanVisit}
         >
-          <span>✏️</span> {isFr ? 'Nouvelle visite' : 'New visit'}
+          <span>📅</span> {isFr ? 'Planifier une visite' : 'Schedule a visit'}
         </button>
         <button
           className={`sidebar-nav-btn ${viewMode === 'agenda' ? 'active' : ''}`}
           onClick={() => setViewMode('agenda')}
         >
-          <span>📅</span> {isFr ? 'Agenda' : 'Agenda'}
+          <span>🗓️</span> {isFr ? 'Agenda' : 'Agenda'}
         </button>
         <button
           className={`sidebar-nav-btn ${viewMode === 'history' ? 'active' : ''}`}
