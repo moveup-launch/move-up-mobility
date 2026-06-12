@@ -188,46 +188,43 @@ function AccessBlock({ prefix, label }) {
             </div>
           </div>
 
-          {/* Monte-meubles */}
-          <div style={{ background: 'var(--surface2)', borderRadius: 'var(--radius-sm)', padding: '12px', marginTop: '8px' }}>
-            <div className="card-title" style={{ fontSize: '13px', marginBottom: '10px' }}>
-              {t('furnitureLiftSection')}
-            </div>
-            <div className="field">
-              <label style={{ fontSize: '12px' }}>{t('furnitureLiftNeeded')}</label>
-              <YesNoCheck value={d.furnitureLiftNeeded} onChange={v => update('furnitureLiftNeeded', v)} isFr={isFr} />
-            </div>
-            {d.furnitureLiftNeeded !== 'no' && (
-              <>
-                <div className="field">
-                  <label style={{ fontSize: '12px' }}>{t('furnitureLiftFeasible')}</label>
-                  <YesNoCheck value={d.furnitureLiftFeasible} onChange={v => update('furnitureLiftFeasible', v)} isFr={isFr} />
-                </div>
-                <div className="field">
-                  <label style={{ fontSize: '12px' }}>{t('furnitureLiftLocation')}</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {locationOpts.map(o => (
-                      <div key={o.val}
-                        className={`radio-option ${d.furnitureLiftLocation === o.val ? 'selected' : ''}`}
-                        style={{ padding: '7px 10px' }}
-                        onClick={() => update('furnitureLiftLocation', o.val)}>
-                        <span className="radio-label" style={{ fontSize: '12px' }}>{t(o.key)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="field">
-                  <label style={{ fontSize: '12px' }}>{isFr ? 'Commentaire monte-meubles' : 'Furniture lift comment'}</label>
-                  <input
-                    type="text"
-                    value={d.furnitureLiftComment || ''}
-                    onChange={e => update('furnitureLiftComment', e.target.value)}
-                    placeholder={isFr ? 'Remarques, contraintes...' : 'Notes, constraints...'}
-                  />
-                </div>
-              </>
-            )}
+          {/* Monte-meubles — question séparée, visible pour tous les logements */}
+          <div className="field" style={{ marginTop: '10px' }}>
+            <label style={{ fontSize: '13px', fontWeight: '700' }}>
+              🏗️ {isFr ? 'Monte-meubles nécessaire ?' : 'Furniture lift needed?'}
+            </label>
+            <YesNoCheck value={d.furnitureLiftNeeded} onChange={v => update('furnitureLiftNeeded', v)} isFr={isFr} />
           </div>
+          {d.furnitureLiftNeeded === 'yes' && (
+            <div style={{ background: 'var(--surface2)', borderRadius: 'var(--radius-sm)', padding: '12px', marginTop: '4px' }}>
+              <div className="field">
+                <label style={{ fontSize: '12px' }}>{t('furnitureLiftFeasible')}</label>
+                <YesNoCheck value={d.furnitureLiftFeasible} onChange={v => update('furnitureLiftFeasible', v)} isFr={isFr} />
+              </div>
+              <div className="field">
+                <label style={{ fontSize: '12px' }}>{t('furnitureLiftLocation')}</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {locationOpts.map(o => (
+                    <div key={o.val}
+                      className={`radio-option ${d.furnitureLiftLocation === o.val ? 'selected' : ''}`}
+                      style={{ padding: '7px 10px' }}
+                      onClick={() => update('furnitureLiftLocation', o.val)}>
+                      <span className="radio-label" style={{ fontSize: '12px' }}>{t(o.key)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="field">
+                <label style={{ fontSize: '12px' }}>{isFr ? 'Commentaire monte-meubles' : 'Furniture lift comment'}</label>
+                <input
+                  type="text"
+                  value={d.furnitureLiftComment || ''}
+                  onChange={e => update('furnitureLiftComment', e.target.value)}
+                  placeholder={isFr ? 'Remarques, contraintes...' : 'Notes, constraints...'}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Alertes */}
           {alerts.length > 0 && (
