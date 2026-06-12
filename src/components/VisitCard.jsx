@@ -44,9 +44,11 @@ export default function VisitCard({
   const isFr = lang === 'fr';
   const v = visit;
 
-  const status = getStatusInfo(v.visit_status, isFr);
-  const phone  = v.client_phone || v.client_data?.phone || '';
-  const email  = v.client_email || v.client_data?.email || '';
+  const status    = getStatusInfo(v.visit_status, isFr);
+  const phone     = v.client_phone || v.client_data?.phone || '';
+  const email     = v.client_email || v.client_data?.email || '';
+  const isVideo   = v.visit_type === 'video';
+  const videoLink = v.video_link || '';
 
   const addrParts = [];
   if (v.origin_data?.address) addrParts.push(v.origin_data.address);
@@ -154,7 +156,7 @@ export default function VisitCard({
         </div>
       )}
 
-      {/* Ligne 1 : date + heure — statut */}
+      {/* Ligne 1 : date + heure — badges */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px', overflow: 'hidden' }}>
         <div style={{ fontSize: '12px', color: 'var(--text3)', fontWeight: '600', lineHeight: 1.4, flex: 1, minWidth: 0, overflow: 'hidden' }}>
           {dateStr}
@@ -162,15 +164,24 @@ export default function VisitCard({
             <span style={{ color: 'var(--accent)', fontWeight: '700' }}> — {timeStr}</span>
           )}
         </div>
-        {statusSelector || (
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
           <span style={{
-            fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px',
-            background: status.bg, color: status.color, whiteSpace: 'nowrap',
-            flexShrink: 0, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis',
+            fontSize: '11px', fontWeight: '700', padding: '2px 7px', borderRadius: '12px',
+            background: isVideo ? '#EDE9FE' : '#F0FDF4',
+            color: isVideo ? '#6D28D9' : '#16A34A',
           }}>
-            {status.label}
+            {isVideo ? '📹 Vidéo' : '🏠 Physique'}
           </span>
-        )}
+          {statusSelector || (
+            <span style={{
+              fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px',
+              background: status.bg, color: status.color, whiteSpace: 'nowrap',
+              maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {status.label}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Nom client */}
@@ -287,6 +298,26 @@ export default function VisitCard({
           🗑️
         </button>
       </div>
+
+      {/* Lien visio */}
+      {isVideo && videoLink && (
+        <div style={{ marginTop: '6px' }}>
+          <a
+            href={videoLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              ...btn,
+              width: '100%', justifyContent: 'center',
+              background: '#EDE9FE', color: '#6D28D9',
+              border: '1px solid #C4B5FD',
+              textDecoration: 'none', boxSizing: 'border-box',
+            }}
+          >
+            📹 {isFr ? 'Rejoindre la visio' : 'Join video call'}
+          </a>
+        </div>
+      )}
 
       {/* Boutons confirmation SMS + Email */}
       <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>

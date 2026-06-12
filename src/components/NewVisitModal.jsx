@@ -12,6 +12,7 @@ export default function NewVisitModal({ onClose, onCreated }) {
     name: '', phone: '', email: '',
     address: '', city: '', postalCode: '',
     visitDate: '', visitTime: '', notes: '',
+    visitType: 'physical', videoLink: '',
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -49,6 +50,8 @@ export default function NewVisitModal({ onClose, onCreated }) {
         visit_date: form.visitDate || null,
         visit_time: form.visitTime || null,
         visit_status: 'prevue',
+        visit_type: form.visitType || 'physical',
+        video_link: form.visitType === 'video' ? (form.videoLink.trim() || null) : null,
         agenda_notes: form.notes.trim() || null,
         origin_data: {
           address: form.address.trim(),
@@ -80,6 +83,8 @@ export default function NewVisitModal({ onClose, onCreated }) {
           visit_date: form.visitDate || null,
           visit_time: form.visitTime || null,
           visit_status: 'prevue',
+          visit_type: form.visitType || 'physical',
+          video_link: form.visitType === 'video' ? (form.videoLink.trim() || null) : null,
           agenda_notes: form.notes.trim() || null,
           origin_data: {
             address: form.address.trim(),
@@ -297,6 +302,47 @@ export default function NewVisitModal({ onClose, onCreated }) {
               />
             </div>
           </div>
+
+          {/* Type de visite */}
+          <div className="field">
+            <label>{isFr ? 'Type de visite' : 'Visit type'}</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {[
+                { val: 'physical', icon: '🏠', labelFr: 'Physique', labelEn: 'Physical' },
+                { val: 'video',    icon: '📹', labelFr: 'Vidéo',    labelEn: 'Video' },
+              ].map(opt => (
+                <button
+                  key={opt.val}
+                  type="button"
+                  onClick={() => set('visitType', opt.val)}
+                  style={{
+                    flex: 1, padding: '10px', borderRadius: '10px',
+                    border: `2px solid ${form.visitType === opt.val ? 'var(--accent)' : 'var(--border)'}`,
+                    background: form.visitType === opt.val ? 'var(--accent-light)' : 'var(--surface2)',
+                    color: form.visitType === opt.val ? 'var(--accent)' : 'var(--text2)',
+                    fontWeight: '700', fontSize: '14px', cursor: 'pointer',
+                    touchAction: 'manipulation',
+                  }}
+                >
+                  {opt.icon} {isFr ? opt.labelFr : opt.labelEn}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Lien visio (vidéo uniquement) */}
+          {form.visitType === 'video' && (
+            <div className="field">
+              <label>{isFr ? 'Lien visio' : 'Video link'}</label>
+              <input
+                type="url"
+                value={form.videoLink}
+                onChange={e => set('videoLink', e.target.value)}
+                placeholder="https://meet.google.com/abc-xyz"
+                style={{ fontSize: '16px', touchAction: 'manipulation' }}
+              />
+            </div>
+          )}
 
           {/* Notes */}
           <div className="field">

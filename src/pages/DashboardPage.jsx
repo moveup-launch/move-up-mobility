@@ -92,7 +92,7 @@ export default function DashboardPage() {
     setLoadError(null);
     const { data, error } = await supabase
       .from('visits')
-      .select('id, client_name, client_phone, client_email, visit_date, visit_time, visit_status, origin_data, client_data')
+      .select('id, client_name, client_phone, client_email, visit_date, visit_time, visit_status, visit_type, video_link, origin_data, client_data')
       .order('visit_date', { ascending: true });
     if (error) {
       console.error('DashboardPage loadData error:', error);
