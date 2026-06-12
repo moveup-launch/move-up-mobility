@@ -120,7 +120,7 @@ function loadImgAsDataUrl(url) {
 }
 
 export default function QuotePage() {
-  const { lang, profile, user, quoteVisit, editingQuoteId, setViewMode } = useApp();
+  const { lang, profile, user, quoteVisit, editingQuoteId, setViewMode, loadVisit, goToStep } = useApp();
   const isFr = lang === 'fr';
 
   const [loading, setLoading]       = useState(true);
@@ -711,6 +711,24 @@ export default function QuotePage() {
           </div>
         </div>
       </div>
+
+      {/* Lien visite associée */}
+      {visitId && (
+        <button
+          onClick={async () => {
+            const { data } = await supabase.from('visits').select('*').eq('id', visitId).single();
+            if (data) { loadVisit(data); goToStep(4); }
+          }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            background: 'var(--surface2)', border: '1px solid var(--border)',
+            borderRadius: '8px', padding: '6px 12px', fontSize: '12px',
+            color: 'var(--text2)', cursor: 'pointer', marginBottom: '10px',
+          }}
+        >
+          🔗 {isFr ? 'Voir la visite associée' : 'View associated visit'}
+        </button>
+      )}
 
       {/* Lang + Status */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>

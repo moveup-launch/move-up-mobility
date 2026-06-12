@@ -80,7 +80,7 @@ export default function Step5Summary() {
     getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getCheckPoints,
     getTotalBoxes, getBoxVolume, getRoomVolume, getRoomIcon,
     getSegmentSolution, getItemsByTransportMode,
-    saveVisit, setViewMode, addMoveSegment,
+    saveVisit, setViewMode, addMoveSegment, openNewQuote,
   } = useApp();
 
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -415,6 +415,26 @@ export default function Step5Summary() {
                   : (isFr ? '💾 Enregistrer la visite' : '💾 Save visit')}
           </button>
         )}
+        <button
+          onClick={() => openNewQuote({
+            id: state.editingVisitId || null,
+            client_name: state.client.name || '',
+            client_email: state.client.email || '',
+            client_phone: state.client.phone || '',
+            client_data: state.client,
+            origin_data: state.origin,
+            destination_data: state.destination,
+            total_volume: vol,
+            rooms_data: state.rooms,
+          })}
+          style={{
+            width: '100%', marginTop: '8px', padding: '14px', borderRadius: '10px',
+            border: '2px solid #7C3AED', background: '#F5F3FF',
+            color: '#7C3AED', fontWeight: '700', fontSize: '14px', cursor: 'pointer',
+          }}
+        >
+          📋 {isFr ? 'Générer un devis' : 'Generate a quote'}
+        </button>
       </div>
     </>
   );

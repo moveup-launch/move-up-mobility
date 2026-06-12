@@ -12,7 +12,7 @@ const STATUS_MAP = {
 const MODE_ICONS = { sea: '🚢', air: '✈️', road: '🚛', storage: '📦', local: '🏙️' };
 
 export default function QuoteListPage() {
-  const { lang, user, openEditQuote, openNewQuote, setViewMode } = useApp();
+  const { lang, user, openEditQuote, openNewQuote, setViewMode, loadVisit, goToStep } = useApp();
   const isFr = lang === 'fr';
 
   const [quotes, setQuotes]       = useState([]);
@@ -61,6 +61,11 @@ export default function QuoteListPage() {
     }).select().single();
     if (data) setQuotes(prev => [data, ...prev]);
     setDuplicating(null);
+  };
+
+  const handleOpenVisit = async (visitId) => {
+    const { data } = await supabase.from('visits').select('*').eq('id', visitId).single();
+    if (data) { loadVisit(data); goToStep(4); }
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -200,11 +205,24 @@ export default function QuoteListPage() {
                 {q.client_name || '—'}
               </div>
 
-              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>
                 {[q.origin, q.destination].filter(Boolean).join(' → ')}
                 {q.total_amount > 0 && <span style={{ fontWeight: '700', color: 'var(--accent)', marginLeft: '8px' }}>{q.total_amount.toFixed(2)} €</span>}
                 {dateStr && <span style={{ marginLeft: '8px' }}>{dateStr}</span>}
               </div>
+              {q.visit_id && (
+                <button
+                  onClick={() => handleOpenVisit(q.visit_id)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    background: 'none', border: 'none', padding: '2px 0',
+                    fontSize: '12px', color: 'var(--accent)', cursor: 'pointer',
+                    textDecoration: 'underline', marginBottom: '6px',
+                  }}
+                >
+                  🔗 {isFr ? 'Voir la visite associée' : 'View associated visit'}
+                </button>
+              )}
 
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <button

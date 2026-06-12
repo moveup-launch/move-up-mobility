@@ -34,6 +34,7 @@ export default function VisitCard({
   isConfirmingDelete = false,
   isDeleting = false,
   onOpen,
+  onQuote = null,
   onDeleteRequest,
   onDeleteConfirm,
   onDeleteCancel,
@@ -264,6 +265,18 @@ export default function VisitCard({
           </a>
         )}
 
+        {onQuote && !isPending && (
+          <button
+            onClick={() => onQuote(visitId)}
+            style={{
+              ...btn, background: '#F5F3FF', color: '#7C3AED',
+              border: '1px solid #7C3AED', padding: '9px 11px', flexShrink: 0,
+            }}
+            title={isFr ? 'Créer un devis' : 'Create a quote'}
+          >
+            📋
+          </button>
+        )}
         <button
           onClick={() => onDeleteRequest(visitId)}
           style={{

@@ -36,7 +36,7 @@ const PLAN_BADGE = {
 const FREE_VISIT_LIMIT = 3;
 
 export default function DashboardPage() {
-  const { t, lang, user, profile, loadVisit, goToStep, setViewMode } = useApp();
+  const { t, lang, user, profile, loadVisit, goToStep, setViewMode, openNewQuote } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
@@ -128,6 +128,12 @@ export default function DashboardPage() {
       console.error('openVisit error:', error);
     }
     setOpening(null);
+  };
+
+  const handleOpenForQuote = async (visitId) => {
+    const { data, error } = await supabase
+      .from('visits').select('*').eq('id', visitId).single();
+    if (!error && data) openNewQuote(data);
   };
 
   const handleDelete = async (id) => {
@@ -304,6 +310,7 @@ export default function DashboardPage() {
                         isConfirmingDelete={confirmDelete === vid}
                         isDeleting={deleting === vid}
                         onOpen={openVisit}
+                        onQuote={v.id ? handleOpenForQuote : null}
                         onDeleteRequest={id => setConfirmDelete(id)}
                         onDeleteConfirm={handleDelete}
                         onDeleteCancel={() => setConfirmDelete(null)}
