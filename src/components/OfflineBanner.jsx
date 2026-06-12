@@ -25,7 +25,7 @@ export default function OfflineBanner() {
       padding: '7px 16px', textAlign: 'center',
       fontSize: '12px', fontWeight: '600', letterSpacing: '0.03em',
     }}>
-      📡 {lang === 'fr' ? 'Mode hors ligne — données locales uniquement' : 'Offline mode — local data only'}
+      📵 {lang === 'fr' ? 'Mode hors ligne — données sauvegardées localement' : 'Offline mode — data saved locally'}
     </div>
   );
 }

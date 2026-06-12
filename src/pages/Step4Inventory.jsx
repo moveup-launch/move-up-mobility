@@ -934,7 +934,6 @@ function RoomPhotosSection({ room }) {
   );
 }
 
-// Tâche 3 (onglet cartons global) + Tâche 9 (suggestion optionnelle)
 function BoxesSection() {
   const { t, lang, state, changeBox, setBox, setHouseholdPersons, getBoxSuggestions, applyBoxSuggestions } = useApp();
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -949,6 +948,16 @@ function BoxesSection() {
 
   return (
     <>
+      {/* Note globale */}
+      <div style={{
+        background: '#EEF3FD', border: '1px solid #BFDBFE',
+        borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: '12px',
+        fontSize: '13px', color: '#1D4ED8', fontWeight: '600',
+        display: 'flex', alignItems: 'center', gap: '8px',
+      }}>
+        📦 {isFr ? 'Ces cartons concernent toute la visite' : 'These boxes apply to the entire visit'}
+      </div>
+
       {/* Nombre de personnes + suggestion optionnelle */}
       <div className="card">
         <div className="card-title">{t('nbPeople')}</div>
@@ -1165,7 +1174,6 @@ export default function Step4Inventory() {
         <>
           <CatalogSection room={room} />
           <CrossCatalogSection room={room} />
-          <RoomBoxSection room={room} />
           <InventoryList room={room} />
           <RoomPhotosSection room={room} />
         </>

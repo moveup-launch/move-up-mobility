@@ -157,6 +157,30 @@ function MobileLayout() {
   );
 }
 
+function SaveBadge() {
+  const { saveStatus, viewMode, lang } = useApp();
+  const isFr = lang === 'fr';
+  if (viewMode !== 'wizard' || saveStatus === 'idle') return null;
+  const config = {
+    saving:  { icon: '💾', text: isFr ? 'Sauvegarde...' : 'Saving...', bg: '#EEF3FD', color: '#2B6BE6', border: '#BFDBFE' },
+    saved:   { icon: '✅', text: isFr ? 'Sauvegardé' : 'Saved',        bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
+    offline: { icon: '📵', text: isFr ? 'Sauvegardé localement' : 'Saved locally', bg: '#FEF3C7', color: '#92400E', border: '#FCD34D' },
+  };
+  const c = config[saveStatus];
+  if (!c) return null;
+  return (
+    <div style={{
+      position: 'fixed', bottom: '80px', right: '16px', zIndex: 8000,
+      background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+      borderRadius: '20px', padding: '6px 14px', fontSize: '12px', fontWeight: '700',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12)', pointerEvents: 'none',
+      display: 'flex', alignItems: 'center', gap: '6px',
+    }}>
+      {c.icon} {c.text}
+    </div>
+  );
+}
+
 function AppContent() {
   const { user, authLoading } = useApp();
   const isDesktop = useIsDesktop();
@@ -208,6 +232,7 @@ function AppContent() {
     <>
       {content}
       <OfflineBanner />
+      <SaveBadge />
     </>
   );
 }

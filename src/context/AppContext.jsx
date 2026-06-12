@@ -946,10 +946,12 @@ export function AppProvider({ children }) {
 
   // ────────────────────────────────────────────────────────────────
 
-  // Auto-save every 30s when editing an existing visit in wizard mode
-  const autoSaveRef = useRef(null);
-  autoSaveRef.current = async () => {
-    if (!state.editingVisitId || !navigator.onLine || viewMode !== 'wizard') return;
+  // Auto-save: débounce 3s après le dernier changement
+  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'offline'
+  const autoSaveTimerRef = useRef(null);
+  const performAutoSave = useRef(null);
+  performAutoSave.current = async () => {
+    if (!state.editingVisitId || viewMode !== 'wizard') return;
     const vol = getTotalVolume();
     const payload = {
       total_volume: vol,
@@ -970,12 +972,31 @@ export function AppProvider({ children }) {
       boxes_done: state.boxesDone,
       boxes_remaining: state.boxesRemaining,
     };
-    await supabase.from('visits').update(payload).eq('id', state.editingVisitId);
+    setSaveStatus('saving');
+    if (!navigator.onLine) {
+      try {
+        const all = JSON.parse(localStorage.getItem('moveup_pending_saves') || '{}');
+        all[state.editingVisitId] = { userId: user?.id, payload, editingVisitId: state.editingVisitId };
+        localStorage.setItem('moveup_pending_saves', JSON.stringify(all));
+        setSaveStatus('offline');
+      } catch { setSaveStatus('idle'); }
+      setTimeout(() => setSaveStatus(s => s === 'offline' ? 'idle' : s), 3000);
+      return;
+    }
+    const { error } = await supabase.from('visits').update(payload).eq('id', state.editingVisitId);
+    if (!error) {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(s => s === 'saved' ? 'idle' : s), 3000);
+    } else {
+      setSaveStatus('idle');
+    }
   };
   useEffect(() => {
-    const id = setInterval(() => { autoSaveRef.current?.(); }, 30000);
-    return () => clearInterval(id);
-  }, []);
+    if (!state.editingVisitId || viewMode !== 'wizard') return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => { performAutoSave.current?.(); }, 3000);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openSheet = (content) => setSheet({ isOpen: true, content });
   const closeSheet = () => setSheet({ isOpen: false, content: null });
@@ -1009,6 +1030,7 @@ export function AppProvider({ children }) {
       viewMode, setViewMode,
       signOut, startNewVisit, startQuickVisit,
       planVisitSignal, openPlanVisit,
+      saveStatus,
       quoteVisit, editingQuoteId, openNewQuote, openEditQuote,
       saveVisit, loadVisit,
       profile, saveProfile,
