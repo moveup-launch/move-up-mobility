@@ -41,7 +41,7 @@ export default function Step6PDF() {
   const {
     t, lang, state, profile,
     getTotalVolume, getRecommendedTruck, getRecommendedTeam, getEquipment, getCheckPoints, getSegmentSolution,
-    getTotalBoxes, getBoxVolume, getRoomVolume, getAllCrateItems,
+    getRoomVolume, getAllCrateItems,
   } = useApp();
   const [pdfSuccess, setPdfSuccess] = useState(false);
   const isFr = lang === 'fr';
@@ -438,35 +438,70 @@ export default function Step6PDF() {
             y = rowY + PHOTO_H + TEXT_H + 4;
           }
         }
+        // Cartons de cette pièce
+        const roomBoxes = {};
+        [...Object.entries(room.boxesDone || {}), ...Object.entries(room.boxesRemaining || {})].forEach(([id, qty]) => {
+          if (qty > 0) roomBoxes[id] = (roomBoxes[id] || 0) + qty;
+        });
+        if (Object.keys(roomBoxes).length > 0) {
+          checkY(5);
+          doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+          doc.text(safe(isFr ? 'Cartons :' : 'Boxes:'), 18, y); y += 4.5;
+          Object.entries(roomBoxes).forEach(([id, qty]) => {
+            const bt = CATALOG.boxTypes.find(b => b.id === id);
+            if (!bt) return;
+            const btName = bt.nameKey ? t(bt.nameKey) : id;
+            checkY(4);
+            doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+            doc.text(safe(`  - ${qty} ${btName}`), 22, y); y += 4;
+          });
+        }
+
         y += 3;
       });
     }
     divider();
 
-    // ── Cartons ──────────────────────────────────────────────────
-    sectionTitle(t('boxesSummary'));
-    const bDone = getTotalBoxes(state.boxesDone);
-    const bRem  = getTotalBoxes(state.boxesRemaining);
-    row(t('boxesPacked'), `${bDone} ${isFr ? 'cartons' : 'boxes'} (${getBoxVolume(state.boxesDone).toFixed(2)} m3)`);
-    row(t('boxesEstimated'), `${bRem} ${isFr ? 'cartons' : 'boxes'} (${getBoxVolume(state.boxesRemaining).toFixed(2)} m3)`);
-    const boxTotals = {};
-    [state.boxesDone, state.boxesRemaining].forEach(src => {
-      Object.entries(src).forEach(([id, qty]) => { if (qty > 0) boxTotals[id] = (boxTotals[id] || 0) + qty; });
-    });
-    if (Object.keys(boxTotals).length > 0) {
-      checkY(5);
-      doc.setFontSize(7.5); doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY);
-      doc.text(safe(isFr ? 'Detail par type (previsionnel) :' : 'Detail by type (estimate):'), 20, y); y += 5;
-      Object.entries(boxTotals).forEach(([id, qty]) => {
-        const bt = CATALOG.boxTypes.find(b => b.id === id);
-        if (!bt) return;
-        const btName = bt.nameKey ? t(bt.nameKey) : id;
-        checkY(4.5);
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-        doc.text(safe(`  - ${btName} : ${qty} ${isFr ? 'carton(s)' : 'box(es)'}`), 22, y); y += 4.5;
+    // ── Cartons (total par pièce) ─────────────────────────────────
+    const allRoomBoxTotals = {};
+    let grandBoxCount = 0;
+    let grandBoxVol = 0;
+    state.rooms.forEach(r => {
+      [...Object.entries(r.boxesDone || {}), ...Object.entries(r.boxesRemaining || {})].forEach(([id, qty]) => {
+        if (qty > 0) {
+          allRoomBoxTotals[id] = (allRoomBoxTotals[id] || 0) + qty;
+          grandBoxCount += qty;
+          const bt = CATALOG.boxTypes.find(b => b.id === id);
+          if (bt) grandBoxVol += bt.volume_m3 * qty;
+        }
       });
+    });
+    if (grandBoxCount > 0) {
+      sectionTitle(t('boxesSummary'));
+      state.rooms.forEach(r => {
+        const merged = {};
+        [...Object.entries(r.boxesDone || {}), ...Object.entries(r.boxesRemaining || {})].forEach(([id, qty]) => {
+          if (qty > 0) merged[id] = (merged[id] || 0) + qty;
+        });
+        const roomTotal = Object.values(merged).reduce((s, v) => s + v, 0);
+        if (roomTotal === 0) return;
+        checkY(5);
+        doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
+        doc.text(safe(`${r.name} :`), 16, y);
+        const parts = Object.entries(merged).map(([id, qty]) => {
+          const bt = CATALOG.boxTypes.find(b => b.id === id);
+          return bt ? `${qty} ${bt.nameKey ? t(bt.nameKey) : id}` : null;
+        }).filter(Boolean);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+        doc.text(safe(parts.join(', ')), 42, y); y += 5;
+      });
+      checkY(6);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK); doc.setFontSize(8);
+      doc.text(safe(`Total : ${grandBoxCount} ${isFr ? 'cartons' : 'boxes'} — ${grandBoxVol.toFixed(2)} m3`), 16, y); y += 6;
+      divider();
+    } else {
+      divider();
     }
-    divider();
 
     // ── Solution logistique ──────────────────────────────────────
     const vol = getTotalVolume();

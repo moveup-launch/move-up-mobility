@@ -243,57 +243,77 @@ function CustomItemSheet({ roomId, roomType }) {
   );
 }
 
-// Tâche 3 : cartons cliquables, aussi visuels que les objets
 function RoomBoxSection({ room }) {
-  const { t, lang, state, changeBox } = useApp();
+  const { t, lang, changeRoomBox } = useApp();
+  const isFr = lang === 'fr';
   const boxIds = ROOM_BOX_TYPES[room.type] || ['box_standard', 'box_large'];
   const boxes = CATALOG.boxTypes.filter(b => boxIds.includes(b.id));
 
+  const sections = [
+    { key: 'boxesDone',      source: room.boxesDone      || {}, label: t('boxesDone') },
+    { key: 'boxesRemaining', source: room.boxesRemaining || {}, label: t('boxesRemaining') },
+  ];
+
+  const totalBoxes = sections.reduce((sum, sec) =>
+    sum + Object.values(sec.source).reduce((s, v) => s + (v || 0), 0), 0);
+
   return (
-    <div style={{ marginTop: '8px' }}>
-      <div className="card-title" style={{ fontSize: '12px', color: 'var(--accent)', marginBottom: '6px' }}>
-        📦 {t('boxesForRoom')}
+    <div style={{ marginTop: '14px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+      <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        📦 {isFr ? 'Cartons de cette pièce' : 'Boxes for this room'}
+        {totalBoxes > 0 && (
+          <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '10px', padding: '1px 7px', fontSize: '11px', fontWeight: '700' }}>
+            {totalBoxes}
+          </span>
+        )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {boxes.map(bt => {
-          const qty = state.boxesRemaining[bt.id] || 0;
-          return (
-            <div
-              key={bt.id}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '10px 14px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-                background: qty > 0 ? 'var(--accent-light)' : 'var(--surface2)',
-                border: `1px solid ${qty > 0 ? 'var(--accent)' : 'var(--border)'}`,
-                position: 'relative', transition: 'background 0.15s',
-              }}
-              onClick={() => changeBox('boxesRemaining', bt.id, 1)}
-            >
-              {qty > 0 && (
-                <div style={{
-                  position: 'absolute', top: '-7px', right: '-7px',
-                  background: 'var(--accent)', color: 'white', borderRadius: '50%',
-                  width: '20px', height: '20px', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', fontSize: '11px', fontWeight: '700',
-                }}>{qty}</div>
-              )}
-              <span style={{ fontSize: '22px' }}>{bt.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: '600' }}>{t(bt.nameKey)}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{bt.volume_m3} m³</div>
-              </div>
-              {qty > 0 && (
-                <button
-                  style={minusBtnStyle}
-                  onClick={(e) => { e.stopPropagation(); changeBox('boxesRemaining', bt.id, -1); }}
+      {sections.map(sec => (
+        <div key={sec.key} style={{ marginBottom: '8px' }}>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            {sec.label}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {boxes.map(bt => {
+              const qty = sec.source[bt.id] || 0;
+              return (
+                <div
+                  key={bt.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '8px 12px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                    background: qty > 0 ? 'var(--accent-light)' : 'var(--surface2)',
+                    border: `1px solid ${qty > 0 ? 'var(--accent)' : 'var(--border)'}`,
+                    position: 'relative',
+                  }}
+                  onClick={() => changeRoomBox(room.id, sec.key, bt.id, 1)}
                 >
-                  −
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                  {qty > 0 && (
+                    <div style={{
+                      position: 'absolute', top: '-7px', right: '-7px',
+                      background: 'var(--accent)', color: 'white', borderRadius: '50%',
+                      width: '20px', height: '20px', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', fontSize: '11px', fontWeight: '700',
+                    }}>{qty}</div>
+                  )}
+                  <span style={{ fontSize: '20px' }}>{bt.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600' }}>{t(bt.nameKey)}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{bt.volume_m3} m³</div>
+                  </div>
+                  {qty > 0 && (
+                    <button
+                      style={minusBtnStyle}
+                      onClick={(e) => { e.stopPropagation(); changeRoomBox(room.id, sec.key, bt.id, -1); }}
+                    >
+                      −
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -1085,7 +1105,7 @@ function DeleteRoomModal({ roomId, roomName }) {
 }
 
 export default function Step4Inventory() {
-  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, setRoomTab, selectRoom, openSheet, openModal, deleteRoom } = useApp();
+  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal, deleteRoom } = useApp();
 
   if (state.rooms.length === 0) {
     return (
@@ -1110,7 +1130,6 @@ export default function Step4Inventory() {
 
   const room = state.rooms.find(r => r.id === state.currentRoomId) || state.rooms[0];
   const totalVol = getTotalVolume();
-  const showBoxes = room._showBoxes || false;
 
   return (
     <>
@@ -1122,16 +1141,7 @@ export default function Step4Inventory() {
         </div>
       </div>
 
-      <div className="chip-tabs">
-        <div className={`chip-tab ${!showBoxes ? 'active' : ''}`} onClick={() => setRoomTab(false)}>
-          {lang === 'fr' ? 'Objets' : 'Items'}
-        </div>
-        <div className={`chip-tab ${showBoxes ? 'active' : ''}`} onClick={() => setRoomTab(true)}>
-          📦 {t('boxes')}
-        </div>
-      </div>
-
-      {/* Tâche 2 : sélecteur de pièce + bouton ajouter pièce */}
+      {/* Sélecteur de pièce + bouton ajouter pièce */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
         <div className="room-selector" style={{ flex: 1, overflowX: 'auto' }}>
           {state.rooms.map(r => (
@@ -1155,31 +1165,24 @@ export default function Step4Inventory() {
         </button>
       </div>
 
-      {!showBoxes && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
-          <button
-            style={{
-              background: 'none', border: 'none', color: 'var(--danger)',
-              fontSize: '12px', cursor: 'pointer', padding: '4px 8px',
-              display: 'flex', alignItems: 'center', gap: '4px',
-            }}
-            onClick={() => openModal(<DeleteRoomModal roomId={room.id} roomName={room.name} />)}
-          >
-            🗑️ {lang === 'fr' ? 'Supprimer cette pièce' : 'Delete this room'}
-          </button>
-        </div>
-      )}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
+        <button
+          style={{
+            background: 'none', border: 'none', color: 'var(--danger)',
+            fontSize: '12px', cursor: 'pointer', padding: '4px 8px',
+            display: 'flex', alignItems: 'center', gap: '4px',
+          }}
+          onClick={() => openModal(<DeleteRoomModal roomId={room.id} roomName={room.name} />)}
+        >
+          🗑️ {lang === 'fr' ? 'Supprimer cette pièce' : 'Delete this room'}
+        </button>
+      </div>
 
-      {!showBoxes ? (
-        <>
-          <CatalogSection room={room} />
-          <CrossCatalogSection room={room} />
-          <InventoryList room={room} />
-          <RoomPhotosSection room={room} />
-        </>
-      ) : (
-        <BoxesSection />
-      )}
+      <CatalogSection room={room} />
+      <CrossCatalogSection room={room} />
+      <InventoryList room={room} />
+      <RoomBoxSection room={room} />
+      <RoomPhotosSection room={room} />
     </>
   );
 }
