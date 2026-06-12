@@ -523,20 +523,20 @@ function InventoryList({ room }) {
               ))}
             </div>
 
-            {/* Bouton caisse — visible, dans la colonne info */}
-            <div style={{ marginTop: '5px' }}>
+            {/* Bouton caisse — toujours visible */}
+            <div style={{ marginTop: '6px' }}>
               <button
                 onClick={() => crateEditId === item.itemId ? setCrateEditId(null) : openCrateForm(item)}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  background: item.crate ? '#FEF3C7' : 'var(--surface2)',
-                  color: item.crate ? '#92400E' : 'var(--text2)',
-                  border: `1px solid ${item.crate ? '#FCD34D' : 'var(--border)'}`,
+                  background: item.crate ? '#FEF3C7' : '#FFFBEB',
+                  color: item.crate ? '#92400E' : '#A16207',
+                  border: `${item.crate ? '2px' : '1px dashed'} #FCD34D`,
                   borderRadius: '8px', padding: '5px 10px', fontSize: '12px',
-                  cursor: 'pointer', fontWeight: item.crate ? '700' : '500',
+                  cursor: 'pointer', fontWeight: '600',
                 }}
               >
-                📦 {item.crate ? `${item.crate.l}×${item.crate.w}×${item.crate.h} cm` : (isFr ? 'Ajouter caisse' : 'Add crate')}
+                📦 {item.crate ? `${item.crate.l}×${item.crate.w}×${item.crate.h} cm` : (isFr ? 'Caisse' : 'Crate')}
               </button>
             </div>
 

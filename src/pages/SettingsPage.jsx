@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
@@ -54,6 +54,18 @@ function ProfileSection() {
     phone: profile?.phone || '',
   });
   const [status, setStatus] = useState('idle');
+
+  // Sync form when profile loads from Supabase (async after mount)
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        company_name: profile.company_name || '',
+        phone: profile.phone || '',
+      });
+    }
+  }, [profile?.id]);
 
   const handleSave = async () => {
     setStatus('saving');
