@@ -22,13 +22,13 @@ export default function SidebarNav() {
           className="sidebar-nav-btn sidebar-new-visit"
           onClick={openPlanVisit}
         >
-          <span>📅</span> {isFr ? 'Planifier une visite' : 'Schedule a visit'}
+          <span>➕</span> {isFr ? 'Nouvelle visite' : 'New visit'}
         </button>
         <button
           className={`sidebar-nav-btn ${viewMode === 'agenda' ? 'active' : ''}`}
           onClick={() => setViewMode('agenda')}
         >
-          <span>🗓️</span> {isFr ? 'Agenda' : 'Agenda'}
+          <span>📅</span> {isFr ? 'Agenda' : 'Agenda'}
         </button>
         <button
           className={`sidebar-nav-btn ${viewMode === 'history' ? 'active' : ''}`}

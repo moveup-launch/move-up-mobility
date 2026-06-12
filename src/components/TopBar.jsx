@@ -22,6 +22,11 @@ export default function TopBar() {
           </button>
         )}
         {!isDesktop && user && (
+          <button className="topbar-icon-btn" onClick={openPlanVisit} title={isFr ? 'Nouvelle visite' : 'New visit'}>
+            ➕
+          </button>
+        )}
+        {!isDesktop && user && (
           <button className="topbar-icon-btn" onClick={() => setViewMode('agenda')} title={isFr ? 'Agenda' : 'Agenda'}
             style={{ opacity: viewMode === 'agenda' ? 1 : 0.7 }}>
             📅
@@ -31,11 +36,6 @@ export default function TopBar() {
           <button className="topbar-icon-btn" onClick={() => setViewMode('history')} title={isFr ? 'Historique' : 'History'}
             style={{ opacity: viewMode === 'history' ? 1 : 0.7 }}>
             🕓
-          </button>
-        )}
-        {!isDesktop && user && (
-          <button className="topbar-icon-btn" onClick={openPlanVisit} title={isFr ? 'Planifier une visite' : 'Schedule a visit'}>
-            📅
           </button>
         )}
         <div className="lang-toggle">
