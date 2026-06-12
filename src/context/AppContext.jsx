@@ -306,7 +306,7 @@ export function AppProvider({ children }) {
       const id = `room_${s.nextRoomId}`;
       return {
         ...s,
-        rooms: [...s.rooms, { id, type, name, items: [] }],
+        rooms: [...s.rooms, { id, type, name, items: [], boxesDone: {}, boxesRemaining: {} }],
         currentRoomId: id,
         nextRoomId: s.nextRoomId + 1,
       };
@@ -477,16 +477,34 @@ export function AppProvider({ children }) {
     });
   };
 
-  const getRoomVolume = (room) =>
-    (room.items || []).reduce((sum, item) => sum + (item.volume_m3 || 0) * (item.qty || 1), 0);
+  const getRoomVolume = (room) => {
+    const itemVol = (room.items || []).reduce((sum, item) => sum + (item.volume_m3 || 0) * (item.qty || 1), 0);
+    const boxVol = [...Object.entries(room.boxesDone || {}), ...Object.entries(room.boxesRemaining || {})].reduce((sum, [k, v]) => {
+      const bt = CATALOG.boxTypes.find(b => b.id === k);
+      return sum + (bt ? bt.volume_m3 * (v || 0) : 0);
+    }, 0);
+    return itemVol + boxVol;
+  };
 
   const getTotalVolume = () => {
-    let vol = state.rooms.reduce((sum, r) => sum + getRoomVolume(r), 0);
-    [...Object.entries(state.boxesDone), ...Object.entries(state.boxesRemaining)].forEach(([k, v]) => {
+    const roomsVol = state.rooms.reduce((sum, r) => sum + getRoomVolume(r), 0);
+    // Legacy global boxes (rétrocompatibilité visites existantes)
+    const globalBoxVol = [...Object.entries(state.boxesDone), ...Object.entries(state.boxesRemaining)].reduce((sum, [k, v]) => {
       const bt = CATALOG.boxTypes.find(b => b.id === k);
-      if (bt) vol += bt.volume_m3 * (v || 0);
-    });
-    return vol;
+      return sum + (bt ? bt.volume_m3 * (v || 0) : 0);
+    }, 0);
+    return roomsVol + globalBoxVol;
+  };
+
+  const changeRoomBox = (roomId, source, boxId, delta) => {
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        const current = r[source] || {};
+        return { ...r, [source]: { ...current, [boxId]: Math.max(0, (current[boxId] || 0) + delta) } };
+      }),
+    }));
   };
 
   const getRecommendedTruck = (vol) => {
@@ -1016,7 +1034,7 @@ export function AppProvider({ children }) {
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
       updateItemVolume, updateItemCrate, updateItemTransportMode,
-      changeBox, setBox, applyBoxSuggestions,
+      changeBox, setBox, applyBoxSuggestions, changeRoomBox,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
       getEquipment, getMattressCovers, getCheckPoints,
