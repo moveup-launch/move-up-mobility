@@ -250,8 +250,8 @@ function RoomBoxSection({ room }) {
   const boxes = CATALOG.boxTypes.filter(b => boxIds.includes(b.id));
 
   const sections = [
-    { key: 'boxesDone',      source: room.boxesDone      || {}, label: t('boxesDone') },
-    { key: 'boxesRemaining', source: room.boxesRemaining || {}, label: t('boxesRemaining') },
+    { key: 'boxesRemaining', source: room.boxesRemaining || {}, label: isFr ? '📦 Cartons à emballer (nos équipes)' : '📦 Boxes to pack (our team)' },
+    { key: 'boxesDone',      source: room.boxesDone      || {}, label: isFr ? '✅ Cartons déjà faits (client)'      : '✅ Already packed (client)'        },
   ];
 
   const totalBoxes = sections.reduce((sum, sec) =>
