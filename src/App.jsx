@@ -4,7 +4,7 @@ import { useIsDesktop } from './hooks/useIsDesktop';
 import { supabase } from './lib/supabase';
 import TopBar from './components/TopBar';
 import StepIndicator from './components/StepIndicator';
-import BottomNav from './components/BottomNav';
+import MobileNav from './components/MobileNav';
 import BottomSheet from './components/BottomSheet';
 import Modal from './components/Modal';
 import SidebarNav from './components/SidebarNav';
@@ -128,6 +128,7 @@ function MobileLayout() {
       <div className={`main-scroll${nopad ? ' main-scroll-nopad' : ''}`} ref={mainScrollRef}>
         {children}
       </div>
+      <MobileNav />
     </div>
   );
 
@@ -150,7 +151,7 @@ function MobileLayout() {
       <div className="main-scroll" ref={mainScrollRef}>
         <StepComponent />
       </div>
-      <BottomNav />
+      <MobileNav />
       <BottomSheet />
       <Modal />
     </div>

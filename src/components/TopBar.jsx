@@ -16,28 +16,6 @@ export default function TopBar() {
         </div>
       </div>
       <div className="topbar-actions">
-        {!isDesktop && user && viewMode !== 'dashboard' && (
-          <button className="topbar-icon-btn" onClick={() => setViewMode('dashboard')} title={isFr ? 'Accueil' : 'Home'}>
-            🏠
-          </button>
-        )}
-        {!isDesktop && user && (
-          <button className="topbar-icon-btn" onClick={openPlanVisit} title={isFr ? 'Nouvelle visite' : 'New visit'}>
-            ➕
-          </button>
-        )}
-        {!isDesktop && user && (
-          <button className="topbar-icon-btn" onClick={() => setViewMode('agenda')} title={isFr ? 'Agenda' : 'Agenda'}
-            style={{ opacity: viewMode === 'agenda' ? 1 : 0.7 }}>
-            📅
-          </button>
-        )}
-        {!isDesktop && user && (
-          <button className="topbar-icon-btn" onClick={() => setViewMode('history')} title={isFr ? 'Historique' : 'History'}
-            style={{ opacity: viewMode === 'history' ? 1 : 0.7 }}>
-            🕓
-          </button>
-        )}
         <div className="lang-toggle">
           <button className={`lang-btn ${lang === 'fr' ? 'active' : ''}`} onClick={() => setLang('fr')}>FR</button>
           <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>

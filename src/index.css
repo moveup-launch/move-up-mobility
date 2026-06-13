@@ -54,6 +54,11 @@ html, body {
   overflow: hidden;
 }
 
+/* iPad portrait : full width, no phone centering */
+@media (min-width: 601px) and (max-width: 1024px) {
+  #app { max-width: 100%; }
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -480,10 +485,47 @@ textarea { min-height: 80px; resize: vertical; }
 .live-room-vol { font-size: 11px; font-weight: 600; color: var(--text2); white-space: nowrap; }
 .live-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 20px 0; }
 
+/* ── Mobile / Tablet bottom nav (< 1025px) ──────────────── */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  z-index: 500;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.mobile-nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 10px 4px;
+  font-family: var(--font);
+  color: var(--text3);
+  transition: color 0.15s;
+  min-height: 60px;
+}
+.mobile-nav-tab.active { color: var(--accent); }
+.mobile-nav-tab:active { opacity: 0.7; }
+.mobile-nav-icon { font-size: 22px; line-height: 1; }
+.mobile-nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
+.mobile-bottom-nav-wizard {
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  gap: 10px;
+}
+.mobile-bottom-nav-wizard .btn { flex: 1; }
+
 /* ══════════════════════════════════════════
-   DESKTOP LAYOUT  ≥ 768px
+   DESKTOP LAYOUT  ≥ 1025px
 ══════════════════════════════════════════ */
-@media (min-width: 768px) {
+@media (min-width: 1025px) {
   /* Reset body scroll constraint */
   html, body { overflow: hidden; }
 
@@ -649,7 +691,7 @@ textarea { min-height: 80px; resize: vertical; }
   .dashboard-cta { font-size: 15px; padding: 14px 24px; width: auto; display: inline-flex; margin-bottom: 28px; }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1025px) {
   .topbar-title-suffix { display: inline; }
 }
 
@@ -953,7 +995,7 @@ textarea { min-height: 80px; resize: vertical; }
   .landing-btn-lg { padding: 12px 22px; font-size: 15px; }
 }
 
-/* ── iPad (768-1024px) : panel volume flottant ─────────── */
+/* ── Volume float btn (desktop 1025px+, wizard only) ────── */
 .volume-float-btn {
   display: none;
   position: fixed;
@@ -971,11 +1013,6 @@ textarea { min-height: 80px; resize: vertical; }
   z-index: 100;
   align-items: center;
   gap: 6px;
-}
-
-@media (min-width: 768px) and (max-width: 1024px) {
-  .desktop-panel-wrap { display: none !important; }
-  .volume-float-btn { display: flex; }
 }
 
 .volume-overlay {
