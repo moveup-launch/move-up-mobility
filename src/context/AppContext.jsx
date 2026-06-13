@@ -477,35 +477,11 @@ export function AppProvider({ children }) {
     });
   };
 
-  const getRoomVolume = (room) => {
-    const itemVol = (room.items || []).reduce((sum, item) => sum + (item.volume_m3 || 0) * (item.qty || 1), 0);
-    const boxVol = [...Object.entries(room.boxesDone || {}), ...Object.entries(room.boxesRemaining || {})].reduce((sum, [k, v]) => {
-      const bt = CATALOG.boxTypes.find(b => b.id === k);
-      return sum + (bt ? bt.volume_m3 * (v || 0) : 0);
-    }, 0);
-    return itemVol + boxVol;
-  };
+  const getRoomVolume = (room) =>
+    (room.items || []).reduce((sum, item) => sum + (item.volume_m3 || 0) * (item.qty || 1), 0);
 
-  const getTotalVolume = () => {
-    const roomsVol = state.rooms.reduce((sum, r) => sum + getRoomVolume(r), 0);
-    // Legacy global boxes (rétrocompatibilité visites existantes)
-    const globalBoxVol = [...Object.entries(state.boxesDone), ...Object.entries(state.boxesRemaining)].reduce((sum, [k, v]) => {
-      const bt = CATALOG.boxTypes.find(b => b.id === k);
-      return sum + (bt ? bt.volume_m3 * (v || 0) : 0);
-    }, 0);
-    return roomsVol + globalBoxVol;
-  };
-
-  const changeRoomBox = (roomId, source, boxId, delta) => {
-    setState(s => ({
-      ...s,
-      rooms: s.rooms.map(r => {
-        if (r.id !== roomId) return r;
-        const current = r[source] || {};
-        return { ...r, [source]: { ...current, [boxId]: Math.max(0, (current[boxId] || 0) + delta) } };
-      }),
-    }));
-  };
+  const getTotalVolume = () =>
+    state.rooms.reduce((sum, r) => sum + getRoomVolume(r), 0);
 
   const getRecommendedTruck = (vol) => {
     const segments = state.moveSegments || [];
@@ -1034,13 +1010,11 @@ export function AppProvider({ children }) {
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
       updateItemVolume, updateItemCrate, updateItemTransportMode,
-      changeBox, setBox, applyBoxSuggestions, changeRoomBox,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
       getEquipment, getMattressCovers, getCheckPoints,
       getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getItemsByTransportMode,
-      getTotalBoxes, getBoxVolume, getRoomIcon,
-      getBoxSuggestions,
+      getRoomIcon,
       sheet, openSheet, closeSheet,
       modal, openModal, closeModal,
       mainScrollRef,

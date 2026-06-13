@@ -348,42 +348,33 @@ export default function Step5Summary() {
       )}
 
       {(() => {
+        const boxIds = new Set(CATALOG.boxes.map(b => b.id));
         const roomBoxData = state.rooms.map(r => {
-          const merged = {};
-          [...Object.entries(r.boxesDone || {}), ...Object.entries(r.boxesRemaining || {})].forEach(([id, qty]) => {
-            if (qty > 0) merged[id] = (merged[id] || 0) + qty;
-          });
-          const total = Object.values(merged).reduce((s, v) => s + v, 0);
-          const vol = Object.entries(merged).reduce((s, [id, qty]) => {
-            const bt = CATALOG.boxTypes.find(b => b.id === id);
-            return s + (bt ? bt.volume_m3 * qty : 0);
-          }, 0);
-          return { room: r, merged, total, vol };
+          const boxItems = (r.items || []).filter(i => i.qty > 0 && boxIds.has(i.catalogId));
+          const total = boxItems.reduce((s, i) => s + i.qty, 0);
+          const vol   = boxItems.reduce((s, i) => s + (i.volume_m3 || 0) * i.qty, 0);
+          return { room: r, boxItems, total, vol };
         }).filter(x => x.total > 0);
 
         if (roomBoxData.length === 0) return null;
 
         const grandTotal = roomBoxData.reduce((s, x) => s + x.total, 0);
-        const grandVol = roomBoxData.reduce((s, x) => s + x.vol, 0);
+        const grandVol   = roomBoxData.reduce((s, x) => s + x.vol, 0);
 
         return (
           <div className="card">
             <div className="card-title">📦 {t('boxesSummary')}</div>
-            {roomBoxData.map(({ room, merged }) => (
+            {roomBoxData.map(({ room, boxItems }) => (
               <div key={room.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ fontWeight: '700', fontSize: '13px' }}>
                   {getRoomIcon(room.type)} {room.name}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text2)', paddingLeft: '4px' }}>
-                  {Object.entries(merged).map(([id, qty]) => {
-                    const bt = CATALOG.boxTypes.find(b => b.id === id);
-                    if (!bt) return null;
-                    return (
-                      <span key={id} style={{ marginRight: '10px' }}>
-                        {qty} {t(bt.nameKey)}
-                      </span>
-                    );
-                  })}
+                  {boxItems.map(item => (
+                    <span key={item.itemId} style={{ marginRight: '10px' }}>
+                      {item.qty} {item.name}
+                    </span>
+                  ))}
                 </div>
               </div>
             ))}

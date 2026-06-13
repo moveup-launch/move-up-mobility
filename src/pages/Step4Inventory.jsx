@@ -22,23 +22,6 @@ async function compressImage(dataURL, maxW = 1200, quality = 0.75) {
   });
 }
 
-const ROOM_BOX_TYPES = {
-  bedroom:      ['box_standard', 'box_wardrobe', 'box_books', 'box_fragile'],
-  childBedroom: ['box_standard', 'box_wardrobe', 'box_books', 'box_fragile'],
-  dressing:     ['box_wardrobe', 'box_standard'],
-  kitchen:      ['box_standard', 'box_dishes', 'box_fragile', 'box_large'],
-  diningRoom:   ['box_standard', 'box_dishes', 'box_fragile'],
-  livingRoom:   ['box_standard', 'box_books', 'box_fragile', 'box_large'],
-  office:       ['box_archives', 'box_books', 'box_standard', 'box_fragile'],
-  bathroom:     ['box_standard', 'box_fragile'],
-  laundry:      ['box_standard', 'box_large'],
-  garage:       ['box_standard', 'box_large'],
-  basement:     ['box_standard', 'box_large', 'box_archives'],
-  attic:        ['box_standard', 'box_large', 'box_archives'],
-  garden:       ['box_standard', 'box_large'],
-  storageBox:   ['box_standard', 'box_large', 'box_archives'],
-  misc:         ['box_standard', 'box_fragile', 'box_large'],
-};
 
 const minusBtnStyle = {
   background: 'var(--danger-light)', color: 'var(--danger)',
@@ -243,80 +226,6 @@ function CustomItemSheet({ roomId, roomType }) {
   );
 }
 
-function RoomBoxSection({ room }) {
-  const { t, lang, changeRoomBox } = useApp();
-  const isFr = lang === 'fr';
-  const boxIds = ROOM_BOX_TYPES[room.type] || ['box_standard', 'box_large'];
-  const boxes = CATALOG.boxTypes.filter(b => boxIds.includes(b.id));
-
-  const sections = [
-    { key: 'boxesRemaining', source: room.boxesRemaining || {}, label: isFr ? '📦 Cartons à emballer (nos équipes)' : '📦 Boxes to pack (our team)' },
-    { key: 'boxesDone',      source: room.boxesDone      || {}, label: isFr ? '✅ Cartons déjà faits (client)'      : '✅ Already packed (client)'        },
-  ];
-
-  const totalBoxes = sections.reduce((sum, sec) =>
-    sum + Object.values(sec.source).reduce((s, v) => s + (v || 0), 0), 0);
-
-  return (
-    <div style={{ marginTop: '14px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-      <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        📦 {isFr ? 'Cartons de cette pièce' : 'Boxes for this room'}
-        {totalBoxes > 0 && (
-          <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '10px', padding: '1px 7px', fontSize: '11px', fontWeight: '700' }}>
-            {totalBoxes}
-          </span>
-        )}
-      </div>
-      {sections.map(sec => (
-        <div key={sec.key} style={{ marginBottom: '8px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-            {sec.label}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {boxes.map(bt => {
-              const qty = sec.source[bt.id] || 0;
-              return (
-                <div
-                  key={bt.id}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '8px 12px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-                    background: qty > 0 ? 'var(--accent-light)' : 'var(--surface2)',
-                    border: `1px solid ${qty > 0 ? 'var(--accent)' : 'var(--border)'}`,
-                    position: 'relative',
-                  }}
-                  onClick={() => changeRoomBox(room.id, sec.key, bt.id, 1)}
-                >
-                  {qty > 0 && (
-                    <div style={{
-                      position: 'absolute', top: '-7px', right: '-7px',
-                      background: 'var(--accent)', color: 'white', borderRadius: '50%',
-                      width: '20px', height: '20px', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: '11px', fontWeight: '700',
-                    }}>{qty}</div>
-                  )}
-                  <span style={{ fontSize: '20px' }}>{bt.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '12px', fontWeight: '600' }}>{t(bt.nameKey)}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{bt.volume_m3} m³</div>
-                  </div>
-                  {qty > 0 && (
-                    <button
-                      style={minusBtnStyle}
-                      onClick={(e) => { e.stopPropagation(); changeRoomBox(room.id, sec.key, bt.id, -1); }}
-                    >
-                      −
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function CatalogSection({ room }) {
   const { tCat, lang, state, addItemToRoom, openSheet, changeQty } = useApp();
@@ -331,6 +240,7 @@ function CatalogSection({ room }) {
     laundry: lang === 'fr' ? 'Buanderie' : 'Laundry',
     bathroom: lang === 'fr' ? 'Salle de bain' : 'Bathroom',
     exceptional: lang === 'fr' ? 'Objets exceptionnels' : 'Exceptional items',
+    boxes: lang === 'fr' ? '📦 Cartons' : '📦 Boxes',
   };
 
   const cats = CATALOG.roomCatalogMap[room.type] || ['bedroom'];
@@ -1181,7 +1091,6 @@ export default function Step4Inventory() {
       <CatalogSection room={room} />
       <CrossCatalogSection room={room} />
       <InventoryList room={room} />
-      <RoomBoxSection room={room} />
       <RoomPhotosSection room={room} />
     </>
   );

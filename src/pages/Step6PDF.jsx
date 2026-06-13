@@ -438,22 +438,17 @@ export default function Step6PDF() {
             y = rowY + PHOTO_H + TEXT_H + 4;
           }
         }
-        // Cartons de cette pièce
-        const roomBoxes = {};
-        [...Object.entries(room.boxesDone || {}), ...Object.entries(room.boxesRemaining || {})].forEach(([id, qty]) => {
-          if (qty > 0) roomBoxes[id] = (roomBoxes[id] || 0) + qty;
-        });
-        if (Object.keys(roomBoxes).length > 0) {
+        // Cartons de cette pièce (items du catalogue boxes)
+        const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
+        const roomBoxItems = (room.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId));
+        if (roomBoxItems.length > 0) {
           checkY(5);
           doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
           doc.text(safe(isFr ? 'Cartons :' : 'Boxes:'), 18, y); y += 4.5;
-          Object.entries(roomBoxes).forEach(([id, qty]) => {
-            const bt = CATALOG.boxTypes.find(b => b.id === id);
-            if (!bt) return;
-            const btName = bt.nameKey ? t(bt.nameKey) : id;
+          roomBoxItems.forEach(item => {
             checkY(4);
             doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-            doc.text(safe(`  - ${qty} ${btName}`), 22, y); y += 4;
+            doc.text(safe(`  - ${item.qty} ${item.name}`), 22, y); y += 4;
           });
         }
 
@@ -462,45 +457,37 @@ export default function Step6PDF() {
     }
     divider();
 
-    // ── Cartons (total par pièce) ─────────────────────────────────
-    const allRoomBoxTotals = {};
-    let grandBoxCount = 0;
-    let grandBoxVol = 0;
-    state.rooms.forEach(r => {
-      [...Object.entries(r.boxesDone || {}), ...Object.entries(r.boxesRemaining || {})].forEach(([id, qty]) => {
-        if (qty > 0) {
-          allRoomBoxTotals[id] = (allRoomBoxTotals[id] || 0) + qty;
-          grandBoxCount += qty;
-          const bt = CATALOG.boxTypes.find(b => b.id === id);
-          if (bt) grandBoxVol += bt.volume_m3 * qty;
-        }
-      });
-    });
-    if (grandBoxCount > 0) {
-      sectionTitle(t('boxesSummary'));
-      state.rooms.forEach(r => {
-        const merged = {};
-        [...Object.entries(r.boxesDone || {}), ...Object.entries(r.boxesRemaining || {})].forEach(([id, qty]) => {
-          if (qty > 0) merged[id] = (merged[id] || 0) + qty;
+    // ── Cartons (récap par pièce + total) ────────────────────────
+    {
+      const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
+      let grandBoxCount = 0;
+      let grandBoxVol = 0;
+      const roomsWithBoxes = state.rooms.map(r => {
+        const boxItems = (r.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId));
+        const total = boxItems.reduce((s, i) => s + i.qty, 0);
+        const vol   = boxItems.reduce((s, i) => s + (i.volume_m3 || 0) * i.qty, 0);
+        grandBoxCount += total;
+        grandBoxVol   += vol;
+        return { r, boxItems, total };
+      }).filter(x => x.total > 0);
+
+      if (grandBoxCount > 0) {
+        sectionTitle(t('boxesSummary'));
+        roomsWithBoxes.forEach(({ r, boxItems }) => {
+          checkY(5);
+          doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
+          doc.text(safe(`${r.name} :`), 16, y);
+          const parts = boxItems.map(i => `${i.qty} ${i.name}`);
+          doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+          doc.text(safe(parts.join(', ')), 42, y); y += 5;
         });
-        const roomTotal = Object.values(merged).reduce((s, v) => s + v, 0);
-        if (roomTotal === 0) return;
-        checkY(5);
-        doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
-        doc.text(safe(`${r.name} :`), 16, y);
-        const parts = Object.entries(merged).map(([id, qty]) => {
-          const bt = CATALOG.boxTypes.find(b => b.id === id);
-          return bt ? `${qty} ${bt.nameKey ? t(bt.nameKey) : id}` : null;
-        }).filter(Boolean);
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-        doc.text(safe(parts.join(', ')), 42, y); y += 5;
-      });
-      checkY(6);
-      doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK); doc.setFontSize(8);
-      doc.text(safe(`Total : ${grandBoxCount} ${isFr ? 'cartons' : 'boxes'} — ${grandBoxVol.toFixed(2)} m3`), 16, y); y += 6;
-      divider();
-    } else {
-      divider();
+        checkY(6);
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK); doc.setFontSize(8);
+        doc.text(safe(`Total : ${grandBoxCount} ${isFr ? 'cartons' : 'boxes'} — ${grandBoxVol.toFixed(2)} m3`), 16, y); y += 6;
+        divider();
+      } else {
+        divider();
+      }
     }
 
     // ── Solution logistique ──────────────────────────────────────
