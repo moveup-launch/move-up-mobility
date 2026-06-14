@@ -1,10 +1,11 @@
 import { useApp } from '../context/AppContext';
+import { CATALOG } from '../data/catalog';
 
 export default function LiveVolumePanel() {
   const {
     lang, t,
-    getTotalVolume, getCheckPoints, getSegmentSolution,
-    getTotalBoxes, getRoomVolume, getRoomIcon, getItemsByTransportMode, state,
+    getTotalVolume, getSegmentSolution,
+    getRoomVolume, getRoomIcon, getItemsByTransportMode, state,
   } = useApp();
 
   const vol = getTotalVolume();
@@ -12,13 +13,13 @@ export default function LiveVolumePanel() {
 
   const totalItems = state.rooms.reduce((sum, r) =>
     sum + (r.items || []).reduce((s, i) => s + i.qty, 0), 0);
-  const totalBoxes = getTotalBoxes(state.boxesDone) + getTotalBoxes(state.boxesRemaining);
+  const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
+  const totalBoxes = state.rooms.reduce((s, r) =>
+    s + (r.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId)).reduce((ss, i) => ss + i.qty, 0), 0);
   const fragileCount = state.rooms.reduce((sum, r) =>
     sum + (r.items || []).filter(i => i.fragile && i.qty > 0).reduce((s, i) => s + i.qty, 0), 0);
   const heavyCount = state.rooms.reduce((sum, r) =>
     sum + (r.items || []).filter(i => i.heavy && i.qty > 0).reduce((s, i) => s + i.qty, 0), 0);
-  const checkPoints = getCheckPoints();
-
   const modeMap = getItemsByTransportMode();
   const ORDERED_MODES = ['road', 'sea', 'air', 'storage'];
   const definedModes = ORDERED_MODES.filter(m => modeMap[m]);
@@ -108,18 +109,6 @@ export default function LiveVolumePanel() {
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* Points à vérifier */}
-      {checkPoints.length > 0 && (
-        <div style={{ marginTop: '12px' }}>
-          <div className="live-rooms-title" style={{ color: 'var(--warn)' }}>{t('liveCheckPoints')}</div>
-          {checkPoints.map((pt, i) => (
-            <div key={i} style={{ fontSize: '11px', color: 'var(--text2)', padding: '3px 0', borderBottom: '1px solid var(--border)' }}>
-              {pt}
-            </div>
-          ))}
         </div>
       )}
 

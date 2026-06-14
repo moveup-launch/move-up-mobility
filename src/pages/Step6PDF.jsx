@@ -40,7 +40,7 @@ function loadImageAsDataUrl(url) {
 export default function Step6PDF() {
   const {
     t, lang, state, profile,
-    getTotalVolume, getRecommendedTruck, getRecommendedTeam, getEquipment, getCheckPoints, getSegmentSolution,
+    getTotalVolume, getRecommendedTruck, getSegmentSolution,
     getRoomVolume, getAllCrateItems,
   } = useApp();
   const [pdfSuccess, setPdfSuccess] = useState(false);
@@ -283,28 +283,6 @@ export default function Step6PDF() {
     accessBlock(state.origin, t('origin'), state.housingTypeOrigin);
     accessBlock(state.destination, t('destination'), state.housingTypeDestination);
 
-    // ── Points à vérifier ────────────────────────────────────────
-    const checkPoints = getCheckPoints();
-    if (checkPoints.length > 0) {
-      checkY(12);
-      doc.setFillColor(...WARN);
-      doc.roundedRect(12, y, W - 24, 8, 2, 2, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text((isFr ? 'POINTS A VERIFIER' : 'POINTS TO CHECK'), 16, y + 5.5);
-      y += 12;
-      checkPoints.forEach(pt => {
-        checkY(6);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...BLACK);
-        doc.text(safe(`  - ${pt}`), 16, y);
-        y += 5.5;
-      });
-      divider();
-    }
-
     // ── Inventaire ───────────────────────────────────────────────
     // Helper: afficher les items d'une liste avec tags et photos de pièce
     function renderItemList(items) {
@@ -505,16 +483,6 @@ export default function Step6PDF() {
     y += 22;
     const truck = state.transportOverride || getRecommendedTruck(vol);
     row(isFr ? 'Solution logistique' : 'Logistics solution', truck);
-    if (primaryMoveType === 'local' || primaryMoveType === 'road') {
-      const team = getRecommendedTeam(vol);
-      row(safe(t('recommendedTeam')), team.label);
-      if (team.reasons.length > 0) {
-        checkY(team.reasons.length * 5 + 4);
-        doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY);
-        team.reasons.forEach(r => { doc.text(safe(`    ${r}`), 100, y); y += 4.5; });
-      }
-    }
-
     const crateItems = getAllCrateItems();
     if (crateItems.length > 0) {
       checkY(6);
@@ -554,16 +522,21 @@ export default function Step6PDF() {
       });
     }
 
-    const equip = getEquipment();
-    if (equip.length > 0) {
-      checkY(6);
-      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
-      doc.text(safe(t('requiredEquipment')), 16, y); y += 5;
-      equip.forEach(e => {
-        checkY(5);
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-        doc.text(safe(`  - ${e}`), 20, y); y += 5;
+    {
+      const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
+      let grandBoxCount = 0, grandBoxVol = 0;
+      state.rooms.forEach(r => {
+        (r.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId)).forEach(i => {
+          grandBoxCount += i.qty;
+          grandBoxVol += (i.volume_m3 || 0) * i.qty;
+        });
       });
+      if (grandBoxCount > 0) {
+        row(
+          isFr ? 'Cartons a prevoir' : 'Boxes to prepare',
+          `${grandBoxCount} ${isFr ? 'cartons' : 'boxes'} — ${grandBoxVol.toFixed(2)} m3`
+        );
+      }
     }
     divider();
 
@@ -593,39 +566,8 @@ export default function Step6PDF() {
     setPdfSuccess(true);
   };
 
-  const vol = getTotalVolume();
-  const checkPoints = getCheckPoints();
-
   return (
     <>
-      <div className="section-header">
-        <div className="section-title">{t('surveyReport')}</div>
-        <div className="section-subtitle">
-          {isFr ? 'Generez et telechargez le rapport' : 'Generate and download the report'}
-        </div>
-      </div>
-      <div className="card">
-        <div className="card-title">{isFr ? 'Recapitulatif' : 'Summary'}</div>
-        <ul className="item-list-summary">
-          <li><span>{t('clientName')}</span><strong>{state.client.name || '—'}</strong></li>
-          <li><span>{t('visitDate')}</span><strong>{state.client.visitDate || '—'}</strong></li>
-          <li><span>{isFr ? 'Volume total' : 'Total volume'}</span><strong>{vol.toFixed(1)} m³</strong></li>
-          <li>
-            <span>{isFr ? 'Solution logistique' : 'Logistics'}</span>
-            <strong>{getRecommendedTruck(vol)}</strong>
-          </li>
-        </ul>
-      </div>
-      {checkPoints.length > 0 && (
-        <div className="card" style={{ borderLeft: '3px solid var(--warn)' }}>
-          <div className="card-title" style={{ color: 'var(--warn)', fontSize: '13px' }}>
-            ⚠️ {t('checkPoints')} ({checkPoints.length})
-          </div>
-          {checkPoints.map((pt, i) => (
-            <div key={i} style={{ fontSize: '12px', color: 'var(--text2)', padding: '3px 0' }}>- {pt}</div>
-          ))}
-        </div>
-      )}
       <button className="pdf-btn" onClick={generatePDF}>
         📄 {t('generatePDF')}
       </button>

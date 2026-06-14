@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 
 export default function StepIndicator() {
   const { currentStep, goToStep, t } = useApp();
-  const labels = [t('step1'), t('step2'), t('step3'), t('step4'), t('step5')];
+  const labels = [t('step1'), t('step2'), t('step3'), t('step4')];
 
   return (
     <div className="step-indicator">
@@ -16,7 +16,7 @@ export default function StepIndicator() {
             <div className="step-dot-circle">{i < currentStep ? '✓' : i + 1}</div>
             <div className="step-dot-label">{label}</div>
           </div>
-          {i < 4 && <div className="step-connector" />}
+          {i < 3 && <div className="step-connector" />}
         </Fragment>
       ))}
     </div>

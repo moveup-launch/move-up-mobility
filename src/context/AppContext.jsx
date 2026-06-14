@@ -132,9 +132,9 @@ export function AppProvider({ children }) {
   };
 
   const goToStep = (i) => {
-    if (i >= 0 && i <= 4) setCurrentStepState(i);
+    if (i >= 0 && i <= 3) setCurrentStepState(i);
   };
-  const nextStep = () => setCurrentStepState(s => Math.min(4, s + 1));
+  const nextStep = () => setCurrentStepState(s => Math.min(3, s + 1));
   const prevStep = () => setCurrentStepState(s => Math.max(0, s - 1));
 
   const signOut = async () => {

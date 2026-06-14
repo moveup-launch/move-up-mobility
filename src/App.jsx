@@ -14,7 +14,6 @@ import Step1Client from './pages/Step1Client';
 import Step2Housing from './pages/Step2Housing';
 import Step4Inventory from './pages/Step4Inventory';
 import Step5Summary from './pages/Step5Summary';
-import Step6PDF from './pages/Step6PDF';
 import AuthPage from './pages/AuthPage';
 import HistoryPage from './pages/HistoryPage';
 import DashboardPage from './pages/DashboardPage';
@@ -28,17 +27,21 @@ import QuotePage from './pages/QuotePage';
 import QuoteListPage from './pages/QuoteListPage';
 import OfflineBanner from './components/OfflineBanner';
 
-const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary, Step6PDF];
+const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary];
 
 function DesktopBottomNav() {
-  const { currentStep, nextStep, prevStep, t } = useApp();
+  const { currentStep, nextStep, prevStep, t, lang } = useApp();
+  const isFr = lang === 'fr';
+  const nextLabel = currentStep === 2
+    ? (isFr ? '✅ Terminer l\'inventaire' : '✅ Finish inventory')
+    : `${t('next')} →`;
   return (
     <div className="desktop-nav-btns">
       {currentStep > 0 && (
         <button className="btn btn-secondary" onClick={prevStep}>← {t('back')}</button>
       )}
-      {currentStep < 4 && (
-        <button className="btn btn-primary" onClick={nextStep}>{t('next')} →</button>
+      {currentStep < 3 && (
+        <button className="btn btn-primary" onClick={nextStep}>{nextLabel}</button>
       )}
     </div>
   );

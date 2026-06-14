@@ -18,9 +18,11 @@ export default function MobileNav() {
         <button
           className="btn btn-primary"
           onClick={nextStep}
-          style={{ visibility: currentStep >= 4 ? 'hidden' : 'visible' }}
+          style={{ visibility: currentStep >= 3 ? 'hidden' : 'visible' }}
         >
-          {t('next')} →
+          {currentStep === 2
+            ? (lang === 'fr' ? '✅ Terminer l\'inventaire' : '✅ Finish inventory')
+            : `${t('next')} →`}
         </button>
       </div>
     );

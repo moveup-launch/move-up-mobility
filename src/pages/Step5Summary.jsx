@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG } from '../data/catalog';
+import Step6PDF from './Step6PDF';
 
 const MOVE_TYPE_OPTIONS_FR = [
   { val: 'local', label: 'Local / National' },
@@ -76,9 +77,9 @@ function MoveSegmentRow({ seg }) {
 
 export default function Step5Summary() {
   const {
-    t, lang, state,
-    getTotalVolume, getRecommendedTeam, getEquipment,
-    getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getCheckPoints,
+    t, lang, state, profile,
+    getTotalVolume, getRecommendedTruck,
+    getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems,
     getRoomVolume, getRoomIcon,
     getSegmentSolution, getItemsByTransportMode,
     saveVisit, setViewMode, addMoveSegment, openNewQuote,
@@ -87,16 +88,12 @@ export default function Step5Summary() {
   const [saveStatus, setSaveStatus] = useState('idle');
 
   const vol = getTotalVolume();
-  const team = getRecommendedTeam(vol);
-  const equip = getEquipment();
   const fragile = getAllFragile();
   const heavy = getAllHeavy();
   const disassembly = getAllDisassembly();
   const crateItems = getAllCrateItems();
-  const checkPoints = getCheckPoints();
   const isFr = lang === 'fr';
   const isEditing = !!state.editingVisitId;
-  const mt = state.moveType || 'local';
   const segments = state.moveSegments || [];
 
   const handleSave = async () => {
@@ -113,9 +110,13 @@ export default function Step5Summary() {
   const handleSendSMS = () => {
     const phone = state.client.phone;
     if (!phone) return;
+    const firstName = (state.client.name || '').split(' ')[0];
+    const surveyor = state.client.surveyor || profile?.first_name || '';
+    const company = profile?.company_name || '';
+    const sign = [surveyor, company].filter(Boolean).join(' - ');
     const msg = isFr
-      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\nVolume estimé : ${vol.toFixed(1)} m³.\n\nN'hésitez pas à nous contacter pour tout renseignement.`
-      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\nEstimated volume: ${vol.toFixed(1)} m³.\n\nFeel free to contact us for any questions.`;
+      ? `Bonjour ${firstName}, merci pour cette visite. Nous revenons vers vous très prochainement avec notre proposition. À bientôt${sign ? ', ' + sign : ''}`
+      : `Hello ${firstName}, thank you for this visit. We will get back to you very soon with our proposal. See you soon${sign ? ', ' + sign : ''}`;
     window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`);
   };
 
@@ -152,19 +153,29 @@ export default function Step5Summary() {
         <div className="big-label">{t('totalVolumeLabel')}</div>
       </div>
 
-      {/* Points à vérifier */}
-      {checkPoints.length > 0 && (
-        <div className="card" style={{ borderLeft: '3px solid var(--warn)' }}>
-          <div className="card-title" style={{ color: 'var(--warn)' }}>
-            {t('checkPoints')} ({checkPoints.length})
-          </div>
-          {checkPoints.map((pt, i) => (
-            <div key={i} style={{ fontSize: '13px', color: 'var(--text2)', padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
-              {pt}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="card">
+        <div className="card-title">{isFr ? 'Récapitulatif' : 'Summary'}</div>
+        <ul className="item-list-summary">
+          <li><span>{t('clientName')}</span><strong>{state.client.name || '—'}</strong></li>
+          <li><span>{t('visitDate')}</span><strong>{state.client.visitDate || '—'}</strong></li>
+          <li>
+            <span>{t('origin')}</span>
+            <strong style={{ fontSize: '12px', maxWidth: '55%', textAlign: 'right' }}>
+              {[state.origin.address, state.origin.city].filter(Boolean).join(', ') || '—'}
+            </strong>
+          </li>
+          <li>
+            <span>{t('destination')}</span>
+            <strong style={{ fontSize: '12px', maxWidth: '55%', textAlign: 'right' }}>
+              {state.destination.noFixedAddress
+                ? (state.destination.city || '—')
+                : [state.destination.address, state.destination.city].filter(Boolean).join(', ') || '—'}
+            </strong>
+          </li>
+          <li><span>{isFr ? 'Volume total' : 'Total volume'}</span><strong>{vol.toFixed(1)} m³</strong></li>
+          <li><span>{isFr ? 'Solution logistique' : 'Logistics'}</span><strong>{getRecommendedTruck(vol)}</strong></li>
+        </ul>
+      </div>
 
       {/* Répartition du déménagement — uniquement si plusieurs modes sur les objets */}
       {(() => {
@@ -193,35 +204,23 @@ export default function Step5Summary() {
         );
       })()}
 
-      {/* Équipe — ratio intelligent */}
-      {(mt === 'local' || mt === 'road') && (
-        <div className="summary-stat">
-          <div className="stat-icon">👥</div>
-          <div className="stat-info">
-            <div className="stat-label">{t('recommendedTeam')}</div>
-            <div className="stat-value">{team.label}</div>
-            {team.reasons.length > 0 && (
-              <div style={{ marginTop: '4px' }}>
-                {team.reasons.map((r, i) => (
-                  <div key={i} style={{ fontSize: '11px', color: 'var(--text3)', lineHeight: '1.5' }}>
-                    {r}
-                  </div>
-                ))}
-              </div>
-            )}
+      {(() => {
+        const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
+        const totalBoxCount = state.rooms.reduce((s, r) =>
+          s + (r.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId)).reduce((ss, i) => ss + i.qty, 0), 0);
+        const totalBoxVol = state.rooms.reduce((s, r) =>
+          s + (r.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId)).reduce((ss, i) => ss + (i.volume_m3 || 0) * i.qty, 0), 0);
+        if (totalBoxCount === 0) return null;
+        return (
+          <div className="summary-stat">
+            <div className="stat-icon">📦</div>
+            <div className="stat-info">
+              <div className="stat-label">{isFr ? 'Cartons à prévoir' : 'Boxes to prepare'}</div>
+              <div className="stat-value">{totalBoxCount} {isFr ? 'cartons' : 'boxes'} — {totalBoxVol.toFixed(2)} m³</div>
+            </div>
           </div>
-        </div>
-      )}
-
-      <div className="summary-stat">
-        <div className="stat-icon">🛠️</div>
-        <div className="stat-info">
-          <div className="stat-label">{t('requiredEquipment')}</div>
-          <div className="stat-value" style={{ fontSize: '13px', lineHeight: '1.7' }}>
-            {equip.map((e, i) => <span key={i} style={{ display: 'block' }}>- {e}</span>)}
-          </div>
-        </div>
-      </div>
+        );
+      })()}
 
       <div className="card" style={{ marginTop: '16px' }}>
         <div className="card-title">{t('perRoom')}</div>
@@ -463,6 +462,10 @@ export default function Step5Summary() {
         >
           📋 {isFr ? 'Générer un devis' : 'Generate a quote'}
         </button>
+      </div>
+
+      <div style={{ marginTop: '16px' }}>
+        <Step6PDF />
       </div>
     </>
   );

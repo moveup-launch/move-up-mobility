@@ -1,12 +1,12 @@
 import { useApp } from '../context/AppContext';
 
-const STEP_ICONS = ['👤', '🏠', '📦', '📊', '📄'];
+const STEP_ICONS = ['👤', '🏠', '📦', '📊'];
 
 export default function SidebarNav() {
   const { currentStep, goToStep, t, lang, user, profile, signOut, viewMode, setViewMode, openPlanVisit } = useApp();
 
 
-  const steps = [t('step1'), t('step2'), t('step3'), t('step4'), t('step5')];
+  const steps = [t('step1'), t('step2'), t('step3'), t('step4')];
   const isFr = lang === 'fr';
 
   return (
