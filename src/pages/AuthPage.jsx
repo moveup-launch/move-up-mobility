@@ -16,6 +16,21 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
 
   const isFr = lang === 'fr';
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    if (err) setError(err.message);
+    else setSuccess(isFr
+      ? 'Un email de réinitialisation a été envoyé. Vérifiez votre boîte mail.'
+      : 'A reset email has been sent. Check your inbox.');
+    setLoading(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -67,15 +82,46 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
           {isFr ? 'Estimation de déménagement' : 'Moving Volume Estimator'}
         </div>
 
-        <div className="auth-tabs">
-          <button className={`auth-tab ${mode === 'login' ? 'active' : ''}`} onClick={() => switchMode('login')}>
-            {isFr ? 'Connexion' : 'Login'}
-          </button>
-          <button className={`auth-tab ${mode === 'signup' ? 'active' : ''}`} onClick={() => switchMode('signup')}>
-            {isFr ? 'Inscription' : 'Sign up'}
-          </button>
-        </div>
+        {mode !== 'forgot' && (
+          <div className="auth-tabs">
+            <button className={`auth-tab ${mode === 'login' ? 'active' : ''}`} onClick={() => switchMode('login')}>
+              {isFr ? 'Connexion' : 'Login'}
+            </button>
+            <button className={`auth-tab ${mode === 'signup' ? 'active' : ''}`} onClick={() => switchMode('signup')}>
+              {isFr ? 'Inscription' : 'Sign up'}
+            </button>
+          </div>
+        )}
 
+        {mode === 'forgot' && (
+          <form onSubmit={handleForgotPassword} className="auth-form">
+            <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '12px' }}>
+              {isFr ? 'Entrez votre email pour recevoir un lien de réinitialisation.' : 'Enter your email to receive a reset link.'}
+            </div>
+            <div className="field">
+              <label>Email *</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="email@exemple.com"
+                required
+                autoComplete="email"
+              />
+            </div>
+            {error && <div className="auth-error">{error}</div>}
+            {success && <div className="auth-success">{success}</div>}
+            <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+              {loading ? '...' : (isFr ? 'Envoyer le lien' : 'Send reset link')}
+            </button>
+            <button type="button" onClick={() => switchMode('login')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: 13, marginTop: 8, width: '100%' }}>
+              ← {isFr ? 'Retour à la connexion' : 'Back to login'}
+            </button>
+          </form>
+        )}
+
+        {mode !== 'forgot' && (
         <form onSubmit={handleSubmit} className="auth-form">
           {mode === 'signup' && (
             <>
@@ -140,6 +186,15 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
             />
           </div>
 
+          {mode === 'login' && (
+            <div style={{ textAlign: 'right', marginBottom: '4px' }}>
+              <button type="button" onClick={() => switchMode('forgot')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 12, padding: 0 }}>
+                {isFr ? 'Mot de passe oublié ?' : 'Forgot password?'}
+              </button>
+            </div>
+          )}
+
           {error && <div className="auth-error">{error}</div>}
           {success && <div className="auth-success">{success}</div>}
 
@@ -151,6 +206,7 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
                 : (isFr ? 'Créer un compte' : 'Create account')}
           </button>
         </form>
+        )}
       </div>
     </div>
   );

@@ -413,6 +413,15 @@ export function AppProvider({ children }) {
       }),
     }));
 
+  const updateItemComment = (roomId, itemId, comment) =>
+    setState(s => ({
+      ...s,
+      rooms: s.rooms.map(r => {
+        if (r.id !== roomId) return r;
+        return { ...r, items: r.items.map(i => i.itemId === itemId ? { ...i, comment } : i) };
+      }),
+    }));
+
   const updateItemVolume = (roomId, itemId, vol) =>
     setState(s => ({
       ...s,
@@ -1009,7 +1018,7 @@ export function AppProvider({ children }) {
       addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution,
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
-      updateItemVolume, updateItemCrate, updateItemTransportMode,
+      updateItemComment, updateItemVolume, updateItemCrate, updateItemTransportMode,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
       getEquipment, getMattressCovers, getCheckPoints,

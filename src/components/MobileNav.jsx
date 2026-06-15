@@ -15,15 +15,15 @@ export default function MobileNav() {
         >
           ← {t('back')}
         </button>
-        <button
-          className="btn btn-primary"
-          onClick={nextStep}
-          style={{ visibility: currentStep >= 3 ? 'hidden' : 'visible' }}
-        >
-          {currentStep === 2
-            ? (lang === 'fr' ? '✅ Terminer l\'inventaire' : '✅ Finish inventory')
-            : `${t('next')} →`}
-        </button>
+        {currentStep !== 2 && (
+          <button
+            className="btn btn-primary"
+            onClick={nextStep}
+            style={{ visibility: currentStep >= 3 ? 'hidden' : 'visible' }}
+          >
+            {`${t('next')} →`}
+          </button>
+        )}
       </div>
     );
   }

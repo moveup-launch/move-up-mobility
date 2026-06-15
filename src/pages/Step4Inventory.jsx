@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, CRATE_ELIGIBLE_IDS } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
@@ -188,7 +188,6 @@ function CustomItemSheet({ roomId, roomType }) {
           type="number" step="0.01" min="0.01" inputMode="decimal"
           value={volumeStr}
           onChange={e => setVolumeStr(e.target.value)}
-          onBlur={e => { const v = parseFloat(e.target.value); if (v > 0) setVolumeStr(String(v)); }}
           style={{ fontSize: '16px', fontWeight: '600' }}
         />
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
@@ -229,18 +228,21 @@ function CustomItemSheet({ roomId, roomType }) {
 
 function CatalogSection({ room }) {
   const { tCat, lang, state, addItemToRoom, openSheet, changeQty } = useApp();
+  const isFr = lang === 'fr';
 
   const catLabels = {
-    bedroom: lang === 'fr' ? 'Chambre / Bureau' : 'Bedroom / Office',
-    livingRoom: lang === 'fr' ? 'Salon / Séjour / Entrée' : 'Living room / Hallway',
-    kitchen: lang === 'fr' ? 'Cuisine' : 'Kitchen',
-    office: lang === 'fr' ? 'Bureau' : 'Office',
-    garden: lang === 'fr' ? 'Jardin' : 'Garden',
-    garageBasement: lang === 'fr' ? 'Garage / Cave' : 'Garage / Basement',
-    laundry: lang === 'fr' ? 'Buanderie' : 'Laundry',
-    bathroom: lang === 'fr' ? 'Salle de bain' : 'Bathroom',
-    exceptional: lang === 'fr' ? 'Objets exceptionnels' : 'Exceptional items',
-    boxes: lang === 'fr' ? '📦 Cartons' : '📦 Boxes',
+    bedroom: isFr ? 'Chambre / Bureau' : 'Bedroom / Office',
+    livingRoom: isFr ? 'Salon / Séjour' : 'Living room',
+    diningRoom: isFr ? 'Salle à manger' : 'Dining room',
+    entrance: isFr ? 'Entrée' : 'Entrance',
+    kitchen: isFr ? 'Cuisine' : 'Kitchen',
+    office: isFr ? 'Bureau' : 'Office',
+    garden: isFr ? 'Jardin' : 'Garden',
+    garageBasement: isFr ? 'Garage / Cave' : 'Garage / Basement',
+    laundry: isFr ? 'Buanderie' : 'Laundry',
+    bathroom: isFr ? 'Salle de bain' : 'Bathroom',
+    exceptional: isFr ? 'Objets exceptionnels' : 'Exceptional items',
+    boxes: isFr ? '📦 Cartons' : '📦 Boxes',
   };
 
   const cats = CATALOG.roomCatalogMap[room.type] || ['bedroom'];
@@ -282,7 +284,7 @@ function CatalogSection({ room }) {
         <div key={cat.key} className="catalog-category">
           <div className="catalog-category-title">{catLabels[cat.key] || cat.key}</div>
           <div className="item-grid">
-            {cat.items.map(item => {
+            {[...cat.items].sort((a, b) => tCat(a.name).localeCompare(tCat(b.name), isFr ? 'fr' : 'en', { sensitivity: 'base' })).map(item => {
               const qty = (room.items || []).filter(i => i.catalogId === item.id).reduce((s, i) => s + i.qty, 0);
               const isSingle = item.variants.length === 1;
               const singleUid = isSingle ? `${item.id}_${item.variants[0].id}` : null;
@@ -342,11 +344,12 @@ const TRANSPORT_MODES = [
 ];
 
 function InventoryList({ room }) {
-  const { t, lang, changeQty, updateItemVolume, updateItemCrate, updateItemTransportMode } = useApp();
+  const { t, lang, changeQty, updateItemVolume, updateItemCrate, updateItemTransportMode, updateItemComment } = useApp();
   const [editingItemId, setEditingItemId] = useState(null);
   const [editVolume, setEditVolume] = useState('');
   const [crateEditId, setCrateEditId] = useState(null);
   const [crateForm, setCrateForm] = useState({ l: '', w: '', h: '' });
+  const [commentEditId, setCommentEditId] = useState(null);
   const items = (room.items || []).filter(i => i.qty > 0);
   const isFr = lang === 'fr';
 
@@ -506,6 +509,36 @@ function InventoryList({ room }) {
               {item.requires_disassembly && <span className="tag tag-disassembly">{t('tagDisassembly')}</span>}
               {item.possible_furniture_lift && <span className="tag tag-lift">{t('tagLift')}</span>}
             </div>
+
+            {/* Commentaire discret */}
+            <div style={{ marginTop: '4px', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+              <button
+                onClick={() => setCommentEditId(commentEditId === item.itemId ? null : item.itemId)}
+                title={isFr ? 'Ajouter un commentaire' : 'Add a comment'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: item.comment ? 'var(--accent)' : 'var(--text3)', padding: '0 2px', lineHeight: 1, flexShrink: 0 }}
+              >
+                💬
+              </button>
+              {item.comment && commentEditId !== item.itemId && (
+                <span style={{ fontSize: '11px', color: 'var(--text3)', fontStyle: 'italic', lineHeight: '1.3' }}>{item.comment}</span>
+              )}
+            </div>
+            {commentEditId === item.itemId && (
+              <textarea
+                autoFocus
+                value={item.comment || ''}
+                onChange={e => updateItemComment(room.id, item.itemId, e.target.value)}
+                onBlur={() => setCommentEditId(null)}
+                placeholder={isFr ? 'Commentaire...' : 'Comment...'}
+                rows={2}
+                style={{
+                  width: '100%', marginTop: '4px', padding: '5px 8px',
+                  borderRadius: '6px', border: '1px solid var(--accent)',
+                  fontSize: '12px', background: 'var(--bg)', color: 'var(--text)',
+                  resize: 'none', boxSizing: 'border-box',
+                }}
+              />
+            )}
           </div>
 
           {/* Colonne droite : +/- */}
@@ -537,6 +570,7 @@ const CROSS_CATALOG_MAP = {
   attic:        ['garageBasement'],
   garden:       [],
   storageBox:   ['garageBasement'],
+  entrance:     ['livingRoom'],
   misc:         ['livingRoom', 'bedroom', 'office'],
 };
 
@@ -1015,7 +1049,20 @@ function DeleteRoomModal({ roomId, roomName }) {
 }
 
 export default function Step4Inventory() {
-  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal, deleteRoom } = useApp();
+  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal, deleteRoom, nextStep } = useApp();
+  const touchStartX = useRef(null);
+
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 60) return;
+    const rooms = state.rooms;
+    const idx = rooms.findIndex(r => r.id === (state.currentRoomId || rooms[0].id));
+    if (dx < 0 && idx < rooms.length - 1) selectRoom(rooms[idx + 1].id);
+    else if (dx > 0 && idx > 0) selectRoom(rooms[idx - 1].id);
+  };
 
   if (state.rooms.length === 0) {
     return (
@@ -1051,23 +1098,30 @@ export default function Step4Inventory() {
         </div>
       </div>
 
+      {/* Bouton terminer inventaire */}
+      <button
+        className="btn btn-primary"
+        style={{ width: '100%', padding: '12px', marginBottom: '8px', fontSize: '14px' }}
+        onClick={nextStep}
+      >
+        ✅ {lang === 'fr' ? "Terminer l'inventaire et voir la synthèse" : 'Finish inventory & view summary'}
+      </button>
+
       {/* Sélecteur de pièce + bouton ajouter pièce */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-        <div className="room-selector" style={{ flex: 1, overflowX: 'auto' }}>
-          {state.rooms.map(r => (
-            <button
-              key={r.id}
-              className={`room-sel-btn ${r.id === (state.currentRoomId || state.rooms[0].id) ? 'active' : ''}`}
-              onClick={() => selectRoom(r.id)}
-            >
-              <span className="sel-icon">{getRoomIcon(r.type)}</span>
-              <span className="sel-name">{r.name}</span>
-            </button>
-          ))}
-        </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', paddingBottom: '4px' }}>
+        {state.rooms.map(r => (
+          <button
+            key={r.id}
+            className={`room-sel-btn ${r.id === (state.currentRoomId || state.rooms[0].id) ? 'active' : ''}`}
+            onClick={() => selectRoom(r.id)}
+          >
+            <span className="sel-icon">{getRoomIcon(r.type)}</span>
+            <span className="sel-name">{r.name}</span>
+          </button>
+        ))}
         <button
           className="room-sel-btn"
-          style={{ flexShrink: 0, fontWeight: '700', fontSize: '18px', padding: '8px 12px', border: '1px dashed var(--accent)', color: 'var(--accent)' }}
+          style={{ fontWeight: '700', fontSize: '18px', padding: '8px 12px', border: '1px dashed var(--accent)', color: 'var(--accent)' }}
           onClick={() => openSheet(<AddRoomSheet />)}
           title={lang === 'fr' ? 'Ajouter une pièce' : 'Add a room'}
         >
@@ -1088,10 +1142,12 @@ export default function Step4Inventory() {
         </button>
       </div>
 
-      <CatalogSection room={room} />
-      <CrossCatalogSection room={room} />
-      <InventoryList room={room} />
-      <RoomPhotosSection room={room} />
+      <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        <CatalogSection room={room} />
+        <CrossCatalogSection room={room} />
+        <InventoryList room={room} />
+        <RoomPhotosSection room={room} />
+      </div>
     </>
   );
 }

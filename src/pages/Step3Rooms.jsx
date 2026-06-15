@@ -7,7 +7,8 @@ export function AddRoomSheet() {
   const [customName, setCustomName] = useState('');
   const isFr = lang === 'fr';
 
-  const roomTypes = ['livingRoom', 'diningRoom', 'kitchen', 'bedroom', 'childBedroom', 'office', 'bathroom', 'dressing', 'laundry', 'garage', 'basement', 'attic', 'garden', 'storageBox', 'misc'];
+  const roomTypes = ['livingRoom', 'diningRoom', 'kitchen', 'bedroom', 'childBedroom', 'office', 'bathroom', 'dressing', 'entrance', 'laundry', 'garage', 'basement', 'attic', 'garden', 'storageBox', 'misc']
+    .sort((a, b) => t(a).localeCompare(t(b), isFr ? 'fr' : 'en', { sensitivity: 'base' }));
 
   const handleAdd = (rt) => {
     addRoom(rt);

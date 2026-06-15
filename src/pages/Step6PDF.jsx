@@ -307,6 +307,11 @@ export default function Step6PDF() {
           doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
           y += 9;
         } else { y += 6; }
+        if (item.comment) {
+          checkY(4);
+          doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
+          doc.text(safe(`    > ${item.comment}`), 16, y); y += 4;
+        }
       });
     }
 
@@ -383,6 +388,11 @@ export default function Step6PDF() {
               doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
               y += 9;
             } else { y += 6; }
+            if (item.comment) {
+              checkY(4);
+              doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
+              doc.text(safe(`    > ${item.comment}`), 16, y); y += 4;
+            }
           });
         }
 
