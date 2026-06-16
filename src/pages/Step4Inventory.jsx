@@ -226,43 +226,84 @@ function CustomItemSheet({ roomId, roomType }) {
 }
 
 
+const GLOBAL_CATALOG_SECTIONS = [
+  'bedroom', 'livingRoom', 'kitchen', 'diningRoom', 'office', 'garden',
+  'garageBasement', 'laundry', 'bathroom', 'babyEquip', 'entrance', 'exceptional', 'boxes',
+];
+
+const FURNITURE_IDS = new Set([
+  'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair', 'bookshelf',
+  'sofa2', 'sofa3', 'sofa_corner', 'sofa_bed', 'armchair', 'coffee_table', 'tv_unit', 'buffet', 'console', 'coat_rack', 'shoe_cabinet', 'bench_hallway',
+  'kitchen_table', 'chairs', 'china_cabinet',
+  'dining_table', 'dining_chair', 'dining_console', 'dining_shelf',
+  'office_desk', 'office_chair2', 'filing_cabinet', 'office_shelf', 'office_wardrobe',
+  'garden_table', 'garden_chairs', 'garden_lounger', 'garden_set', 'garden_shed', 'garden_bike',
+  'shelving', 'workbench', 'stepladder', 'ladder',
+  'vanity_unit', 'storage_column_bath', 'medicine_cabinet', 'bath_stool', 'bathtub', 'washbasin',
+  'entr_shoe_cabinet', 'entr_coat_rack', 'entr_console', 'entr_bench',
+  'laundry_cabinet', 'clothes_rack',
+]);
+
+const ELECTRO_IDS = new Set([
+  'tv', 'living_tv', 'dining_tv', 'office_tv',
+  'fridge_small', 'fridge', 'fridge_combo', 'fridge_american', 'freezer_chest', 'freezer_upright',
+  'dishwasher', 'oven', 'microwave', 'coffee_machine', 'robot_kitchen',
+  'monitor', 'computer', 'printer',
+  'washing_machine', 'dryer', 'washer_dryer', 'heated_towel_rail',
+  'vacuum_cleaner', 'steam_cleaner', 'dining_hifi', 'bike_electric',
+  'garden_mower', 'mower', 'iron_board', 'ironing_board_standalone',
+  'garden_trimmer', 'garden_hedger', 'garden_blower',
+]);
+
+const DECO_IDS = new Set([
+  'mirror', 'frames', 'lamps', 'rug', 'plants', 'deco_fragile',
+  'living_mirror', 'living_artwork', 'kitchen_mirror', 'kitchen_artwork',
+  'dining_mirror', 'dining_artwork', 'office_mirror', 'office_artwork',
+  'bath_mirror', 'entr_mirror', 'entr_artwork', 'garden_pot', 'fireplace_decor',
+  'artwork', 'aquarium',
+]);
+
+function getItemGroup(catKey, itemId) {
+  if (catKey === 'boxes') return 'cartons';
+  if (catKey === 'exceptional') return (itemId === 'artwork' || itemId === 'aquarium') ? 'deco' : 'divers';
+  if (FURNITURE_IDS.has(itemId)) return 'furniture';
+  if (ELECTRO_IDS.has(itemId)) return 'electro';
+  if (DECO_IDS.has(itemId)) return 'deco';
+  return 'divers';
+}
+
+const ALL_CATALOG_ITEMS = GLOBAL_CATALOG_SECTIONS.flatMap(catKey =>
+  (CATALOG[catKey] || []).map(item => ({ catKey, item, group: getItemGroup(catKey, item.id) }))
+);
+
+const CHIPS = [
+  { key: 'furniture', icon: '🪑', labelFr: 'Meubles', labelEn: 'Furniture' },
+  { key: 'electro',   icon: '🔌', labelFr: 'Électro', labelEn: 'Electro'   },
+  { key: 'deco',      icon: '🖼️', labelFr: 'Déco',    labelEn: 'Decor'    },
+  { key: 'cartons',   icon: '📦', labelFr: 'Cartons', labelEn: 'Boxes'    },
+  { key: 'divers',    icon: '➕', labelFr: 'Divers',  labelEn: 'Misc'     },
+];
+
 function CatalogSection({ room }) {
-  const { tCat, lang, state, addItemToRoom, openSheet, changeQty } = useApp();
+  const { tCat, lang, addItemToRoom, openSheet, changeQty } = useApp();
   const isFr = lang === 'fr';
+  const [search, setSearch] = useState('');
+  const [activeChip, setActiveChip] = useState('furniture');
 
-  const catLabels = {
-    bedroom: isFr ? 'Chambre / Bureau' : 'Bedroom / Office',
-    livingRoom: isFr ? 'Salon / Séjour' : 'Living room',
-    diningRoom: isFr ? 'Salle à manger' : 'Dining room',
-    entrance: isFr ? 'Entrée' : 'Entrance',
-    kitchen: isFr ? 'Cuisine' : 'Kitchen',
-    office: isFr ? 'Bureau' : 'Office',
-    garden: isFr ? 'Jardin' : 'Garden',
-    garageBasement: isFr ? 'Garage / Cave' : 'Garage / Basement',
-    laundry: isFr ? 'Buanderie' : 'Laundry',
-    bathroom: isFr ? 'Salle de bain' : 'Bathroom',
-    exceptional: isFr ? 'Objets exceptionnels' : 'Exceptional items',
-    boxes: isFr ? '📦 Cartons' : '📦 Boxes',
-  };
+  const query = search.trim().toLowerCase();
+  const entries = query
+    ? ALL_CATALOG_ITEMS.filter(e => tCat(e.item.name).toLowerCase().includes(query))
+    : ALL_CATALOG_ITEMS.filter(e => e.group === activeChip);
 
-  const cats = CATALOG.roomCatalogMap[room.type] || ['bedroom'];
-  const result = [];
-  cats.forEach(cat => {
-    if (CATALOG[cat]) result.push({ key: cat, items: CATALOG[cat] });
-  });
-
-  const exceptionalForRoom = CATALOG.exceptional.filter(item =>
-    item.allowedRooms && item.allowedRooms.includes(room.type)
+  const sorted = [...entries].sort((a, b) =>
+    tCat(a.item.name).localeCompare(tCat(b.item.name), isFr ? 'fr' : 'en', { sensitivity: 'base' })
   );
-  if (exceptionalForRoom.length > 0) {
-    result.push({ key: 'exceptional', items: exceptionalForRoom });
-  }
 
-  const handleItemClick = (item, cat) => {
+  const handleItemClick = (item, catKey) => {
     if (item.variants.length === 1) {
-      addItemToRoom(room.id, cat.key, item.id, item.variants[0].id);
+      addItemToRoom(room.id, catKey, item.id, item.variants[0].id);
     } else {
-      openSheet(<QuickAdjustSheet roomId={room.id} catKey={cat.key} itemId={item.id} />);
+      openSheet(<QuickAdjustSheet roomId={room.id} catKey={catKey} itemId={item.id} />);
     }
   };
 
@@ -280,48 +321,81 @@ function CatalogSection({ room }) {
 
   return (
     <>
-      {result.map(cat => (
-        <div key={cat.key} className="catalog-category">
-          <div className="catalog-category-title">{catLabels[cat.key] || cat.key}</div>
-          <div className="item-grid">
-            {[...cat.items].sort((a, b) => tCat(a.name).localeCompare(tCat(b.name), isFr ? 'fr' : 'en', { sensitivity: 'base' })).map(item => {
-              const qty = (room.items || []).filter(i => i.catalogId === item.id).reduce((s, i) => s + i.qty, 0);
-              const isSingle = item.variants.length === 1;
-              const singleUid = isSingle ? `${item.id}_${item.variants[0].id}` : null;
-              return (
-                <div
-                  key={item.id}
-                  className={`item-card ${qty > 0 ? 'in-inventory' : ''}`}
-                  style={{ position: 'relative' }}
-                  onClick={() => handleItemClick(item, cat)}
-                >
-                  {qty > 0 && <div className="item-qty-badge">{qty}</div>}
-                  <span className="item-icon">{item.icon}</span>
-                  <div className="item-name">{tCat(item.name)}</div>
-                  {qty > 0 && (
-                    <button
-                      onClick={(e) => {
-                        if (isSingle) { e.stopPropagation(); changeQty(room.id, singleUid, -1); }
-                        else { handleMultiMinus(e, item); }
-                      }}
-                      style={{
-                        position: 'absolute', bottom: '4px', right: '4px',
-                        width: '20px', height: '20px', borderRadius: '50%',
-                        background: 'var(--danger-light)', color: 'var(--danger)',
-                        border: 'none', cursor: 'pointer', fontSize: '14px',
-                        fontWeight: '700', lineHeight: '1',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-                      }}
-                    >
-                      −
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      <input
+        type="text"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        placeholder={isFr ? '🔍 Rechercher un objet...' : '🔍 Search an item...'}
+        style={{
+          width: '100%', padding: '10px 12px', borderRadius: '10px',
+          border: '1px solid var(--border)', fontSize: '14px', marginBottom: '10px',
+          background: 'var(--surface)', color: 'var(--text)', boxSizing: 'border-box',
+        }}
+      />
+
+      {!query && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+          {CHIPS.map(c => (
+            <button
+              key={c.key}
+              onClick={() => setActiveChip(c.key)}
+              style={{
+                padding: '6px 12px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer',
+                fontWeight: '600', whiteSpace: 'nowrap',
+                background: activeChip === c.key ? 'var(--accent)' : 'var(--surface2)',
+                color: activeChip === c.key ? 'white' : 'var(--text2)',
+                border: `1px solid ${activeChip === c.key ? 'var(--accent)' : 'var(--border)'}`,
+              }}
+            >
+              {c.icon} {isFr ? c.labelFr : c.labelEn}
+            </button>
+          ))}
         </div>
-      ))}
+      )}
+
+      <div className="item-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+        {sorted.map(({ item, catKey }) => {
+          const qty = (room.items || []).filter(i => i.catalogId === item.id).reduce((s, i) => s + i.qty, 0);
+          const isSingle = item.variants.length === 1;
+          const singleUid = isSingle ? `${item.id}_${item.variants[0].id}` : null;
+          return (
+            <div
+              key={`${catKey}_${item.id}`}
+              className={`item-card ${qty > 0 ? 'in-inventory' : ''}`}
+              style={{ position: 'relative' }}
+              onClick={() => handleItemClick(item, catKey)}
+            >
+              {qty > 0 && <div className="item-qty-badge">{qty}</div>}
+              <span className="item-icon">{item.icon}</span>
+              <div className="item-name">{tCat(item.name)}</div>
+              {qty > 0 && (
+                <button
+                  onClick={(e) => {
+                    if (isSingle) { e.stopPropagation(); changeQty(room.id, singleUid, -1); }
+                    else { handleMultiMinus(e, item); }
+                  }}
+                  style={{
+                    position: 'absolute', bottom: '4px', right: '4px',
+                    width: '20px', height: '20px', borderRadius: '50%',
+                    background: 'var(--danger-light)', color: 'var(--danger)',
+                    border: 'none', cursor: 'pointer', fontSize: '14px',
+                    fontWeight: '700', lineHeight: '1',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                  }}
+                >
+                  −
+                </button>
+              )}
+            </div>
+          );
+        })}
+        {sorted.length === 0 && (
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '16px 0', color: 'var(--text3)', fontSize: '13px' }}>
+            {isFr ? 'Aucun objet trouvé' : 'No item found'}
+          </div>
+        )}
+      </div>
+
       <div style={{ padding: '8px 0 4px' }}>
         <button
           className="btn btn-secondary"
@@ -336,11 +410,11 @@ function CatalogSection({ room }) {
 }
 
 const TRANSPORT_MODES = [
-  { val: 'road',    icon: '🚛', labelFr: 'Route',     labelEn: 'Road'    },
-  { val: 'sea',     icon: '🚢', labelFr: 'Maritime',  labelEn: 'Sea'     },
-  { val: 'air',     icon: '✈️', labelFr: 'Aérien',   labelEn: 'Air'     },
-  { val: 'storage', icon: '📦', labelFr: 'Stockage',  labelEn: 'Storage' },
-  { val: null,      icon: '❓', labelFr: 'Non défini', labelEn: 'Undef.' },
+  { val: 'road',    labelFr: 'Route',      labelEn: 'Road'    },
+  { val: 'sea',     labelFr: 'Maritime',   labelEn: 'Sea'     },
+  { val: 'air',     labelFr: 'Aérien',     labelEn: 'Air'     },
+  { val: 'storage', labelFr: 'Stockage',   labelEn: 'Storage' },
+  { val: null,      labelFr: 'Non défini', labelEn: 'Undef.'  },
 ];
 
 function InventoryList({ room }) {
@@ -349,7 +423,6 @@ function InventoryList({ room }) {
   const [editVolume, setEditVolume] = useState('');
   const [crateEditId, setCrateEditId] = useState(null);
   const [crateForm, setCrateForm] = useState({ l: '', w: '', h: '' });
-  const [commentEditId, setCommentEditId] = useState(null);
   const items = (room.items || []).filter(i => i.qty > 0);
   const isFr = lang === 'fr';
 
@@ -427,12 +500,13 @@ function InventoryList({ room }) {
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div className="inv-vol">{(item.volume_m3 * item.qty).toFixed(3)} m³</div>
-                <button title={t('editVolume')} onClick={() => startEdit(item)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)', padding: '0 2px', lineHeight: 1 }}>
-                  ✏️
-                </button>
+              <div
+                className="inv-vol"
+                title={isFr ? 'Modifier' : 'Edit'}
+                onClick={() => startEdit(item)}
+                style={{ cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', display: 'inline-block' }}
+              >
+                {(item.volume_m3 * item.qty).toFixed(3)} m³
               </div>
             )}
 
@@ -441,17 +515,16 @@ function InventoryList({ room }) {
               {TRANSPORT_MODES.map(m => (
                 <button
                   key={String(m.val)}
-                  title={isFr ? m.labelFr : m.labelEn}
                   onClick={() => updateItemTransportMode(room.id, item.itemId, m.val)}
                   style={{
-                    padding: '2px 6px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer',
+                    padding: '3px 9px', borderRadius: '12px', fontSize: '11px', cursor: 'pointer',
                     border: `1px solid ${item.transportMode === m.val ? 'var(--accent)' : 'var(--border)'}`,
                     background: item.transportMode === m.val ? 'var(--accent)' : 'var(--surface2)',
                     color: item.transportMode === m.val ? 'white' : 'var(--text3)',
                     fontWeight: item.transportMode === m.val ? '700' : '400',
                   }}
                 >
-                  {m.icon}
+                  {isFr ? m.labelFr : m.labelEn}
                 </button>
               ))}
             </div>
@@ -469,7 +542,7 @@ function InventoryList({ room }) {
                   cursor: 'pointer', fontWeight: '600',
                 }}
               >
-                📦 {item.crate ? `${item.crate.l}×${item.crate.w}×${item.crate.h} cm` : (isFr ? 'Caisse' : 'Crate')}
+                📐 {item.crate ? `${item.crate.l}×${item.crate.w}×${item.crate.h} cm` : (isFr ? 'Caisse' : 'Crate')}
               </button>
             </div>
 
@@ -510,35 +583,19 @@ function InventoryList({ room }) {
               {item.possible_furniture_lift && <span className="tag tag-lift">{t('tagLift')}</span>}
             </div>
 
-            {/* Commentaire discret */}
-            <div style={{ marginTop: '4px', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-              <button
-                onClick={() => setCommentEditId(commentEditId === item.itemId ? null : item.itemId)}
-                title={isFr ? 'Ajouter un commentaire' : 'Add a comment'}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: item.comment ? 'var(--accent)' : 'var(--text3)', padding: '0 2px', lineHeight: 1, flexShrink: 0 }}
-              >
-                💬
-              </button>
-              {item.comment && commentEditId !== item.itemId && (
-                <span style={{ fontSize: '11px', color: 'var(--text3)', fontStyle: 'italic', lineHeight: '1.3' }}>{item.comment}</span>
-              )}
-            </div>
-            {commentEditId === item.itemId && (
-              <textarea
-                autoFocus
-                value={item.comment || ''}
-                onChange={e => updateItemComment(room.id, item.itemId, e.target.value)}
-                onBlur={() => setCommentEditId(null)}
-                placeholder={isFr ? 'Commentaire...' : 'Comment...'}
-                rows={2}
-                style={{
-                  width: '100%', marginTop: '4px', padding: '5px 8px',
-                  borderRadius: '6px', border: '1px solid var(--accent)',
-                  fontSize: '12px', background: 'var(--bg)', color: 'var(--text)',
-                  resize: 'none', boxSizing: 'border-box',
-                }}
-              />
-            )}
+            {/* Commentaire — toujours visible */}
+            <textarea
+              value={item.comment || ''}
+              onChange={e => updateItemComment(room.id, item.itemId, e.target.value)}
+              placeholder={isFr ? 'Commentaire...' : 'Comment...'}
+              rows={1}
+              style={{
+                width: '100%', marginTop: '6px', padding: '5px 8px',
+                borderRadius: '6px', border: '1px solid var(--border)',
+                fontSize: '12px', background: 'var(--surface2)', color: 'var(--text)',
+                resize: 'none', boxSizing: 'border-box',
+              }}
+            />
           </div>
 
           {/* Colonne droite : +/- */}
@@ -555,131 +612,6 @@ function InventoryList({ room }) {
   );
 }
 
-const CROSS_CATALOG_MAP = {
-  bedroom:      ['office', 'livingRoom'],
-  childBedroom: ['office', 'livingRoom'],
-  dressing:     ['bedroom'],
-  livingRoom:   ['office', 'diningRoom'],
-  office:       ['bedroom', 'livingRoom'],
-  kitchen:      ['diningRoom'],
-  diningRoom:   [],
-  bathroom:     [],
-  laundry:      [],
-  garage:       ['garageBasement'],
-  basement:     ['garageBasement'],
-  attic:        ['garageBasement'],
-  garden:       [],
-  storageBox:   ['garageBasement'],
-  entrance:     ['livingRoom'],
-  misc:         ['livingRoom', 'bedroom', 'office'],
-};
-
-const CROSS_CAT_LABELS = {
-  bedroom:       { fr: 'Chambre / Bureau',          en: 'Bedroom / Office' },
-  livingRoom:    { fr: 'Salon / Séjour',             en: 'Living room' },
-  kitchen:       { fr: 'Cuisine',                    en: 'Kitchen' },
-  diningRoom:    { fr: 'Salle à manger',             en: 'Dining room' },
-  office:        { fr: 'Bureau',                     en: 'Office' },
-  garageBasement:{ fr: 'Garage / Cave',              en: 'Garage / Basement' },
-  garden:        { fr: 'Jardin',                     en: 'Garden' },
-  babyEquip:     { fr: 'Équipement bébé',            en: 'Baby equipment' },
-  laundry:       { fr: 'Buanderie',                  en: 'Laundry' },
-  bathroom:      { fr: 'Salle de bain',              en: 'Bathroom' },
-};
-
-function CrossCatalogSection({ room }) {
-  const { tCat, lang, state, addItemToRoom, openSheet, changeQty } = useApp();
-  const [expanded, setExpanded] = useState(false);
-  const isFr = lang === 'fr';
-
-  const crossCats = (CROSS_CATALOG_MAP[room.type] || []).filter(k => CATALOG[k] && CATALOG[k].length > 0);
-  if (crossCats.length === 0) return null;
-
-  const handleItemClick = (item, catKey) => {
-    if (item.variants.length === 1) {
-      addItemToRoom(room.id, catKey, item.id, item.variants[0].id);
-    } else {
-      openSheet(<QuickAdjustSheet roomId={room.id} catKey={catKey} itemId={item.id} />);
-    }
-  };
-
-  const handleMinus = (e, item, catKey) => {
-    e.stopPropagation();
-    for (const v of item.variants) {
-      const uid = `${item.id}_${v.id}`;
-      const inv = (room.items || []).find(i => i.itemId === uid);
-      if (inv && inv.qty > 0) { changeQty(room.id, uid, -1); break; }
-    }
-  };
-
-  return (
-    <div style={{ marginTop: '8px' }}>
-      <button
-        onClick={() => setExpanded(e => !e)}
-        style={{
-          width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-sm)',
-          border: '1px dashed var(--border)', background: 'var(--surface2)',
-          color: 'var(--text2)', fontSize: '13px', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: '600',
-        }}
-      >
-        <span>🔗 {isFr ? 'Autres objets référencés' : 'Cross-catalog items'}</span>
-        <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{expanded ? '▲' : '▼'}</span>
-      </button>
-      {expanded && (
-        <div style={{ marginTop: '6px' }}>
-          {crossCats.map(catKey => {
-            const label = CROSS_CAT_LABELS[catKey]?.[isFr ? 'fr' : 'en'] || catKey;
-            return (
-              <div key={catKey} className="catalog-category">
-                <div className="catalog-category-title" style={{ fontSize: '11px', color: 'var(--text3)' }}>
-                  {label}
-                </div>
-                <div className="item-grid">
-                  {CATALOG[catKey].map(item => {
-                    const qty = (room.items || []).filter(i => i.catalogId === item.id).reduce((s, i) => s + i.qty, 0);
-                    const isSingle = item.variants.length === 1;
-                    const singleUid = isSingle ? `${item.id}_${item.variants[0].id}` : null;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`item-card ${qty > 0 ? 'in-inventory' : ''}`}
-                        style={{ position: 'relative' }}
-                        onClick={() => handleItemClick(item, catKey)}
-                      >
-                        {qty > 0 && <div className="item-qty-badge">{qty}</div>}
-                        <span className="item-icon">{item.icon}</span>
-                        <div className="item-name">{tCat(item.name)}</div>
-                        {qty > 0 && (
-                          <button
-                            onClick={(e) => {
-                              if (isSingle) { e.stopPropagation(); changeQty(room.id, singleUid, -1); }
-                              else handleMinus(e, item, catKey);
-                            }}
-                            style={{
-                              position: 'absolute', bottom: '4px', right: '4px',
-                              width: '20px', height: '20px', borderRadius: '50%',
-                              background: 'var(--danger-light)', color: 'var(--danger)',
-                              border: 'none', cursor: 'pointer', fontSize: '14px',
-                              fontWeight: '700', lineHeight: '1',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-                            }}
-                          >
-                            −
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 const FREE_PHOTO_LIMIT = 5;
 
@@ -1049,8 +981,9 @@ function DeleteRoomModal({ roomId, roomName }) {
 }
 
 export default function Step4Inventory() {
-  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal, deleteRoom, nextStep } = useApp();
+  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal } = useApp();
   const touchStartX = useRef(null);
+  const [roomMenuOpen, setRoomMenuOpen] = useState(false);
 
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e) => {
@@ -1098,16 +1031,7 @@ export default function Step4Inventory() {
         </div>
       </div>
 
-      {/* Bouton terminer inventaire */}
-      <button
-        className="btn btn-primary"
-        style={{ width: '100%', padding: '12px', marginBottom: '8px', fontSize: '14px' }}
-        onClick={nextStep}
-      >
-        ✅ {lang === 'fr' ? "Terminer l'inventaire et voir la synthèse" : 'Finish inventory & view summary'}
-      </button>
-
-      {/* Sélecteur de pièce + bouton ajouter pièce */}
+      {/* Sélecteur de pièce + bouton ajouter pièce + menu contextuel */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', paddingBottom: '4px' }}>
         {state.rooms.map(r => (
           <button
@@ -1127,24 +1051,37 @@ export default function Step4Inventory() {
         >
           +
         </button>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
-        <button
-          style={{
-            background: 'none', border: 'none', color: 'var(--danger)',
-            fontSize: '12px', cursor: 'pointer', padding: '4px 8px',
-            display: 'flex', alignItems: 'center', gap: '4px',
-          }}
-          onClick={() => openModal(<DeleteRoomModal roomId={room.id} roomName={room.name} />)}
-        >
-          🗑️ {lang === 'fr' ? 'Supprimer cette pièce' : 'Delete this room'}
-        </button>
+        <div style={{ position: 'relative', marginLeft: 'auto' }}>
+          <button
+            className="room-sel-btn"
+            style={{ fontWeight: '700', fontSize: '16px', padding: '8px 10px' }}
+            onClick={() => setRoomMenuOpen(o => !o)}
+            title={lang === 'fr' ? 'Options de la pièce' : 'Room options'}
+          >
+            ⋯
+          </button>
+          {roomMenuOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: '4px', zIndex: 50,
+              background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.12)', minWidth: '200px', overflow: 'hidden',
+            }}>
+              <button
+                style={{
+                  width: '100%', textAlign: 'left', padding: '10px 14px', fontSize: '13px',
+                  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)',
+                }}
+                onClick={() => { setRoomMenuOpen(false); openModal(<DeleteRoomModal roomId={room.id} roomName={room.name} />); }}
+              >
+                {lang === 'fr' ? 'Supprimer cette pièce' : 'Delete this room'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         <CatalogSection room={room} />
-        <CrossCatalogSection room={room} />
         <InventoryList room={room} />
         <RoomPhotosSection room={room} />
       </div>

@@ -658,7 +658,7 @@ export const CATALOG = {
     {
       id: "piano_bench",
       name: { fr: "Banc de piano", en: "Piano bench" },
-      icon: "🪑",
+      icon: "🎹",
       allowedRooms: ['livingRoom', 'diningRoom', 'office', 'bedroom', 'entrance', 'misc'],
       variants: [{ id: "pb_std", label: { fr: "Banc de piano", en: "Piano bench" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }]
     },
