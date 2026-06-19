@@ -16,7 +16,7 @@ import Step4Inventory from './pages/Step4Inventory';
 import Step5Summary from './pages/Step5Summary';
 import AuthPage from './pages/AuthPage';
 import HistoryPage from './pages/HistoryPage';
-import DashboardPage from './pages/DashboardPage';
+import DashboardPage, { DashboardRightPanel } from './pages/DashboardPage';
 import AgendaPage from './pages/AgendaPage';
 import QuickVisitPage from './pages/QuickVisitPage';
 import SettingsPage from './pages/SettingsPage';
@@ -60,7 +60,10 @@ function DesktopLayout() {
         <SidebarNav />
         <div className="desktop-main">
           {viewMode === 'dashboard' && (
-            <div className="desktop-content-full" ref={mainScrollRef}><DashboardPage /></div>
+            <>
+              <div className="desktop-form" ref={mainScrollRef}><DashboardPage /></div>
+              <div className="desktop-panel-wrap"><DashboardRightPanel /></div>
+            </>
           )}
           {viewMode === 'history' && (
             <div className="desktop-content-full" ref={mainScrollRef}><HistoryPage /></div>

@@ -2,6 +2,167 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
+
+const QUICK_BTN = {
+  width: '100%', textAlign: 'left', padding: '9px 12px',
+  border: '1px solid var(--border)', borderRadius: '8px',
+  background: 'var(--surface2)', color: 'var(--text)',
+  fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+  fontFamily: 'var(--font)',
+};
+
+const PANEL_CARD = {
+  background: 'var(--bg)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius)',
+  marginBottom: '16px',
+  overflow: 'hidden',
+};
+
+const SECTION_HDR = {
+  fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em',
+  textTransform: 'uppercase', color: 'var(--text3)',
+  padding: '11px 14px', borderBottom: '1px solid var(--border)',
+  background: 'var(--surface)',
+};
+
+function formatShort(ts, isFr) {
+  if (!ts) return '';
+  try {
+    return new Date(ts).toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
+  } catch { return ''; }
+}
+
+export function DashboardRightPanel() {
+  const { lang, setViewMode } = useApp();
+  const isFr = lang === 'fr';
+  const [visits, setVisits] = useState([]);
+
+  useEffect(() => {
+    supabase
+      .from('visits')
+      .select('id, client_name, visit_date, visit_status, total_volume, created_at')
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => setVisits(data || []));
+  }, []);
+
+  const today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  })();
+
+  const getWeekBounds = () => {
+    const d = new Date(); const day = d.getDay() || 7;
+    const mon = new Date(d); mon.setDate(d.getDate() - day + 1);
+    const sun = new Date(d); sun.setDate(d.getDate() - day + 7);
+    const fmt = x => `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+    return { start: fmt(mon), end: fmt(sun) };
+  };
+  const { start: weekStart, end: weekEnd } = getWeekBounds();
+
+  const weekVisits = visits.filter(v => v.visit_date >= weekStart && v.visit_date <= weekEnd);
+  const weekVols = weekVisits.map(v => v.total_volume).filter(Boolean);
+  const avgVol = weekVols.length ? (weekVols.reduce((a,b) => a+b, 0) / weekVols.length).toFixed(1) : null;
+
+  const upcoming = [...visits]
+    .filter(v => v.visit_date >= today && v.visit_status !== 'annulee')
+    .sort((a,b) => a.visit_date < b.visit_date ? -1 : 1);
+  const nextVisit = upcoming[0];
+
+  const daysLabel = (dateStr) => {
+    const target = new Date(dateStr + 'T00:00:00');
+    const now = new Date(); now.setHours(0,0,0,0);
+    const d = Math.round((target - now) / 86400000);
+    if (d === 0) return isFr ? "Aujourd'hui" : 'Today';
+    if (d === 1) return isFr ? 'Demain' : 'Tomorrow';
+    return isFr ? `Dans ${d} jours` : `In ${d} days`;
+  };
+
+  const activityLabel = (v) => {
+    const name = v.client_name || '—';
+    if (v.visit_status === 'terminee') return isFr ? `PDF généré pour ${name}` : `PDF generated for ${name}`;
+    return isFr ? `Visite créée pour ${name}` : `Visit created for ${name}`;
+  };
+
+  const recentActivity = visits.slice(0, 5);
+
+  return (
+    <div>
+      {/* 1. Actions rapides */}
+      <div style={PANEL_CARD}>
+        <div style={SECTION_HDR}>{isFr ? 'Actions rapides' : 'Quick actions'}</div>
+        <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <button style={QUICK_BTN} onClick={() => setViewMode('quote-editor')}>
+            📋 {isFr ? 'Nouveau devis' : 'New quote'}
+          </button>
+          <button style={QUICK_BTN} onClick={() => setViewMode('agenda')}>
+            📅 {isFr ? "Voir l'agenda complet" : 'View full agenda'}
+          </button>
+          <button style={QUICK_BTN} onClick={() => setViewMode('history')}>
+            📊 {isFr ? 'Voir les statistiques' : 'View statistics'}
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Activité récente */}
+      <div style={PANEL_CARD}>
+        <div style={SECTION_HDR}>{isFr ? 'Activité récente' : 'Recent activity'}</div>
+        {recentActivity.length === 0 ? (
+          <div style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--text3)' }}>
+            {isFr ? 'Aucune activité' : 'No activity yet'}
+          </div>
+        ) : recentActivity.map(v => (
+          <div key={v.id} style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+            <div style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {activityLabel(v)}
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text3)', flexShrink: 0 }}>
+              {formatShort(v.created_at, isFr)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 3. Cette semaine */}
+      <div style={PANEL_CARD}>
+        <div style={SECTION_HDR}>{isFr ? 'Cette semaine' : 'This week'}</div>
+        <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text2)' }}>{isFr ? 'Visites' : 'Visits'}</span>
+            <span style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text)', fontFamily: 'var(--font-display)' }}>{weekVisits.length}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text2)' }}>{isFr ? 'Volume moyen' : 'Avg. volume'}</span>
+            <span style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text)' }}>
+              {avgVol !== null ? `${avgVol} m³` : '—'}
+            </span>
+          </div>
+          {nextVisit && (
+            <div style={{ paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text3)', marginBottom: '6px' }}>
+                {isFr ? 'Prochaine visite' : 'Next visit'}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text)' }}>
+                  {nextVisit.client_name?.split(' ')[0] || '—'}
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', background: 'var(--accent-light)', padding: '3px 9px', borderRadius: '12px' }}>
+                  {daysLabel(nextVisit.visit_date)}
+                </span>
+              </div>
+            </div>
+          )}
+          {!nextVisit && (
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>
+              {isFr ? 'Aucune visite à venir' : 'No upcoming visit'}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 import NewVisitModal from '../components/NewVisitModal';
 import VisitCard from '../components/VisitCard';
 import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
