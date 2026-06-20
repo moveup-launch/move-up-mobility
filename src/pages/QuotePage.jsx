@@ -594,8 +594,6 @@ export default function QuotePage() {
     try {
       const doc = await buildPDF();
       const b64 = doc.output('datauristring').split(',')[1];
-      const key  = import.meta.env.VITE_RESEND_API_KEY;
-      const from = import.meta.env.VITE_RESEND_FROM || 'onboarding@resend.dev';
       const compName = profile?.company_name || 'Move Up Mobility';
       const commercial = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || compName;
       const subj = quoteLang === 'fr'
@@ -635,28 +633,24 @@ export default function QuotePage() {
   <p>Best regards,<br><strong>${safe(commercial)}</strong></p>
 </div>`;
 
-      if (!key || key.length < 10) {
-        // Fallback to mailto
-        window.open(`mailto:${clientEmail}?subject=${encodeURIComponent(subj)}`);
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: clientEmail,
+          subject: subj,
+          html,
+          attachments: [{ filename: `Devis_${reference}.pdf`, content: b64 }],
+        }),
+      });
+      if (res.ok) {
         setEmailStatus('sent');
-      } else {
-        const res = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from, to: clientEmail, subject: subj, html,
-            attachments: [{ filename: `Devis_${reference}.pdf`, content: b64 }],
-          }),
-        });
-        if (res.ok) {
-          setEmailStatus('sent');
-          if (quoteId) {
-            await supabase.from('quotes').update({ status: 'sent', updated_at: new Date().toISOString() }).eq('id', quoteId);
-            setStatus('sent');
-          }
-        } else {
-          setEmailStatus('error');
+        if (quoteId) {
+          await supabase.from('quotes').update({ status: 'sent', updated_at: new Date().toISOString() }).eq('id', quoteId);
+          setStatus('sent');
         }
+      } else {
+        setEmailStatus('error');
       }
     } catch {
       setEmailStatus('error');

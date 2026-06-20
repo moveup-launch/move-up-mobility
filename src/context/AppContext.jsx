@@ -2,8 +2,42 @@ import { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { TRANSLATIONS } from '../data/translations';
 import { CATALOG } from '../data/catalog';
 import { supabase } from '../lib/supabase';
+import { openProCheckout } from '../lib/stripe';
 
 const AppContext = createContext();
+
+const FREE_VISIT_LIMIT = 3;
+
+function UpgradePlanModal({ lang, onClose, onUpgrade }) {
+  const isFr = lang === 'fr';
+  return (
+    <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
+      <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 8, color: 'var(--text)' }}>
+        {isFr ? 'Limite du plan gratuit atteinte' : 'Free plan limit reached'}
+      </div>
+      <div style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 24, lineHeight: 1.6 }}>
+        {isFr
+          ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 9,99€/mois pour des visites illimitées.`
+          : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 9.99€/month for unlimited visits.`}
+      </div>
+      <button
+        className="btn btn-primary"
+        style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
+        onClick={onUpgrade}
+      >
+        {isFr ? "S'abonner au Plan Pro à 9,99€/mois →" : 'Subscribe to Pro at 9.99€/month →'}
+      </button>
+      <button
+        className="btn btn-secondary"
+        style={{ width: '100%', padding: '12px', fontSize: 14 }}
+        onClick={onClose}
+      >
+        {isFr ? 'Plus tard' : 'Later'}
+      </button>
+    </div>
+  );
+}
 
 const emptyAccess = {
   address: '', city: '', postalCode: '', floor: '',
@@ -208,7 +242,22 @@ export function AppProvider({ children }) {
   };
 
   const [planVisitSignal, setPlanVisitSignal] = useState(0);
-  const openPlanVisit = () => {
+  const openPlanVisit = async () => {
+    if ((profile?.plan || 'free') === 'free') {
+      const { count } = await supabase
+        .from('visits')
+        .select('*', { count: 'exact', head: true });
+      if ((count || 0) >= FREE_VISIT_LIMIT) {
+        openModal(
+          <UpgradePlanModal
+            lang={lang}
+            onClose={closeModal}
+            onUpgrade={() => { closeModal(); openProCheckout(user?.email); }}
+          />
+        );
+        return;
+      }
+    }
     setViewMode('agenda');
     setPlanVisitSignal(n => n + 1);
   };
@@ -821,7 +870,7 @@ export function AppProvider({ children }) {
     return { data, error };
   };
 
-  const loadVisit = (visitData) => {
+  const loadVisit = async (visitData) => {
     const cd = visitData.client_data || {};
     const maxRoomNum = (visitData.rooms_data || []).reduce((max, r) => {
       const n = parseInt((r.id || '').replace('room_', '')) || 0;
@@ -874,6 +923,37 @@ export function AppProvider({ children }) {
     });
     setCurrentStepState(0);
     setViewMode('wizard');
+
+    if (visitData.id) {
+      const { data: photosData } = await supabase
+        .from('photos')
+        .select('*')
+        .eq('visit_id', visitData.id);
+      if (photosData && photosData.length > 0) {
+        const photosByRoom = {};
+        for (const p of photosData) {
+          if (!photosByRoom[p.room_id]) photosByRoom[p.room_id] = [];
+          const { data: urlData } = supabase.storage
+            .from('visit-photos')
+            .getPublicUrl(p.storage_path);
+          photosByRoom[p.room_id].push({
+            id: p.id,
+            dataURL: urlData.publicUrl,
+            comment: p.comment || '',
+            category: p.category || '',
+            storagePath: p.storage_path,
+            uploadStatus: 'done',
+          });
+        }
+        setState(s => ({
+          ...s,
+          rooms: s.rooms.map(r => ({
+            ...r,
+            photos: photosByRoom[r.id] || r.photos || [],
+          })),
+        }));
+      }
+    }
   };
 
   // ── Photos ──────────────────────────────────────────────────────

@@ -1,8 +1,4 @@
 export async function sendConfirmationEmail({ to, clientName, visitDate, visitTime, commercialName, originAddress, lang }) {
-  const key = import.meta.env.VITE_RESEND_API_KEY;
-  const from = import.meta.env.VITE_RESEND_FROM || 'onboarding@resend.dev';
-
-  if (!key || key.startsWith('re_xxx')) return { error: 'VITE_RESEND_API_KEY non configurée' };
   if (!to) return { error: 'Adresse email manquante' };
 
   const isFr = lang === 'fr';
@@ -56,16 +52,13 @@ export async function sendConfirmationEmail({ to, clientName, visitDate, visitTi
 </div>`;
 
   try {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetch('/api/send-email', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ from, to, subject, html }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to, subject, html }),
     });
     const data = await res.json();
-    if (!res.ok) return { error: data.message || `HTTP ${res.status}` };
+    if (!res.ok) return { error: data.error || `HTTP ${res.status}` };
     return { data };
   } catch (e) {
     return { error: e.message };
