@@ -126,8 +126,7 @@ export default function QuotePage() {
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
   const [saveStatus, setSaveStatus] = useState('idle');
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [emailStatus, setEmailStatus]   = useState('idle');
+  const [emailStatus, setEmailStatus] = useState('idle');
 
   // Quote fields
   const [quoteId, setQuoteId]           = useState(null);
@@ -587,76 +586,26 @@ export default function QuotePage() {
     doc.save(`${fname}.pdf`);
   };
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = () => {
     if (!clientEmail) return;
-    setSendingEmail(true);
-    setEmailStatus('sending');
-    try {
-      const doc = await buildPDF();
-      const b64 = doc.output('datauristring').split(',')[1];
-      const compName = profile?.company_name || 'Move Up Mobility';
-      const commercial = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || compName;
-      const subj = quoteLang === 'fr'
-        ? `Devis déménagement — Réf. ${reference}`
-        : `Moving quotation — Ref. ${reference}`;
-      const html = quoteLang === 'fr' ? `
-<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#333">
-  <div style="background:#0F0F0E;padding:18px 20px;border-radius:8px;margin-bottom:20px">
-    <h2 style="color:white;margin:0;font-size:18px">📦 ${safe(compName)}</h2>
-  </div>
-  <p>Bonjour <strong>${safe(clientName)}</strong>,</p>
-  <p>Veuillez trouver ci-joint votre devis de déménagement.</p>
-  <table style="background:#EEF4FF;border-left:4px solid #2B6BE6;padding:14px 18px;border-radius:0 8px 8px 0;width:100%;border-collapse:collapse;margin:16px 0">
-    <tr><td style="color:#2B6BE6;font-weight:700;padding:2px 0">Référence</td><td>${reference}</td></tr>
-    <tr><td style="color:#555;padding:2px 0">Départ</td><td>${safe(origin)}</td></tr>
-    <tr><td style="color:#555;padding:2px 0">Destination</td><td>${safe(destination)}</td></tr>
-    <tr><td style="font-weight:700;padding:2px 0">Total HT</td><td style="font-weight:700">${(totalCost + totalOptIncl).toFixed(2)} EUR</td></tr>
-    <tr><td style="color:#555;padding:2px 0">Validité</td><td>${validityDate}</td></tr>
-  </table>
-  <p>N'hésitez pas à nous contacter pour toute question.</p>
-  <p>Cordialement,<br><strong>${safe(commercial)}</strong></p>
-</div>` : `
-<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#333">
-  <div style="background:#0F0F0E;padding:18px 20px;border-radius:8px;margin-bottom:20px">
-    <h2 style="color:white;margin:0;font-size:18px">📦 ${safe(compName)}</h2>
-  </div>
-  <p>Dear <strong>${safe(clientName)}</strong>,</p>
-  <p>Please find attached your moving quotation.</p>
-  <table style="background:#EEF4FF;border-left:4px solid #2B6BE6;padding:14px 18px;border-radius:0 8px 8px 0;width:100%;border-collapse:collapse;margin:16px 0">
-    <tr><td style="color:#2B6BE6;font-weight:700;padding:2px 0">Reference</td><td>${reference}</td></tr>
-    <tr><td style="color:#555;padding:2px 0">From</td><td>${safe(origin)}</td></tr>
-    <tr><td style="color:#555;padding:2px 0">To</td><td>${safe(destination)}</td></tr>
-    <tr><td style="font-weight:700;padding:2px 0">Total</td><td style="font-weight:700">${(totalCost + totalOptIncl).toFixed(2)} EUR</td></tr>
-    <tr><td style="color:#555;padding:2px 0">Valid until</td><td>${validityDate}</td></tr>
-  </table>
-  <p>Please don't hesitate to contact us if you have any questions.</p>
-  <p>Best regards,<br><strong>${safe(commercial)}</strong></p>
-</div>`;
+    const isFr = quoteLang === 'fr';
+    const compName = profile?.company_name || 'Move Up Mobility';
+    const commercial = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || compName;
+    const total = (totalCost + totalOptIncl).toFixed(2);
+    const routeStr = [origin, destination].filter(Boolean).join(' → ');
 
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: clientEmail,
-          subject: subj,
-          html,
-          attachments: [{ filename: `Devis_${reference}.pdf`, content: b64 }],
-        }),
-      });
-      if (res.ok) {
-        setEmailStatus('sent');
-        if (quoteId) {
-          await supabase.from('quotes').update({ status: 'sent', updated_at: new Date().toISOString() }).eq('id', quoteId);
-          setStatus('sent');
-        }
-      } else {
-        setEmailStatus('error');
-      }
-    } catch {
-      setEmailStatus('error');
-    }
-    setSendingEmail(false);
-    setTimeout(() => setEmailStatus('idle'), 4000);
+    const subj = isFr
+      ? `Devis déménagement${routeStr ? ` ${routeStr}` : ''} - Réf ${reference}`
+      : `Moving quotation${routeStr ? ` ${routeStr}` : ''} - Ref. ${reference}`;
+
+    const body = isFr
+      ? `Bonjour ${clientName || ''},\n\nVeuillez trouver ci-joint votre devis de déménagement.\n\nRéférence : ${reference}\nDépart : ${origin || '—'}\nDestination : ${destination || '—'}\nMontant total HT : ${total} EUR\nValidité : ${validityDate || '—'}\n\nN'hésitez pas à nous contacter pour toute question.\n\nCordialement,\n${commercial}\n${compName}`
+      : `Dear ${clientName || ''},\n\nPlease find attached your moving quotation.\n\nReference: ${reference}\nFrom: ${origin || '—'}\nTo: ${destination || '—'}\nTotal: ${total} EUR\nValid until: ${validityDate || '—'}\n\nPlease don't hesitate to contact us if you have any questions.\n\nBest regards,\n${commercial}\n${compName}`;
+
+    const mailto = `mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+    window.open(mailto, '_blank');
+    setEmailStatus('sent');
+    setTimeout(() => setEmailStatus('idle'), 10000);
   };
 
   const MODES = [
@@ -1036,7 +985,7 @@ export default function QuotePage() {
         </button>
         <button
           onClick={handleSendEmail}
-          disabled={!clientEmail || sendingEmail}
+          disabled={!clientEmail}
           style={{
             width: '100%', padding: '14px', borderRadius: '10px',
             border: '2px solid var(--accent)', background: 'var(--accent-light)',
@@ -1045,14 +994,25 @@ export default function QuotePage() {
             opacity: clientEmail ? 1 : 0.5,
           }}
         >
-          {sendingEmail
-            ? '⏳ …'
-            : emailStatus === 'sent'
-              ? `✅ ${isFr ? 'Email envoyé !' : 'Email sent!'}`
-              : emailStatus === 'error'
-                ? `❌ ${isFr ? 'Erreur envoi' : 'Send error'}`
-                : `📧 ${isFr ? 'Envoyer par email' : 'Send by email'}`}
+          {emailStatus === 'sent'
+            ? `✅ ${isFr ? 'Client mail ouvert !' : 'Mail client opened!'}`
+            : `📧 ${isFr ? 'Envoyer par email' : 'Send by email'}`}
         </button>
+        {emailStatus === 'sent' && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: '8px',
+            background: '#FFF7ED', border: '1px solid #F97316',
+            borderRadius: '8px', padding: '10px 12px', fontSize: '12px',
+            color: '#92400E', lineHeight: 1.5,
+          }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>📎</span>
+            <span>
+              {isFr
+                ? "N'oubliez pas de joindre le PDF téléchargé à votre email avant de l'envoyer."
+                : "Don't forget to attach the downloaded PDF to your email before sending."}
+            </span>
+          </div>
+        )}
         {!clientEmail && (
           <p style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', margin: 0 }}>
             {isFr ? 'Renseignez un email client pour envoyer.' : 'Add a client email to send.'}
