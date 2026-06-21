@@ -12,7 +12,13 @@ const MT = '#3A3A3A'; // métal
 const MTD= '#2A2A2A'; // métal foncé
 const CW = '#D4C8B8'; // blanc crème
 const CWD= '#B8A898'; // blanc crème – foncé
-const GD = '#C8A876'; // dorée (poignées)
+const GD  = '#C8A876'; // dorée (poignées)
+const AP  = '#D8DCE0'; // électroménager blanc-gris
+const APD = '#B8BCC0'; // électroménager – ombre
+const APH = '#8A9096'; // poignée métal clair
+const WB  = '#B8D4E8'; // eau / bleu ciel
+const RC  = '#C8885A'; // tapis – brun chaud
+const RD  = '#A06840'; // tapis – ombre
 
 // Chaise de salle à manger – bois clair, dossier haut
 export function IconChair({ size = 28, style, className }) {
@@ -240,6 +246,242 @@ export function IconBuffet({ size = 28, style, className }) {
   );
 }
 
+// Lit double – bois clair, oreillers et couette
+export function IconBed({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="2" y="3" width="28" height="9" rx="3" fill={W}/>
+      <rect x="2" y="12" width="28" height="15" rx="2" fill="#E8E4DF"/>
+      <rect x="4" y="13" width="9" height="6" rx="2" fill="white"/>
+      <rect x="19" y="13" width="9" height="6" rx="2" fill="white"/>
+      <rect x="2" y="19" width="28" height="8" rx="2" fill={FB}/>
+      <rect x="2" y="12" width="3" height="15" rx="1" fill={WD}/>
+      <rect x="27" y="12" width="3" height="15" rx="1" fill={WD}/>
+      <rect x="3" y="27" width="3.5" height="5" rx="1.75" fill={WM}/>
+      <rect x="25.5" y="27" width="3.5" height="5" rx="1.75" fill={WM}/>
+    </svg>
+  );
+}
+
+// Matelas – crème capitonné, coutures visibles
+export function IconMattress({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="2" y="7" width="28" height="18" rx="3" fill="#E8E4DF"/>
+      <rect x="2" y="15" width="28" height="2" fill="#D0CBC4"/>
+      <circle cx="9" cy="11" r="2" stroke="#C0B8B0" strokeWidth="1"/>
+      <circle cx="16" cy="11" r="2" stroke="#C0B8B0" strokeWidth="1"/>
+      <circle cx="23" cy="11" r="2" stroke="#C0B8B0" strokeWidth="1"/>
+      <circle cx="9" cy="20" r="2" stroke="#C0B8B0" strokeWidth="1"/>
+      <circle cx="16" cy="20" r="2" stroke="#C0B8B0" strokeWidth="1"/>
+      <circle cx="23" cy="20" r="2" stroke="#C0B8B0" strokeWidth="1"/>
+      <rect x="2" y="7" width="28" height="18" rx="3" stroke="#B8B4B0" strokeWidth="1"/>
+    </svg>
+  );
+}
+
+// Bureau – bois clair, caisson de tiroirs à gauche
+export function IconDesk({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="1" y="8" width="30" height="5" rx="2.5" fill={W}/>
+      <rect x="3" y="13" width="26" height="2.5" rx="1" fill={WM}/>
+      <rect x="2" y="15.5" width="10" height="16.5" rx="1.5" fill={WD}/>
+      <rect x="3.5" y="17" width="7" height="4" rx="0.5" fill={W}/>
+      <rect x="6" y="18.5" width="2" height="1" rx="0.5" fill={WM}/>
+      <rect x="3.5" y="22" width="7" height="4" rx="0.5" fill={W}/>
+      <rect x="6" y="23.5" width="2" height="1" rx="0.5" fill={WM}/>
+      <rect x="3.5" y="27" width="7" height="4" rx="0.5" fill={W}/>
+      <rect x="6" y="28.5" width="2" height="1" rx="0.5" fill={WM}/>
+      <rect x="27" y="15.5" width="3" height="16.5" rx="1.5" fill={W}/>
+    </svg>
+  );
+}
+
+// Chaise de bureau – tissu, accoudoirs, base étoile avec roulettes
+export function IconOfficeChair({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="9" y="2" width="14" height="12" rx="2.5" fill={FB}/>
+      <rect x="5.5" y="10" width="4" height="7" rx="2" fill={FBD}/>
+      <rect x="22.5" y="10" width="4" height="7" rx="2" fill={FBD}/>
+      <rect x="7" y="13" width="18" height="5" rx="2" fill={FB2}/>
+      <rect x="14.5" y="18" width="3" height="7" fill={MT}/>
+      <path d="M16 25 L7 29 M16 25 L25 29 M16 25 L11 31 M16 25 L21 31" stroke={MT} strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="7" cy="29" r="1.5" fill={MTD}/>
+      <circle cx="25" cy="29" r="1.5" fill={MTD}/>
+      <circle cx="11" cy="31" r="1.5" fill={MTD}/>
+      <circle cx="21" cy="31" r="1.5" fill={MTD}/>
+    </svg>
+  );
+}
+
+// Réfrigérateur – gris métal, congélateur en haut, poignées
+export function IconFridge({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="5" y="2" width="22" height="10" rx="2" fill={APD}/>
+      <rect x="5" y="13" width="22" height="19" rx="2" fill={AP}/>
+      <rect x="5" y="11.5" width="22" height="2" fill="#A8ACAF"/>
+      <rect x="22.5" y="4.5" width="2" height="5" rx="1" fill={APH}/>
+      <rect x="22.5" y="15" width="2" height="8" rx="1" fill={APH}/>
+      <rect x="5" y="30" width="22" height="2" rx="1" fill={APD}/>
+    </svg>
+  );
+}
+
+// Machine à laver – blanc, hublot bleu
+export function IconWashingMachine({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="4" y="2" width="24" height="30" rx="3" fill={AP}/>
+      <rect x="4" y="2" width="24" height="8" rx="3" fill={APD}/>
+      <rect x="4" y="7" width="24" height="3" fill={APD}/>
+      <circle cx="10" cy="5.5" r="2" fill={APH}/>
+      <circle cx="10" cy="5.5" r="1" fill={APD}/>
+      <rect x="16" y="4" width="8" height="3" rx="1" fill="#A0A8B0"/>
+      <circle cx="16" cy="20" r="8" fill={APH}/>
+      <circle cx="16" cy="20" r="7" fill={WB}/>
+      <circle cx="16" cy="20" r="5.5" fill="#8ABCD8"/>
+      <path d="M13 20 Q16 17 19 20" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Meuble sous vasque – blanc, 2 portes, vasque et robinet
+export function IconVanityUnit({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="3" y="7" width="26" height="4" rx="1" fill={AP}/>
+      <rect x="7" y="7" width="18" height="4" rx="2" fill={WB}/>
+      <rect x="14.5" y="4" width="3" height="4" rx="1" fill={APH}/>
+      <rect x="15.5" y="2" width="1" height="3" rx="0.5" fill={APH}/>
+      <rect x="3" y="11" width="26" height="21" rx="2" fill="#E8E0D0"/>
+      <rect x="5" y="13" width="10" height="17" rx="1" fill={CW}/>
+      <rect x="17" y="13" width="10" height="17" rx="1" fill={CW}/>
+      <rect x="15.5" y="13" width="1" height="17" fill={CWD}/>
+      <rect x="12.5" y="21" width="1.5" height="1" rx="0.5" fill="#8A8070"/>
+      <rect x="18" y="21" width="1.5" height="1" rx="0.5" fill="#8A8070"/>
+    </svg>
+  );
+}
+
+// Tapis – brun chaud, motif géométrique et franges
+export function IconRug({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="3" y="2" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="8" y="2" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="13" y="2" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="18" y="2" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="23" y="2" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="28" y="2" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="2" y="6" width="28" height="20" rx="2" fill={RC}/>
+      <rect x="4" y="8" width="24" height="16" rx="1" fill="none" stroke={RD} strokeWidth="1.5"/>
+      <path d="M16 10 L22 16 L16 22 L10 16 Z" fill="#E8A870" opacity="0.7"/>
+      <rect x="3" y="26" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="8" y="26" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="13" y="26" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="18" y="26" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="23" y="26" width="2" height="4" rx="1" fill={RD}/>
+      <rect x="28" y="26" width="2" height="4" rx="1" fill={RD}/>
+    </svg>
+  );
+}
+
+// Porte-manteau sur pied – bois clair, crochets courbés
+export function IconCoatRack({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="14.5" y="1" width="3" height="28" rx="1.5" fill={W}/>
+      <rect x="5" y="5" width="22" height="2.5" rx="1.25" fill={WD}/>
+      <path d="M5 5 Q3.5 5 3.5 7 Q3.5 9.5 5.5 9.5" stroke={WD} strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d="M27 5 Q28.5 5 28.5 7 Q28.5 9.5 26.5 9.5" stroke={WD} strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <rect x="9" y="13" width="14" height="2" rx="1" fill={WD}/>
+      <path d="M9 13 Q7.5 13 7.5 15 Q7.5 17 9.5 17" stroke={WD} strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d="M23 13 Q24.5 13 24.5 15 Q24.5 17 22.5 17" stroke={WD} strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d="M16 29 L8 31 M16 29 L24 31 M16 29 L16 32" stroke={WM} strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Meuble à chaussures – bois clair, portes inclinées
+export function IconShoeCabinet({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="4" y="4" width="24" height="28" rx="2" fill={W}/>
+      <rect x="4" y="4" width="24" height="3" rx="2" fill={WD}/>
+      <path d="M6 8 L26 8 L26 14 L6 15 Z" fill={WD}/>
+      <path d="M6 16 L26 15 L26 21 L6 22 Z" fill={WD}/>
+      <path d="M6 23 L26 22 L26 28 L6 29 Z" fill={WD}/>
+      <rect x="14" y="10.5" width="4" height="1.5" rx="0.75" fill={WM}/>
+      <rect x="14" y="17.5" width="4" height="1.5" rx="0.75" fill={WM}/>
+      <rect x="14" y="24.5" width="4" height="1.5" rx="0.75" fill={WM}/>
+    </svg>
+  );
+}
+
+// Baignoire – blanche, eau bleue, pieds galbés
+export function IconBathtub({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="2" y="9" width="28" height="17" rx="6" fill={AP}/>
+      <rect x="5" y="12" width="22" height="11" rx="4" fill="white"/>
+      <rect x="5" y="17" width="22" height="6" rx="4" fill={WB}/>
+      <rect x="12" y="6" width="8" height="4" rx="1.5" fill={APD}/>
+      <rect x="15" y="3" width="2" height="4" rx="1" fill={APH}/>
+      <path d="M6 25 Q6 31 10 31" stroke={APD} strokeWidth="3" fill="none" strokeLinecap="round"/>
+      <path d="M26 25 Q26 31 22 31" stroke={APD} strokeWidth="3" fill="none" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Transat / chaise longue – tissu et cadre métal
+export function IconGardenLounger({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <path d="M3 19 L13 4" stroke={FB} strokeWidth="6" strokeLinecap="round"/>
+      <rect x="3" y="18" width="26" height="6" rx="2.5" fill={FB2}/>
+      <path d="M3 19 L13 4" stroke={MT} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <rect x="5" y="24" width="3" height="8" rx="1.5" fill={MT}/>
+      <rect x="24" y="24" width="3" height="8" rx="1.5" fill={MT}/>
+    </svg>
+  );
+}
+
+// Table de jardin – ronde, pied central, base en croix
+export function IconGardenTable({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <ellipse cx="16" cy="10" rx="13" ry="5" fill={WD}/>
+      <ellipse cx="16" cy="9" rx="13" ry="5" fill={W}/>
+      <ellipse cx="16" cy="9" rx="13" ry="5" fill="none" stroke={WM} strokeWidth="1"/>
+      <rect x="14.5" y="14" width="3" height="11" fill={WM}/>
+      <rect x="7" y="24" width="18" height="2.5" rx="1.25" fill={WD}/>
+    </svg>
+  );
+}
+
+// Vaisselier – bois clair, vitrine haut, portes bas
+export function IconChinaCabinet({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="3" y="2" width="26" height="30" rx="2" fill={W}/>
+      <rect x="5" y="4" width="22" height="14" rx="1" fill={WB} opacity="0.75"/>
+      <rect x="15.5" y="4" width="1.5" height="14" fill={WM} opacity="0.7"/>
+      <rect x="5" y="10.5" width="22" height="1" fill={WM} opacity="0.5"/>
+      <rect x="12" y="10" width="1.5" height="3.5" rx="0.75" fill={WM}/>
+      <rect x="18.5" y="10" width="1.5" height="3.5" rx="0.75" fill={WM}/>
+      <rect x="3" y="18" width="26" height="2" fill={WM}/>
+      <rect x="5" y="20" width="10" height="10" rx="1" fill={WD}/>
+      <rect x="17" y="20" width="10" height="10" rx="1" fill={WD}/>
+      <rect x="15.5" y="20" width="1.5" height="10" fill={WM}/>
+      <rect x="11.5" y="24" width="1.5" height="2.5" rx="0.75" fill={WM}/>
+      <rect x="19" y="24" width="1.5" height="2.5" rx="0.75" fill={WM}/>
+    </svg>
+  );
+}
+
 // Mapping ID de catalogue → composant SVG
 // Les emoji restent dans catalog.js pour la sérialisation JSON (Supabase).
 // Ce mapping est utilisé uniquement pour l'affichage.
@@ -282,4 +524,46 @@ export const CATALOG_ICON_BY_ID = {
   // Buffets
   buffet: IconBuffet,
   dining_console: IconBuffet,
+  // Lit
+  bed: IconBed,
+  // Matelas
+  mattress: IconMattress,
+  // Bureau
+  desk: IconDesk,
+  office_desk: IconDesk,
+  // Chaise de bureau
+  officechair: IconOfficeChair,
+  office_chair2: IconOfficeChair,
+  // Réfrigérateur / congélateur
+  fridge: IconFridge,
+  fridge_small: IconFridge,
+  fridge_combo: IconFridge,
+  fridge_american: IconFridge,
+  freezer_upright: IconFridge,
+  // Machine à laver / sèche-linge
+  washing_machine: IconWashingMachine,
+  dryer: IconWashingMachine,
+  washer_dryer: IconWashingMachine,
+  // Meuble sous vasque
+  vanity_unit: IconVanityUnit,
+  // Tapis
+  rug: IconRug,
+  // Porte-manteau
+  coat_rack: IconCoatRack,
+  entr_coat_rack: IconCoatRack,
+  // Meuble à chaussures
+  shoe_cabinet: IconShoeCabinet,
+  entr_shoe_cabinet: IconShoeCabinet,
+  // Baignoire
+  bathtub: IconBathtub,
+  // Jardin
+  garden_lounger: IconGardenLounger,
+  garden_table: IconGardenTable,
+  garden_chairs: IconChair,
+  garden_set: IconGardenTable,
+  // Vaisselier
+  china_cabinet: IconChinaCabinet,
+  // Réutilisations cross-pièces
+  office_wardrobe: IconWardrobe,
+  laundry_cabinet: IconWardrobe,
 };
