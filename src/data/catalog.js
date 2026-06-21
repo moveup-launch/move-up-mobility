@@ -874,3 +874,31 @@ export const CATALOG = {
 };
 
 export const CRATE_ELIGIBLE_IDS = new Set(['tv', 'mirror', 'artwork', 'piano_upright', 'piano_grand', 'aquarium', 'living_tv', 'dining_tv', 'office_tv']);
+
+// Objets affichés par défaut dans la vue simplifiée (1 par pièce = les plus courants)
+export const FREQUENT_ITEM_IDS = new Set([
+  // Chambre
+  'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair',
+  // Salon (livingRoom section)
+  'sofa2', 'sofa3', 'sofa_corner', 'armchair', 'coffee_table', 'tv_unit', 'living_tv', 'rug',
+  // Salle à manger (diningRoom section – aussi visible dans les salons)
+  'dining_table', 'dining_chair', 'dining_shelf',
+  // Cuisine
+  'fridge', 'fridge_combo', 'dishwasher', 'oven', 'kitchen_table', 'chairs', 'china_cabinet', 'microwave',
+  // Bureau
+  'office_desk', 'office_chair2', 'computer', 'monitor', 'office_shelf', 'filing_cabinet',
+  // Jardin
+  'garden_set', 'garden_bbq', 'garden_mower', 'garden_parasol', 'garden_lounger',
+  // Garage / Cave
+  'shelving', 'bike_adult', 'bike_child', 'bike_electric', 'tools',
+  // Buanderie
+  'washing_machine', 'dryer', 'clothes_rack', 'vacuum_cleaner',
+  // Salle de bain
+  'vanity_unit', 'storage_column_bath', 'bath_mirror', 'medicine_cabinet', 'bathtub', 'washbasin',
+  // Entrée
+  'entr_shoe_cabinet', 'entr_coat_rack', 'entr_console', 'entr_mirror', 'entr_bench',
+  // Bébé (chambres enfant)
+  'baby_changing_dresser', 'stroller_single', 'high_chair',
+  // Cartons essentiels
+  'box_standard', 'box_large', 'box_books',
+]);

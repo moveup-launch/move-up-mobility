@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { CATALOG, CRATE_ELIGIBLE_IDS } from '../data/catalog';
+import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
 import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
 
@@ -298,6 +298,7 @@ function CatalogSection({ room }) {
   const { tCat, lang, addItemToRoom, openSheet, changeQty } = useApp();
   const isFr = lang === 'fr';
   const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
   const [activeChip, setActiveChip] = useState('furniture');
 
   const query = search.trim().toLowerCase();
@@ -306,9 +307,13 @@ function CatalogSection({ room }) {
     'exceptional',
   ]);
   const roomItems = ALL_CATALOG_ITEMS.filter(e => allowedSections.has(e.catKey));
+  const frequentItems = roomItems.filter(e => FREQUENT_ITEM_IDS.has(e.item.id));
+
   const entries = query
     ? roomItems.filter(e => tCat(e.item.name).toLowerCase().includes(query))
-    : roomItems.filter(e => e.group === activeChip);
+    : showAll
+      ? roomItems.filter(e => e.group === activeChip)
+      : frequentItems;
 
   const sorted = [...entries].sort((a, b) =>
     tCat(a.item.name).localeCompare(tCat(b.item.name), isFr ? 'fr' : 'en', { sensitivity: 'base' })
@@ -334,6 +339,8 @@ function CatalogSection({ room }) {
     }
   };
 
+  const inSimplifiedView = !query && !showAll;
+
   return (
     <>
       <input
@@ -348,24 +355,36 @@ function CatalogSection({ room }) {
         }}
       />
 
-      {!query && (
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-          {CHIPS.map(c => (
-            <button
-              key={c.key}
-              onClick={() => setActiveChip(c.key)}
-              style={{
-                padding: '6px 12px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer',
-                fontWeight: '600', whiteSpace: 'nowrap',
-                background: activeChip === c.key ? 'var(--accent)' : 'var(--surface2)',
-                color: activeChip === c.key ? 'white' : 'var(--text2)',
-                border: `1px solid ${activeChip === c.key ? 'var(--accent)' : 'var(--border)'}`,
-              }}
-            >
-              {c.icon} {isFr ? c.labelFr : c.labelEn}
-            </button>
-          ))}
-        </div>
+      {!query && showAll && (
+        <>
+          <button
+            onClick={() => setShowAll(false)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text2)', fontSize: '13px', padding: '0 0 8px 0',
+              display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500',
+            }}
+          >
+            ← {isFr ? 'Retour aux essentiels' : 'Back to essentials'}
+          </button>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+            {CHIPS.map(c => (
+              <button
+                key={c.key}
+                onClick={() => setActiveChip(c.key)}
+                style={{
+                  padding: '6px 12px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer',
+                  fontWeight: '600', whiteSpace: 'nowrap',
+                  background: activeChip === c.key ? 'var(--accent)' : 'var(--surface2)',
+                  color: activeChip === c.key ? 'white' : 'var(--text2)',
+                  border: `1px solid ${activeChip === c.key ? 'var(--accent)' : 'var(--border)'}`,
+                }}
+              >
+                {c.icon} {isFr ? c.labelFr : c.labelEn}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="item-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
@@ -410,6 +429,22 @@ function CatalogSection({ room }) {
           </div>
         )}
       </div>
+
+      {inSimplifiedView && (
+        <button
+          onClick={() => setShowAll(true)}
+          style={{
+            width: '100%', padding: '10px', marginTop: '4px',
+            background: 'none', border: '1px solid var(--border)',
+            borderRadius: '10px', cursor: 'pointer',
+            color: 'var(--text2)', fontSize: '13px', fontWeight: '500',
+          }}
+        >
+          {isFr
+            ? `Voir tout le catalogue (${roomItems.length} objets) →`
+            : `See full catalog (${roomItems.length} items) →`}
+        </button>
+      )}
 
       <div style={{ padding: '8px 0 4px' }}>
         <button
