@@ -208,19 +208,32 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
 
       {/* ── Footer ─────────────────────────────────────── */}
       <footer className="landing-footer">
-        <div className="landing-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, background: '#3A3835', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>📦</div>
-            <span style={{ fontFamily: 'DM Serif Display, serif', fontSize: 16, color: 'white' }}>Move Up Mobility</span>
+        <div className="landing-container">
+          {/* Rangée principale */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, background: '#3A3835', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>📦</div>
+              <span style={{ fontFamily: 'DM Serif Display, serif', fontSize: 16, color: 'white' }}>Move Up Mobility</span>
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+              moveupapp.com · © 2026 Move Up Mobility
+            </div>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <button onClick={onSignIn} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer' }}>Connexion</button>
+              <button onClick={onSignUp} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer' }}>Inscription</button>
+            </div>
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
-            moveupapp.com · © 2026 Move Up Mobility
-          </div>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button onClick={onSignIn} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer' }}>Connexion</button>
-            <button onClick={onSignUp} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer' }}>Inscription</button>
-            <a href="/cgu" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textDecoration: 'none' }}>CGU</a>
-            <a href="/confidentialite" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textDecoration: 'none' }}>Confidentialité</a>
+          {/* Rangée légale */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+            <a href="/cgu" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, textDecoration: 'underline', textUnderlineOffset: '3px' }}>
+              Conditions Générales d'Utilisation
+            </a>
+            <a href="/confidentialite" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, textDecoration: 'underline', textUnderlineOffset: '3px' }}>
+              Politique de confidentialité
+            </a>
+            <a href="mailto:contact@moveupapp.com" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, textDecoration: 'underline', textUnderlineOffset: '3px' }}>
+              contact@moveupapp.com
+            </a>
           </div>
         </div>
       </footer>
