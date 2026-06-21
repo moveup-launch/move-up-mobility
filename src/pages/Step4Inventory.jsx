@@ -2,6 +2,13 @@ import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, CRATE_ELIGIBLE_IDS } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
+import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
+
+function ItemIcon({ catalogId, fallbackIcon, size = 28 }) {
+  const Comp = CATALOG_ICON_BY_ID[catalogId];
+  if (Comp) return <Comp size={size} style={{ display: 'block' }} />;
+  return <span style={{ fontSize: size * 0.85, lineHeight: 1 }}>{fallbackIcon}</span>;
+}
 
 const PHOTO_CATEGORIES_FR = ['Mobilier', 'Accès', 'Fragile', 'Stationnement', 'Contrainte', 'Autre'];
 const PHOTO_CATEGORIES_EN = ['Furniture', 'Access', 'Fragile', 'Parking', 'Constraint', 'Other'];
@@ -43,7 +50,10 @@ function QuickAdjustSheet({ roomId, catKey, itemId }) {
   return (
     <>
       <div className="sheet-handle" />
-      <div className="sheet-title">{item.icon} {tCat(item.name)}</div>
+      <div className="sheet-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ItemIcon catalogId={item.id} fallbackIcon={item.icon} size={22} />
+        {tCat(item.name)}
+      </div>
       {item.variants.map(v => {
         const uid = `${itemId}_${v.id}`;
         const invItem = roomItems.find(i => i.itemId === uid);
@@ -366,7 +376,7 @@ function CatalogSection({ room }) {
               onClick={() => handleItemClick(item, catKey)}
             >
               {qty > 0 && <div className="item-qty-badge">{qty}</div>}
-              <span className="item-icon">{item.icon}</span>
+              <span className="item-icon"><ItemIcon catalogId={item.id} fallbackIcon={item.icon} size={28} /></span>
               <div className="item-name">{tCat(item.name)}</div>
               {qty > 0 && (
                 <button
@@ -476,7 +486,7 @@ function InventoryList({ room }) {
       </div>
       {items.map(item => (
         <div key={item.itemId} className="inv-item" style={{ alignItems: 'flex-start' }}>
-          <div className="inv-icon">{item.icon}</div>
+          <div className="inv-icon"><ItemIcon catalogId={item.catalogId} fallbackIcon={item.icon} size={22} /></div>
           <div className="inv-info" style={{ flex: 1 }}>
             <div className="inv-name">{item.name}</div>
             <div className="inv-variant">{item.variantLabel}</div>
