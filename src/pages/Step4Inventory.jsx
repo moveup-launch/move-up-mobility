@@ -6,8 +6,8 @@ import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
 
 function ItemIcon({ catalogId, fallbackIcon, size = 28 }) {
   const Comp = CATALOG_ICON_BY_ID[catalogId];
-  if (Comp) return <Comp size={size} style={{ display: 'block' }} />;
-  return <span style={{ fontSize: size * 0.85, lineHeight: 1 }}>{fallbackIcon}</span>;
+  if (Comp) return <Comp size={size} style={{ verticalAlign: 'middle' }} />;
+  return fallbackIcon;
 }
 
 const PHOTO_CATEGORIES_FR = ['Mobilier', 'Accès', 'Fragile', 'Stationnement', 'Contrainte', 'Autre'];
