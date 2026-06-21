@@ -207,7 +207,7 @@ textarea { min-height: 80px; resize: vertical; }
 .item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .item-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; cursor: pointer; transition: all 0.15s; position: relative; text-align: center; }
 .item-card.in-inventory { border-color: var(--accent); background: var(--accent-light); }
-.item-card .item-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+.item-card .item-icon { font-size: 28px; display: flex; justify-content: center; align-items: center; margin-bottom: 6px; min-height: 28px; }
 .item-card .item-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
 .item-card .item-qty-badge { position: absolute; top: 6px; right: 6px; background: var(--text); color: white; border-radius: 10px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; padding: 0 5px; }
 
