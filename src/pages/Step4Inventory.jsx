@@ -301,9 +301,14 @@ function CatalogSection({ room }) {
   const [activeChip, setActiveChip] = useState('furniture');
 
   const query = search.trim().toLowerCase();
+  const allowedSections = new Set([
+    ...(CATALOG.roomCatalogMap[room.type] || GLOBAL_CATALOG_SECTIONS),
+    'exceptional',
+  ]);
+  const roomItems = ALL_CATALOG_ITEMS.filter(e => allowedSections.has(e.catKey));
   const entries = query
-    ? ALL_CATALOG_ITEMS.filter(e => tCat(e.item.name).toLowerCase().includes(query))
-    : ALL_CATALOG_ITEMS.filter(e => e.group === activeChip);
+    ? roomItems.filter(e => tCat(e.item.name).toLowerCase().includes(query))
+    : roomItems.filter(e => e.group === activeChip);
 
   const sorted = [...entries].sort((a, b) =>
     tCat(a.item.name).localeCompare(tCat(b.item.name), isFr ? 'fr' : 'en', { sensitivity: 'base' })
