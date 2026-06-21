@@ -19,6 +19,8 @@ const APH = '#8A9096'; // poignée métal clair
 const WB  = '#B8D4E8'; // eau / bleu ciel
 const RC  = '#C8885A'; // tapis – brun chaud
 const RD  = '#A06840'; // tapis – ombre
+const GR  = '#4A8A3A'; // vert jardin
+const GRD = '#3A7A2A'; // vert foncé jardin
 
 // Chaise de salle à manger – bois clair, dossier haut
 export function IconChair({ size = 28, style, className }) {
@@ -482,6 +484,323 @@ export function IconChinaCabinet({ size = 28, style, className }) {
   );
 }
 
+// ─── Phase 3 ──────────────────────────────────────────────────────────────
+
+// Télévision – écran plat, pied central
+export function IconTV({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="2" y="4" width="28" height="18" rx="2" fill={MT}/>
+      <rect x="4" y="6" width="24" height="14" rx="1" fill="#1A3050"/>
+      <rect x="4" y="6" width="24" height="5" rx="1" fill="#2A5080" opacity="0.5"/>
+      <rect x="11" y="22" width="10" height="1.5" rx="0.75" fill={MTD}/>
+      <rect x="14.5" y="22" width="3" height="5" fill={MT}/>
+      <rect x="10" y="27" width="12" height="2.5" rx="1.25" fill={MT}/>
+    </svg>
+  );
+}
+
+// Four / Cuisinière – 4 feux + porte four
+export function IconOven({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="4" y="2" width="24" height="30" rx="2" fill={APD}/>
+      <rect x="4" y="2" width="24" height="12" rx="2" fill="#B0B4B8"/>
+      <circle cx="11" cy="7" r="3" stroke="#808488" strokeWidth="1.5"/>
+      <circle cx="11" cy="7" r="1.5" stroke="#808488" strokeWidth="1"/>
+      <circle cx="21" cy="7" r="3" stroke="#808488" strokeWidth="1.5"/>
+      <circle cx="21" cy="7" r="1.5" stroke="#808488" strokeWidth="1"/>
+      <rect x="4" y="14" width="24" height="2.5" fill={APH}/>
+      <circle cx="9" cy="15.25" r="1.2" fill={AP}/>
+      <circle cx="14" cy="15.25" r="1.2" fill={AP}/>
+      <circle cx="19" cy="15.25" r="1.2" fill={AP}/>
+      <circle cx="24" cy="15.25" r="1.2" fill={AP}/>
+      <rect x="6" y="17.5" width="20" height="13" rx="1" fill="#9A9FA4"/>
+      <rect x="10" y="19" width="12" height="2" rx="1" fill={APH}/>
+      <rect x="9" y="22" width="14" height="8" rx="1" fill="#1A2A40" opacity="0.7"/>
+    </svg>
+  );
+}
+
+// Lave-vaisselle – blanc, touches contrôle, clayettes
+export function IconDishwasher({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="4" y="2" width="24" height="30" rx="3" fill={AP}/>
+      <rect x="4" y="2" width="24" height="7" rx="3" fill={APD}/>
+      <rect x="4" y="7" width="24" height="2" fill={APD}/>
+      <circle cx="11" cy="5.5" r="1.5" fill={APH}/>
+      <circle cx="16" cy="5.5" r="1.5" fill={APH}/>
+      <circle cx="21" cy="5.5" r="1.5" fill={APH}/>
+      <rect x="8" y="10" width="16" height="2" rx="1" fill={APH}/>
+      <rect x="6" y="13" width="20" height="17" rx="1" fill="#D0D4D8"/>
+      <rect x="8.5" y="15" width="1" height="13" fill={APD}/>
+      <rect x="12.5" y="15" width="1" height="13" fill={APD}/>
+      <rect x="16.5" y="15" width="1" height="13" fill={APD}/>
+      <rect x="20.5" y="15" width="1" height="13" fill={APD}/>
+      <rect x="6" y="21.5" width="20" height="1" fill={APD}/>
+    </svg>
+  );
+}
+
+// Micro-ondes – horizontal, hublot à gauche, contrôles à droite
+export function IconMicrowave({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="1" y="8" width="30" height="16" rx="3" fill={APD}/>
+      <rect x="3" y="10" width="18" height="12" rx="2" fill="#B0B4B8"/>
+      <rect x="5" y="12" width="14" height="8" rx="2" fill="#1A2540" opacity="0.85"/>
+      <rect x="5" y="12" width="14" height="3" rx="2" fill="white" opacity="0.08"/>
+      <rect x="22" y="10" width="7" height="12" rx="1" fill="#9A9FA4"/>
+      <rect x="23.5" y="12" width="4" height="1.5" rx="0.75" fill={AP}/>
+      <rect x="23.5" y="14.5" width="4" height="1.5" rx="0.75" fill={AP}/>
+      <circle cx="25.5" cy="19.5" r="1.8" fill="#3A8A3A"/>
+      <rect x="20.5" y="13" width="1.5" height="6" rx="0.75" fill={APH}/>
+    </svg>
+  );
+}
+
+// Écran PC – pied fin, base rectangulaire
+export function IconMonitor({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="3" y="3" width="26" height="17" rx="2" fill={MT}/>
+      <rect x="5" y="5" width="22" height="13" rx="1" fill="#1A3050"/>
+      <rect x="5" y="5" width="22" height="4" rx="1" fill="#2A5080" opacity="0.4"/>
+      <rect x="14.5" y="20" width="3" height="5" fill="#5A5A5A"/>
+      <rect x="9" y="25" width="14" height="2.5" rx="1.25" fill={MT}/>
+    </svg>
+  );
+}
+
+// Caisson classeur – métal, 3 tiroirs avec poignées
+export function IconFilingCabinet({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="7" y="2" width="18" height="30" rx="2" fill={APD}/>
+      <rect x="7" y="2" width="18" height="3.5" rx="2" fill="#A0A4A8"/>
+      <rect x="9" y="7" width="14" height="6.5" rx="1" fill={AP}/>
+      <rect x="13" y="9.5" width="6" height="1.5" rx="0.75" fill={APH}/>
+      <rect x="9" y="14.5" width="14" height="6.5" rx="1" fill={AP}/>
+      <rect x="13" y="17" width="6" height="1.5" rx="0.75" fill={APH}/>
+      <rect x="9" y="22" width="14" height="8" rx="1" fill={AP}/>
+      <rect x="13" y="25.5" width="6" height="1.5" rx="0.75" fill={APH}/>
+    </svg>
+  );
+}
+
+// Colonne rangement SDB – haute et étroite, 2 sections
+export function IconStorageColumn({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="9" y="1" width="14" height="31" rx="2" fill={AP}/>
+      <rect x="11" y="3" width="10" height="13" rx="1" fill={APD}/>
+      <rect x="15" y="8.5" width="2" height="1.5" rx="0.5" fill={APH}/>
+      <rect x="9" y="16.5" width="14" height="1.5" fill={APH}/>
+      <rect x="11" y="18.5" width="4.5" height="11" rx="1" fill={APD}/>
+      <rect x="16.5" y="18.5" width="4.5" height="11" rx="1" fill={APD}/>
+      <rect x="15.5" y="18.5" width="1" height="11" fill={AP}/>
+      <rect x="12.5" y="23" width="1.5" height="1" rx="0.5" fill={APH}/>
+      <rect x="18" y="23" width="1.5" height="1" rx="0.5" fill={APH}/>
+    </svg>
+  );
+}
+
+// Armoire de toilette – murale, 2 portes miroir
+export function IconMedicineCabinet({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="6" y="4" width="4" height="3" rx="1" fill="#A0A4A8"/>
+      <rect x="22" y="4" width="4" height="3" rx="1" fill="#A0A4A8"/>
+      <rect x="3" y="7" width="26" height="22" rx="2" fill={APD}/>
+      <rect x="5" y="9" width="11" height="18" rx="1" fill="#C8D8E8" opacity="0.85"/>
+      <rect x="17" y="9" width="11" height="18" rx="1" fill="#C8D8E8" opacity="0.85"/>
+      <rect x="6" y="10" width="3" height="9" rx="1" fill="white" opacity="0.2"/>
+      <rect x="18" y="10" width="3" height="9" rx="1" fill="white" opacity="0.2"/>
+      <rect x="15.5" y="9" width="1" height="18" fill={APH}/>
+      <rect x="14" y="17" width="1.5" height="1" rx="0.5" fill={APH}/>
+      <rect x="16.5" y="17" width="1.5" height="1" rx="0.5" fill={APH}/>
+    </svg>
+  );
+}
+
+// Vasque autoportante – cuvette + pied colonne + base
+export function IconWashbasin({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="13.5" y="3" width="5" height="3" rx="1" fill={APH}/>
+      <rect x="15.5" y="1" width="1" height="3.5" rx="0.5" fill={APH}/>
+      <path d="M6 10 Q6 7 16 7 Q26 7 26 10 L24 19 Q24 21 16 21 Q8 21 8 19 Z" fill={AP}/>
+      <path d="M9 11 Q9 9 16 9 Q23 9 23 11 L21 18 Q21 20 16 20 Q11 20 11 18 Z" fill="white"/>
+      <circle cx="16" cy="19" r="1" fill={APD}/>
+      <rect x="13" y="21" width="6" height="9" rx="1" fill={APD}/>
+      <rect x="9" y="29" width="14" height="3" rx="1.5" fill={AP}/>
+    </svg>
+  );
+}
+
+// Table à repasser – plateau effilé + pieds croisés
+export function IconIroningBoard({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <path d="M14 9 Q22 9 24 12 L12 12 Z" fill={APD}/>
+      <rect x="12" y="10.5" width="12" height="1.5" rx="0.5" fill={APH}/>
+      <rect x="19" y="7" width="3.5" height="3.5" rx="1.75" fill="#9A9FA4"/>
+      <path d="M2 15 Q1 13.5 2 12.5 L5 12 L30 12 L30 15 Z" fill={AP}/>
+      <rect x="2" y="15" width="28" height="2.5" fill={APD}/>
+      <path d="M8 17.5 L5 29" stroke={APD} strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M8 17.5 L14 29" stroke={APD} strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M24 17.5 L21 29" stroke={APD} strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M24 17.5 L27 29" stroke={APD} strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Étendoir à linge – barre supérieure + pieds en X + barre médiane
+export function IconClothesRack({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="4" y="5" width="24" height="2.5" rx="1.25" fill={AP}/>
+      <path d="M8 7.5 L5 28" stroke={APD} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M8 7.5 L14 28" stroke={APD} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M24 7.5 L18 28" stroke={APD} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M24 7.5 L27 28" stroke={APD} strokeWidth="2" strokeLinecap="round"/>
+      <rect x="7" y="18" width="18" height="2" rx="1" fill={AP}/>
+      <rect x="3" y="27" width="5" height="2" rx="1" fill={APD}/>
+      <rect x="24" y="27" width="5" height="2" rx="1" fill={APD}/>
+    </svg>
+  );
+}
+
+// Aspirateur balai – corps + buse sol
+export function IconVacuumCleaner({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="13" y="1" width="6" height="3" rx="1.5" fill={APH}/>
+      <rect x="14.5" y="4" width="3" height="14" rx="1.5" fill={APD}/>
+      <rect x="10" y="12" width="12" height="9" rx="2" fill={AP}/>
+      <rect x="12" y="14" width="8" height="2" rx="1" fill={APH}/>
+      <circle cx="20" cy="17.5" r="1.5" fill="#3A8A3A"/>
+      <rect x="10" y="21" width="12" height="3" rx="1" fill={APD}/>
+      <rect x="7" y="24" width="18" height="4" rx="2" fill={MT}/>
+      <rect x="9" y="25.5" width="14" height="2" rx="1" fill={MTD}/>
+    </svg>
+  );
+}
+
+// Étagères garage/cave – montants métal + 4 tablettes
+export function IconShelving({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="3" y="1" width="2.5" height="31" rx="1.25" fill="#5A6066"/>
+      <rect x="26.5" y="1" width="2.5" height="31" rx="1.25" fill="#5A6066"/>
+      <rect x="3" y="3" width="26" height="2.5" rx="0.5" fill={APH}/>
+      <rect x="3" y="11" width="26" height="2.5" rx="0.5" fill={APH}/>
+      <rect x="3" y="19" width="26" height="2.5" rx="0.5" fill={APH}/>
+      <rect x="3" y="27" width="26" height="2.5" rx="0.5" fill={APH}/>
+    </svg>
+  );
+}
+
+// Vélo – silhouette cadre diamant + 2 roues
+export function IconBike({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <circle cx="8" cy="23" r="6" stroke={MT} strokeWidth="2"/>
+      <circle cx="8" cy="23" r="2" fill={MT}/>
+      <circle cx="24" cy="23" r="6" stroke={MT} strokeWidth="2"/>
+      <circle cx="24" cy="23" r="2" fill={MT}/>
+      <path d="M8 23 L15 19 L10 11 L21 11 M15 19 L21 11 M21 11 L24 23"
+            stroke={MT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <rect x="7" y="9" width="6" height="2" rx="1" fill={MT}/>
+      <rect x="21" y="8" width="5" height="2" rx="1" fill={MT}/>
+      <rect x="22" y="8" width="2" height="4" rx="1" fill={MT}/>
+      <circle cx="15" cy="19" r="1.5" fill={MT}/>
+    </svg>
+  );
+}
+
+// Barbecue – cuve ronde avec couvercle + 3 pieds
+export function IconBBQ({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="14" y="4" width="4" height="5" rx="2" fill={W}/>
+      <path d="M6 16 Q6 8 16 8 Q26 8 26 16 Z" fill={MT}/>
+      <rect x="6" y="15" width="20" height="2.5" rx="1" fill={MTD}/>
+      <path d="M6 17.5 Q6 25 16 25 Q26 25 26 17.5 Z" fill="#4A4A4A"/>
+      <rect x="8" y="20" width="16" height="1" rx="0.5" fill="#707070" opacity="0.7"/>
+      <rect x="8" y="22.5" width="16" height="1" rx="0.5" fill="#707070" opacity="0.7"/>
+      <path d="M10 25 L7 32" stroke={MT} strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M22 25 L25 32" stroke={MT} strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M16 25 L16 32" stroke={MT} strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Tondeuse à gazon – corps vert + roues + guidon
+export function IconLawnmower({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <path d="M20 4 L29 18" stroke={MT} strokeWidth="2.5" strokeLinecap="round"/>
+      <rect x="18" y="3" width="5" height="2.5" rx="1.25" fill={MT}/>
+      <rect x="10" y="10" width="12" height="4" rx="1.5" fill={MT}/>
+      <rect x="4" y="13" width="24" height="4" rx="2" fill={GRD}/>
+      <rect x="4" y="16" width="24" height="9" rx="3" fill={GR}/>
+      <circle cx="8" cy="25" r="4" stroke={MTD} strokeWidth="2"/>
+      <circle cx="8" cy="25" r="1.5" fill={MTD}/>
+      <circle cx="24" cy="25" r="4" stroke={MTD} strokeWidth="2"/>
+      <circle cx="24" cy="25" r="1.5" fill={MTD}/>
+    </svg>
+  );
+}
+
+// Poussette bébé – capote + siège + 2 roues
+export function IconStroller({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="5" y="8" width="4" height="2.5" rx="1.25" fill={MT}/>
+      <path d="M9 9 Q11 9 11 14" stroke={MT} strokeWidth="2" strokeLinecap="round" fill="none"/>
+      <path d="M11 14 Q11 6 20 6 Q27 6 27 14 Z" fill={FB}/>
+      <rect x="9" y="14" width="18" height="8" rx="2" fill={FB2}/>
+      <path d="M11 22 L8 29" stroke={MT} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M27 22 L28 29" stroke={MT} strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="8" cy="29" r="3" stroke={MT} strokeWidth="2"/>
+      <circle cx="28" cy="29" r="3" stroke={MT} strokeWidth="2"/>
+    </svg>
+  );
+}
+
+// Chaise haute bébé – dossier + plateau + longues jambes + repose-pieds
+export function IconHighChair({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="9" y="3" width="14" height="11" rx="2.5" fill={W}/>
+      <rect x="5" y="11" width="22" height="3" rx="1.5" fill={WD}/>
+      <rect x="8" y="14" width="16" height="4" rx="2" fill={WM}/>
+      <rect x="9" y="18" width="3.5" height="14" rx="1.75" fill={W}/>
+      <rect x="19.5" y="18" width="3.5" height="14" rx="1.75" fill={W}/>
+      <rect x="7" y="27" width="18" height="2.5" rx="1.25" fill={WM}/>
+    </svg>
+  );
+}
+
+// Sèche-serviettes – 2 montants + 5 barres horizontales
+export function IconTowelRail({ size = 28, style, className }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={style} className={className}>
+      <rect x="8" y="2" width="2.5" height="30" rx="1.25" fill={APD}/>
+      <rect x="21.5" y="2" width="2.5" height="30" rx="1.25" fill={APD}/>
+      <rect x="8" y="4.5" width="16" height="2" rx="1" fill={AP}/>
+      <rect x="8" y="10" width="16" height="2" rx="1" fill={AP}/>
+      <rect x="8" y="15.5" width="16" height="2" rx="1" fill={AP}/>
+      <rect x="8" y="21" width="16" height="2" rx="1" fill={AP}/>
+      <rect x="8" y="26.5" width="16" height="2" rx="1" fill={AP}/>
+      <rect x="7" y="2" width="4.5" height="2.5" rx="1" fill="#A0A4A8" opacity="0.6"/>
+      <rect x="20.5" y="2" width="4.5" height="2.5" rx="1" fill="#A0A4A8" opacity="0.6"/>
+    </svg>
+  );
+}
+
 // Mapping ID de catalogue → composant SVG
 // Les emoji restent dans catalog.js pour la sérialisation JSON (Supabase).
 // Ce mapping est utilisé uniquement pour l'affichage.
@@ -566,4 +885,48 @@ export const CATALOG_ICON_BY_ID = {
   // Réutilisations cross-pièces
   office_wardrobe: IconWardrobe,
   laundry_cabinet: IconWardrobe,
+  // Phase 3 – TV
+  tv: IconTV,
+  living_tv: IconTV,
+  dining_tv: IconTV,
+  office_tv: IconTV,
+  // Phase 3 – Cuisine
+  oven: IconOven,
+  dishwasher: IconDishwasher,
+  microwave: IconMicrowave,
+  freezer_chest: IconFridge,
+  // Phase 3 – Bureau
+  monitor: IconMonitor,
+  filing_cabinet: IconFilingCabinet,
+  server_rack: IconFilingCabinet,
+  // Phase 3 – Salle de bain
+  storage_column_bath: IconStorageColumn,
+  medicine_cabinet: IconMedicineCabinet,
+  washbasin: IconWashbasin,
+  heated_towel_rail: IconTowelRail,
+  bath_towel_rack: IconTowelRail,
+  bath_shelf: IconBookshelf,
+  // Phase 3 – Buanderie
+  iron_board: IconIroningBoard,
+  ironing_board_standalone: IconIroningBoard,
+  clothes_rack: IconClothesRack,
+  vacuum_cleaner: IconVacuumCleaner,
+  steam_cleaner: IconVacuumCleaner,
+  // Phase 3 – Garage/Cave
+  shelving: IconShelving,
+  bike_child: IconBike,
+  bike_adult: IconBike,
+  bike_electric: IconBike,
+  garden_bike: IconBike,
+  // Phase 3 – Jardin
+  garden_bbq: IconBBQ,
+  mower: IconLawnmower,
+  garden_mower: IconLawnmower,
+  // Phase 3 – Bébé
+  stroller_single: IconStroller,
+  stroller_double: IconStroller,
+  baby_pram: IconStroller,
+  high_chair: IconHighChair,
+  baby_changing_dresser: IconDresser,
+  baby_bath: IconBathtub,
 };
