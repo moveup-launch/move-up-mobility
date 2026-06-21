@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
+import { openProCheckout } from '../lib/stripe';
 
 const CATEGORIES_FR = ['chambre', 'salon', 'cuisine', 'bureau', 'garage', 'autre'];
 const CATEGORIES_EN = ['bedroom', 'living room', 'kitchen', 'office', 'garage', 'other'];
@@ -651,9 +652,111 @@ function PrefsSection() {
   );
 }
 
+/* ─── Supprimer le compte ─────────────────────────────── */
+function DangerZoneSection() {
+  const { lang, signOut } = useApp();
+  const isFr = lang === 'fr';
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        setError(isFr ? 'Session expirée, reconnectez-vous.' : 'Session expired, please log in again.');
+        setDeleting(false);
+        return;
+      }
+      const res = await fetch('/api/delete-account', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        await signOut();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || (isFr ? 'Erreur lors de la suppression.' : 'Deletion failed.'));
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+    setDeleting(false);
+  };
+
+  return (
+    <Section title={`⚠️ ${isFr ? 'Zone de danger' : 'Danger zone'}`}>
+      {!confirming ? (
+        <div>
+          <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: 12, lineHeight: 1.5 }}>
+            {isFr
+              ? 'Supprime définitivement votre compte et toutes vos données (visites, photos, devis).'
+              : 'Permanently deletes your account and all your data (visits, photos, quotes).'}
+          </p>
+          <button
+            onClick={() => setConfirming(true)}
+            style={{
+              padding: '10px 16px', borderRadius: '8px',
+              border: '1px solid var(--danger)', background: 'var(--danger-light)',
+              color: 'var(--danger)', fontSize: '13px', fontWeight: '600',
+              cursor: 'pointer', width: '100%',
+            }}
+          >
+            🗑️ {isFr ? 'Supprimer mon compte' : 'Delete my account'}
+          </button>
+        </div>
+      ) : (
+        <div style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', borderRadius: '10px', padding: '16px' }}>
+          <div style={{ fontWeight: '700', color: 'var(--danger)', marginBottom: 8, fontSize: '14px' }}>
+            {isFr ? 'Êtes-vous absolument sûr ?' : 'Are you absolutely sure?'}
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: 14, lineHeight: 1.5 }}>
+            {isFr
+              ? 'Cette action est irréversible. Toutes vos visites, photos et données seront supprimées définitivement. Votre abonnement Pro sera annulé.'
+              : 'This action cannot be undone. All your visits, photos and data will be permanently deleted. Your Pro subscription will be cancelled.'}
+          </p>
+          {error && (
+            <div style={{ color: 'var(--danger)', fontSize: '12px', marginBottom: 10, fontWeight: '600' }}>
+              {error}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{
+                flex: 1, padding: '10px', borderRadius: '8px',
+                background: 'var(--danger)', color: 'white',
+                border: 'none', fontWeight: '700', cursor: deleting ? 'not-allowed' : 'pointer',
+                fontSize: '13px', opacity: deleting ? 0.7 : 1,
+              }}
+            >
+              {deleting ? '...' : (isFr ? 'Oui, supprimer définitivement' : 'Yes, delete permanently')}
+            </button>
+            <button
+              onClick={() => { setConfirming(false); setError(''); }}
+              style={{
+                padding: '10px 16px', borderRadius: '8px',
+                background: 'var(--surface2)', color: 'var(--text2)',
+                border: '1px solid var(--border)', cursor: 'pointer', fontSize: '13px',
+              }}
+            >
+              {isFr ? 'Annuler' : 'Cancel'}
+            </button>
+          </div>
+        </div>
+      )}
+    </Section>
+  );
+}
+
 /* ─── Page principale ─────────────────────────────────── */
 export default function SettingsPage() {
-  const { t, user } = useApp();
+  const { t, lang, user, setViewMode } = useApp();
+  const isFr = lang === 'fr';
   return (
     <div style={{ padding: '16px', maxWidth: '640px', margin: '0 auto' }}>
       <div className="section-header">
@@ -666,6 +769,28 @@ export default function SettingsPage() {
       <CustomCatalogSection />
       <VolumeDefaultsSection />
       <PrefsSection />
+
+      {/* Liens légaux */}
+      <Section title={`📋 ${isFr ? 'Mentions légales' : 'Legal'}`}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <a href="/cgu" target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+            📄 {isFr ? "Conditions Générales d'Utilisation" : 'Terms of Service'} ↗
+          </a>
+          <a href="/confidentialite" target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+            🔒 {isFr ? 'Politique de confidentialité' : 'Privacy Policy'} ↗
+          </a>
+          <button
+            onClick={() => openProCheckout(user?.email)}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: 0, fontSize: '13px', color: 'var(--accent)', cursor: 'pointer' }}
+          >
+            ✨ {isFr ? "S'abonner au plan Pro →" : 'Subscribe to Pro →'}
+          </button>
+        </div>
+      </Section>
+
+      <DangerZoneSection />
     </div>
   );
 }

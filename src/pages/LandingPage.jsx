@@ -216,9 +216,11 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
           <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
             moveupapp.com · © 2026 Move Up Mobility
           </div>
-          <div style={{ display: 'flex', gap: 16 }}>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
             <button onClick={onSignIn} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer' }}>Connexion</button>
             <button onClick={onSignUp} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer' }}>Inscription</button>
+            <a href="/cgu" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textDecoration: 'none' }}>CGU</a>
+            <a href="/confidentialite" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textDecoration: 'none' }}>Confidentialité</a>
           </div>
         </div>
       </footer>

@@ -26,6 +26,8 @@ import AdminPage from './pages/AdminPage';
 import QuotePage from './pages/QuotePage';
 import QuoteListPage from './pages/QuoteListPage';
 import OfflineBanner from './components/OfflineBanner';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
 
 const STEPS = [Step1Client, Step2Housing, Step4Inventory, Step5Summary];
 
@@ -220,6 +222,10 @@ function AppContent() {
 }
 
 export default function App() {
+  const pathname = window.location.pathname;
+  if (pathname === '/cgu') return <TermsPage />;
+  if (pathname === '/confidentialite') return <PrivacyPage />;
+
   return (
     <AppProvider>
       <AppContent />

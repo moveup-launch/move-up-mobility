@@ -13,6 +13,7 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const isFr = lang === 'fr';
 
@@ -61,7 +62,7 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
     setLoading(false);
   };
 
-  const switchMode = (m) => { setMode(m); setError(''); setSuccess(''); };
+  const switchMode = (m) => { setMode(m); setError(''); setSuccess(''); setTermsAccepted(false); };
 
   return (
     <div className="auth-page">
@@ -195,15 +196,40 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
             </div>
           )}
 
+          {mode === 'signup' && (
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12, color: 'var(--text2)', cursor: 'pointer', marginTop: 4 }}>
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={e => setTermsAccepted(e.target.checked)}
+                style={{ marginTop: 2, flexShrink: 0, accentColor: 'var(--accent)', width: 15, height: 15 }}
+              />
+              <span>
+                {isFr ? "J'accepte les " : 'I accept the '}
+                <a href="/cgu" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                  {isFr ? 'CGU' : 'Terms of Service'}
+                </a>
+                {isFr ? ' et la ' : ' and the '}
+                <a href="/confidentialite" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                  {isFr ? 'politique de confidentialité' : 'Privacy Policy'}
+                </a>
+              </span>
+            </label>
+          )}
+
           {error && <div className="auth-error">{error}</div>}
           {success && <div className="auth-success">{success}</div>}
 
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+          <button
+            type="submit"
+            className="btn btn-primary auth-submit"
+            disabled={loading || (mode === 'signup' && !termsAccepted)}
+          >
             {loading
               ? '...'
               : mode === 'login'
                 ? (isFr ? 'Se connecter' : 'Log in')
-                : (isFr ? 'Créer un compte' : 'Create account')}
+                : (isFr ? 'Créer mon compte' : 'Create account')}
           </button>
         </form>
         )}
