@@ -130,7 +130,23 @@ function CompanySection() {
   });
   const [logoPreview, setLogoPreview] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const [status, setStatus] = useState('idle');
+
+  // Sync form quand le profil charge de façon asynchrone
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        company_name:    profile.company_name    || '',
+        company_address: profile.company_address || '',
+        company_phone:   profile.company_phone   || '',
+        company_email:   profile.company_email   || '',
+        company_website: profile.company_website || '',
+        company_siret:   profile.company_siret   || '',
+        company_color:   profile.company_color   || '#2B6BE6',
+      });
+    }
+  }, [profile?.id]);
 
   const set = (field, val) => setForm(f => ({ ...f, [field]: val }));
 
@@ -142,32 +158,69 @@ function CompanySection() {
       e.target.value = '';
       return;
     }
-    // Aperçu local immédiat
+
+    setUploadError(null);
+    setUploadingLogo(true);
+
+    // Aperçu local immédiat (base64)
     const reader = new FileReader();
     reader.onload = ev => setLogoPreview(ev.target.result);
     reader.readAsDataURL(file);
 
-    // Upload Supabase Storage
-    setUploadingLogo(true);
-    const ext = file.name.split('.').pop().toLowerCase().replace('jpg', 'jpeg');
-    const path = `${user.id}/logo.${ext}`;
-    const { error } = await supabase.storage
-      .from('company-logos')
-      .upload(path, file, { upsert: true, contentType: file.type });
+    try {
+      // Normalisation MIME (image/jpg → image/jpeg)
+      const ext = file.name.split('.').pop().toLowerCase().replace('jpg', 'jpeg');
+      const contentType = file.type === 'image/jpg' ? 'image/jpeg' : (file.type || `image/${ext}`);
+      const path = `${user.id}/logo.${ext}`;
 
-    if (!error) {
-      const { data: { publicUrl } } = supabase.storage
+      const { error: uploadErr } = await supabase.storage
         .from('company-logos')
-        .getPublicUrl(path);
-      const urlWithBust = `${publicUrl}?t=${Date.now()}`;
-      await saveProfile({ company_logo_url: urlWithBust });
+        .upload(path, file, { upsert: true, contentType });
+
+      if (uploadErr) {
+        console.error('Logo upload error:', uploadErr);
+        setUploadError(isFr
+          ? `Erreur upload : ${uploadErr.message}`
+          : `Upload error: ${uploadErr.message}`);
+        setLogoPreview(null);
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('company-logos')
+          .getPublicUrl(path);
+
+        const { error: saveErr } = await saveProfile({ company_logo_url: publicUrl });
+        if (saveErr) {
+          console.error('Logo save error:', saveErr);
+          setUploadError(isFr
+            ? `Erreur sauvegarde : ${saveErr.message}`
+            : `Save error: ${saveErr.message}`);
+          setLogoPreview(null);
+        } else {
+          // Succès : l'URL propre est dans profile.company_logo_url via AppContext
+          // logoPreview (base64) garde l'affichage immédiat, s'efface au rechargement
+          setLogoPreview(null); // laisser profile.company_logo_url prendre le relais
+        }
+      }
+    } catch (err) {
+      console.error('Logo upload unexpected error:', err);
+      setUploadError(isFr ? 'Erreur inattendue' : 'Unexpected error');
+      setLogoPreview(null);
     }
+
     setUploadingLogo(false);
     e.target.value = '';
   };
 
   const handleRemoveLogo = async () => {
     setLogoPreview(null);
+    setUploadError(null);
+    // Suppression du fichier dans Storage
+    if (profile?.company_logo_url) {
+      const match = profile.company_logo_url.match(/company-logos\/(.+)$/);
+      if (match) {
+        await supabase.storage.from('company-logos').remove([match[1]]);
+      }
+    }
     await saveProfile({ company_logo_url: null });
   };
 
@@ -231,6 +284,11 @@ function CompanySection() {
             </button>
           )}
         </div>
+        {uploadError && (
+          <div style={{ marginTop: '6px', fontSize: '12px', color: 'var(--danger)', fontWeight: '600' }}>
+            ❌ {uploadError}
+          </div>
+        )}
       </div>
 
       {/* Nom entreprise */}
