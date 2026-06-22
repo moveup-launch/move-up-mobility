@@ -252,6 +252,7 @@ const FURNITURE_IDS = new Set([
   'vanity_unit', 'storage_column_bath', 'medicine_cabinet', 'bath_stool', 'bathtub', 'washbasin',
   'entr_shoe_cabinet', 'entr_coat_rack', 'entr_console', 'entr_bench',
   'laundry_cabinet', 'clothes_rack',
+  'wall_shelf', 'high_chair', 'stroller_single', 'stroller_double', 'baby_pram', 'baby_changing_dresser',
 ]);
 
 const ELECTRO_IDS = new Set([
@@ -291,15 +292,13 @@ const CHIPS = [
   { key: 'electro',   icon: '🔌', labelFr: 'Électro', labelEn: 'Electro'   },
   { key: 'deco',      icon: '🖼️', labelFr: 'Déco',    labelEn: 'Decor'    },
   { key: 'cartons',   icon: '📦', labelFr: 'Cartons', labelEn: 'Boxes'    },
-  { key: 'divers',    icon: '➕', labelFr: 'Divers',  labelEn: 'Misc'     },
 ];
 
 function CatalogSection({ room }) {
   const { tCat, lang, addItemToRoom, openSheet, changeQty } = useApp();
   const isFr = lang === 'fr';
   const [search, setSearch] = useState('');
-  const [showAll, setShowAll] = useState(false);
-  const [activeChip, setActiveChip] = useState('furniture');
+  const [activeChip, setActiveChip] = useState(null); // null = objets fréquents
 
   const query = search.trim().toLowerCase();
   const allowedSections = new Set([
@@ -310,8 +309,8 @@ function CatalogSection({ room }) {
   const frequentItems = roomItems.filter(e => FREQUENT_ITEM_IDS.has(e.item.id));
 
   const entries = query
-    ? roomItems.filter(e => tCat(e.item.name).toLowerCase().includes(query))
-    : showAll
+    ? ALL_CATALOG_ITEMS.filter(e => tCat(e.item.name).toLowerCase().includes(query))
+    : activeChip
       ? roomItems.filter(e => e.group === activeChip)
       : frequentItems;
 
@@ -339,15 +338,13 @@ function CatalogSection({ room }) {
     }
   };
 
-  const inSimplifiedView = !query && !showAll;
-
   return (
     <>
       <input
         type="text"
         value={search}
         onChange={e => setSearch(e.target.value)}
-        placeholder={isFr ? '🔍 Rechercher un objet...' : '🔍 Search an item...'}
+        placeholder={isFr ? '🔍 Rechercher dans tout le catalogue...' : '🔍 Search all catalog...'}
         style={{
           width: '100%', padding: '10px 12px', borderRadius: '10px',
           border: '1px solid var(--border)', fontSize: '14px', marginBottom: '10px',
@@ -355,36 +352,24 @@ function CatalogSection({ room }) {
         }}
       />
 
-      {!query && showAll && (
-        <>
-          <button
-            onClick={() => setShowAll(false)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text2)', fontSize: '13px', padding: '0 0 8px 0',
-              display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500',
-            }}
-          >
-            ← {isFr ? 'Retour aux essentiels' : 'Back to essentials'}
-          </button>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-            {CHIPS.map(c => (
-              <button
-                key={c.key}
-                onClick={() => setActiveChip(c.key)}
-                style={{
-                  padding: '6px 12px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer',
-                  fontWeight: '600', whiteSpace: 'nowrap',
-                  background: activeChip === c.key ? 'var(--accent)' : 'var(--surface2)',
-                  color: activeChip === c.key ? 'white' : 'var(--text2)',
-                  border: `1px solid ${activeChip === c.key ? 'var(--accent)' : 'var(--border)'}`,
-                }}
-              >
-                {c.icon} {isFr ? c.labelFr : c.labelEn}
-              </button>
-            ))}
-          </div>
-        </>
+      {!query && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+          {CHIPS.map(c => (
+            <button
+              key={c.key}
+              onClick={() => setActiveChip(prev => prev === c.key ? null : c.key)}
+              style={{
+                padding: '6px 12px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer',
+                fontWeight: '600', whiteSpace: 'nowrap',
+                background: activeChip === c.key ? 'var(--accent)' : 'var(--surface2)',
+                color: activeChip === c.key ? 'white' : 'var(--text2)',
+                border: `1px solid ${activeChip === c.key ? 'var(--accent)' : 'var(--border)'}`,
+              }}
+            >
+              {c.icon} {isFr ? c.labelFr : c.labelEn}
+            </button>
+          ))}
+        </div>
       )}
 
       <div className="item-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
@@ -430,29 +415,13 @@ function CatalogSection({ room }) {
         )}
       </div>
 
-      {inSimplifiedView && (
-        <button
-          onClick={() => setShowAll(true)}
-          style={{
-            width: '100%', padding: '10px', marginTop: '4px',
-            background: 'none', border: '1px solid var(--border)',
-            borderRadius: '10px', cursor: 'pointer',
-            color: 'var(--text2)', fontSize: '13px', fontWeight: '500',
-          }}
-        >
-          {isFr
-            ? `Voir tout le catalogue (${roomItems.length} objets) →`
-            : `See full catalog (${roomItems.length} items) →`}
-        </button>
-      )}
-
       <div style={{ padding: '8px 0 4px' }}>
         <button
           className="btn btn-secondary"
           style={{ width: '100%', padding: '12px', fontSize: '13px', borderStyle: 'dashed' }}
           onClick={() => openSheet(<CustomItemSheet roomId={room.id} roomType={room.type} />)}
         >
-          + {lang === 'fr' ? 'Divers / Objet non liste' : 'Misc / Unlisted item'}
+          + {lang === 'fr' ? 'Objet non listé' : 'Unlisted item'}
         </button>
       </div>
     </>

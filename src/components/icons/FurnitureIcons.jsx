@@ -929,4 +929,6 @@ export const CATALOG_ICON_BY_ID = {
   high_chair: IconHighChair,
   baby_changing_dresser: IconDresser,
   baby_bath: IconBathtub,
+  // Nouveaux
+  wall_shelf: IconBookshelf,
 };

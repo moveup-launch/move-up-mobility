@@ -95,6 +95,10 @@ export const CATALOG = {
         { id: "bk_kallax_l", label: { fr: "Kallax grand (4x4)", en: "Kallax large (4x4)" }, volume_m3: 1.2, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
       ]
     },
+    { id: "wall_shelf", name: { fr: "Étagères murales", en: "Wall shelves" }, icon: "📐", variants: [
+      { id: "ws_small", label: { fr: "Étagères murales petites", en: "Small wall shelves" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "ws_large", label: { fr: "Étagères murales grandes", en: "Large wall shelves" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
     {
       id: "tv",
       name: { fr: "TV", en: "TV" },
@@ -254,6 +258,10 @@ export const CATALOG = {
     { id: "microwave", name: { fr: "Micro-ondes", en: "Microwave" }, icon: "📦", variants: [{ id: "mw_std", label: { fr: "Micro-ondes standard", en: "Standard microwave" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "coffee_machine", name: { fr: "Machine à café", en: "Coffee machine" }, icon: "☕", variants: [{ id: "coffee_std", label: { fr: "Machine à café", en: "Coffee machine" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "robot_kitchen", name: { fr: "Robot cuisine", en: "Kitchen robot" }, icon: "🤖", variants: [{ id: "robot_std", label: { fr: "Robot cuisine (Thermomix...)", en: "Kitchen robot (Thermomix...)" }, volume_m3: 0.08, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "trash_bin", name: { fr: "Poubelle", en: "Trash bin" }, icon: "🗑️", variants: [
+      { id: "trash_std", label: { fr: "Poubelle standard", en: "Standard trash bin" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "trash_large", label: { fr: "Grande poubelle / tri sélectif", en: "Large / sorting bin" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
     { id: "kitchen_mirror", name: { fr: "Miroir", en: "Mirror" }, icon: "🪞", variants: [{ id: "km_small", label: { fr: "Petit miroir cuisine", en: "Small kitchen mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }, { id: "km_large", label: { fr: "Grand miroir cuisine", en: "Large kitchen mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "kitchen_artwork", name: { fr: "Tableau / Oeuvre d'art", en: "Painting / Artwork" }, icon: "🖼️", variants: [{ id: "ka_lot", label: { fr: "Tableau / oeuvre", en: "Painting / artwork" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     {
@@ -878,15 +886,15 @@ export const CRATE_ELIGIBLE_IDS = new Set(['tv', 'mirror', 'artwork', 'piano_upr
 // Objets affichés par défaut dans la vue simplifiée (1 par pièce = les plus courants)
 export const FREQUENT_ITEM_IDS = new Set([
   // Chambre
-  'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair',
+  'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair', 'wall_shelf',
   // Salon (livingRoom section)
   'sofa2', 'sofa3', 'sofa_corner', 'armchair', 'coffee_table', 'tv_unit', 'living_tv', 'rug',
   // Salle à manger (diningRoom section – aussi visible dans les salons)
   'dining_table', 'dining_chair', 'dining_shelf',
   // Cuisine
-  'fridge', 'fridge_combo', 'dishwasher', 'oven', 'kitchen_table', 'chairs', 'china_cabinet', 'microwave',
+  'fridge', 'fridge_combo', 'dishwasher', 'oven', 'kitchen_table', 'chairs', 'china_cabinet', 'microwave', 'trash_bin',
   // Bureau
-  'office_desk', 'office_chair2', 'computer', 'monitor', 'office_shelf', 'filing_cabinet',
+  'office_desk', 'office_chair2', 'computer', 'monitor', 'office_shelf', 'filing_cabinet', 'printer',
   // Jardin
   'garden_set', 'garden_bbq', 'garden_mower', 'garden_parasol', 'garden_lounger',
   // Garage / Cave

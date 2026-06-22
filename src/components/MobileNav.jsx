@@ -1,11 +1,12 @@
 import { useApp } from '../context/AppContext';
 
 export default function MobileNav() {
-  const { lang, user, viewMode, setViewMode, openPlanVisit, currentStep, nextStep, prevStep, t } = useApp();
+  const { lang, user, viewMode, setViewMode, openPlanVisit, currentStep, nextStep, prevStep, t, sheet, modal } = useApp();
   if (!user) return null;
   const isFr = lang === 'fr';
 
   if (viewMode === 'wizard') {
+    if (sheet?.isOpen || modal?.isOpen) return null;
     return (
       <div className="mobile-bottom-nav mobile-bottom-nav-wizard">
         <button

@@ -9,11 +9,26 @@ export default function TopBar() {
   return (
     <div className={`topbar${isDesktop ? ' topbar-desktop' : ''}`}>
       <div className="topbar-brand">
-        <div className="topbar-logo">📦</div>
-        <div className="topbar-brand-text">
-          <span className="topbar-title">Move Up</span>
-          <span className="topbar-title-suffix"> Mobility</span>
-        </div>
+        {!isDesktop && viewMode === 'wizard' ? (
+          <button
+            onClick={() => setViewMode('dashboard')}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 5,
+              color: 'var(--text)', fontWeight: 600, fontSize: 14, padding: '4px 0',
+            }}
+          >
+            ← {isFr ? 'Accueil' : 'Home'}
+          </button>
+        ) : (
+          <>
+            <div className="topbar-logo">📦</div>
+            <div className="topbar-brand-text">
+              <span className="topbar-title">Move Up</span>
+              <span className="topbar-title-suffix"> Mobility</span>
+            </div>
+          </>
+        )}
       </div>
       <div className="topbar-actions">
         <div className="lang-toggle">
