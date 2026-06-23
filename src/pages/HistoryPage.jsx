@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
+import { generateVisitPDF } from '../utils/pdfGenerator';
 
 function getStatusInfo(status, isFr) {
   const map = {
@@ -13,7 +14,7 @@ function getStatusInfo(status, isFr) {
 }
 
 export default function HistoryPage() {
-  const { lang, t, loadVisit, goToStep, user, openNewQuote } = useApp();
+  const { lang, t, loadVisit, user, openNewQuote, profile } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
@@ -24,6 +25,7 @@ export default function HistoryPage() {
   const [expanded, setExpanded] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [duplicating, setDuplicating] = useState(null);
+  const [pdfGenerating, setPdfGenerating] = useState(null);
   const [visitPhotos, setVisitPhotos] = useState({});
   const [photosLoading, setPhotosLoading] = useState({});
   const [lightboxUrl, setLightboxUrl] = useState(null);
@@ -71,7 +73,32 @@ export default function HistoryPage() {
 
   const handleEdit = (visit) => { loadVisit(visit); };
 
-  const handlePDF = (visit) => { loadVisit(visit); goToStep(4); };
+  const handlePDF = async (visit) => {
+    setPdfGenerating(visit.id);
+    const cd = visit.client_data || {};
+    const visitState = {
+      client: {
+        name: cd.name || '',
+        phone: cd.phone || '',
+        email: cd.email || '',
+        visitDate: cd.visitDate || visit.visit_date || '',
+        visitTime: cd.visitTime || visit.visit_time || '',
+        surveyor: cd.surveyor || visit.commercial_name || '',
+        moveDate: cd.moveDate || '',
+        notes: cd.notes || '',
+      },
+      housingTypeOrigin: cd.housingTypeOrigin || cd.housingType || '',
+      housingTypeDestination: cd.housingTypeDestination || cd.housingType || '',
+      moveType: cd.moveType || 'local',
+      moveSegments: cd.moveSegments || [],
+      origin: visit.origin_data || {},
+      destination: visit.destination_data || {},
+      rooms: visit.rooms_data || [],
+      transportOverride: cd.transportOverride || null,
+    };
+    try { await generateVisitPDF(visitState, profile, lang); } catch (e) { console.error('PDF error', e); }
+    setPdfGenerating(null);
+  };
 
   const handleDuplicate = async (v) => {
     setDuplicating(v.id);
@@ -364,8 +391,9 @@ export default function HistoryPage() {
                         color: 'var(--accent)', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
                       }}
                       onClick={() => handlePDF(v)}
+                      disabled={pdfGenerating === v.id}
                     >
-                      📄 PDF
+                      {pdfGenerating === v.id ? '⏳' : '📄 PDF'}
                     </button>
                     <button
                       style={{
