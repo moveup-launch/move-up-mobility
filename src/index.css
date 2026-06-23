@@ -255,7 +255,7 @@ textarea { min-height: 80px; resize: vertical; }
 .item-list-summary li { font-size: 13px; color: var(--text2); padding: 4px 0; border-bottom: 1px solid var(--border); list-style: none; display: flex; justify-content: space-between; align-items: center; }
 .item-list-summary li:last-child { border-bottom: none; }
 
-.sheet-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: flex-end; backdrop-filter: blur(2px); }
+.sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: flex-end; backdrop-filter: blur(2px); }
 .sheet-overlay.open { display: flex; }
 .bottom-sheet {
   background: var(--surface); border-radius: 20px 20px 0 0; width: 100%;
@@ -278,7 +278,7 @@ textarea { min-height: 80px; resize: vertical; }
 .variant-option .var-tags { display: flex; gap: 4px; }
 
 .modal-overlay {
-  position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 300;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300;
   display: none; align-items: center; justify-content: center;
   padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px
            calc(env(safe-area-inset-bottom, 0px) + 20px);
@@ -493,7 +493,7 @@ textarea { min-height: 80px; resize: vertical; }
   border-top: 1px solid var(--border);
   display: flex;
   align-items: stretch;
-  z-index: 500;
+  z-index: 150;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .mobile-nav-tab {
