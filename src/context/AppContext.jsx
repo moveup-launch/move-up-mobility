@@ -331,10 +331,10 @@ export function AppProvider({ children }) {
   const getSegmentSolution = (type, volume) => {
     const v = parseFloat(volume) || 0;
     const isFr = lang === 'fr';
-    if (type === 'sea') {
-      if (v < 15) return isFr ? 'LCL Groupage maritime' : 'Sea LCL Groupage';
-      if (v <= 28) return isFr ? "Conteneur 20'" : "20' Container";
-      if (v <= 60) return isFr ? "Conteneur 40'" : "40' Container";
+    if (type === 'sea' || type === 'international') {
+      if (v < 5)  return isFr ? 'Aérien ou LCL groupage'  : 'Air or LCL groupage';
+      if (v <= 30) return isFr ? 'Maritime LCL groupage'   : 'Sea LCL groupage';
+      if (v <= 60) return isFr ? "Conteneur 20'"           : "20' Container";
       return isFr ? "Conteneur 40' HC" : "40' HC Container";
     }
     if (type === 'air') {
@@ -548,7 +548,14 @@ export function AppProvider({ children }) {
       return getSegmentSolution(primary.type, primary.volume || vol);
     }
     const mt = state.moveType || 'local';
-    return getSegmentSolution(mt, vol);
+    // Moveype explicitement international → on l'utilise tel quel
+    if (mt !== 'local') return getSegmentSolution(mt, vol);
+    // Auto-détection : code postal non-français (pas 5 chiffres) → international
+    const destPc = (state.destination?.postalCode || '').trim();
+    if (destPc && !/^\d{5}$/.test(destPc)) {
+      return getSegmentSolution('international', vol);
+    }
+    return getSegmentSolution('local', vol);
   };
 
   const getRecommendedTeam = (vol) => {

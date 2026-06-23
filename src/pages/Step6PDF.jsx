@@ -561,14 +561,6 @@ export default function Step6PDF() {
     doc.text(safe(t('clientSignature')), 50, sigY + 25, { align: 'center' });
     doc.text(safe(t('surveyorSignature')), W / 2 + 37, sigY + 25, { align: 'center' });
 
-    // ── SIRET en bas si renseigné ─────────────────────────────────
-    if (profile?.company_siret) {
-      doc.setFontSize(6.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(180, 180, 180);
-      doc.text(safe(`SIRET : ${profile.company_siret}`), 16, 293);
-    }
-
     // ── Pied de page sur toutes les pages ─────────────────────────
     addFooters();
 
