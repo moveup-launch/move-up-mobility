@@ -99,6 +99,18 @@ export const CATALOG = {
       { id: "ws_small", label: { fr: "Étagères murales petites", en: "Small wall shelves" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
       { id: "ws_large", label: { fr: "Étagères murales grandes", en: "Large wall shelves" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
     ]},
+    { id: "duvet_single", name: { fr: "Couette simple", en: "Single duvet" }, icon: "🛏️", variants: [
+      { id: "duvet_s", label: { fr: "Couette simple 90/140cm", en: "Single duvet" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "duvet_double", name: { fr: "Couette double", en: "Double duvet" }, icon: "🛏️", variants: [
+      { id: "duvet_d", label: { fr: "Couette double 160/200cm", en: "Double duvet" }, volume_m3: 0.08, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "pillows", name: { fr: "Oreillers (x2)", en: "Pillows (x2)" }, icon: "😴", variants: [
+      { id: "pillows_pair", label: { fr: "Paire d'oreillers", en: "Pair of pillows" }, volume_m3: 0.04, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "bed_linen", name: { fr: "Linge de lit", en: "Bed linen" }, icon: "🧺", variants: [
+      { id: "bed_linen_set", label: { fr: "Linge de lit (lot)", en: "Bed linen set" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
     {
       id: "tv",
       name: { fr: "TV", en: "TV" },
@@ -111,11 +123,11 @@ export const CATALOG = {
     },
     {
       id: "mirror",
-      name: { fr: "Miroir", en: "Mirror" },
+      name: { fr: "Miroir de chambre", en: "Bedroom mirror" },
       icon: "🪞",
       variants: [
-        { id: "mirror_small", label: { fr: "Petit miroir", en: "Small mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-        { id: "mirror_large", label: { fr: "Grand miroir", en: "Large mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "mirror_small", label: { fr: "Miroir de chambre petit", en: "Small bedroom mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "mirror_large", label: { fr: "Miroir de chambre grand / mural", en: "Large wall bedroom mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
     {
@@ -225,7 +237,7 @@ export const CATALOG = {
       ]
     },
     { id: "deco_fragile", name: { fr: "Objets déco fragiles", en: "Fragile decor items" }, icon: "🏺", variants: [{ id: "deco_lot", label: { fr: "Lot objets déco fragiles", en: "Set of fragile decor" }, volume_m3: 0.2, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
-    { id: "living_mirror", name: { fr: "Miroir", en: "Mirror" }, icon: "🪞", variants: [{ id: "lm_small", label: { fr: "Petit miroir", en: "Small mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }, { id: "lm_large", label: { fr: "Grand miroir", en: "Large mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "living_mirror", name: { fr: "Miroir salon / décoratif", en: "Living room / decorative mirror" }, icon: "🪞", variants: [{ id: "lm_small", label: { fr: "Miroir salon petit / rond", en: "Small / round decorative mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }, { id: "lm_large", label: { fr: "Miroir salon grand / design", en: "Large design mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "living_artwork", name: { fr: "Tableau / Oeuvre d'art", en: "Painting / Artwork" }, icon: "🖼️", variants: [{ id: "la_lot", label: { fr: "Tableau / oeuvre", en: "Painting / artwork" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
   ],
 
@@ -262,7 +274,7 @@ export const CATALOG = {
       { id: "trash_std", label: { fr: "Poubelle standard", en: "Standard trash bin" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
       { id: "trash_large", label: { fr: "Grande poubelle / tri sélectif", en: "Large / sorting bin" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
     ]},
-    { id: "kitchen_mirror", name: { fr: "Miroir", en: "Mirror" }, icon: "🪞", variants: [{ id: "km_small", label: { fr: "Petit miroir cuisine", en: "Small kitchen mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }, { id: "km_large", label: { fr: "Grand miroir cuisine", en: "Large kitchen mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "kitchen_mirror", name: { fr: "Miroir cuisine", en: "Kitchen mirror" }, icon: "🪞", variants: [{ id: "km_small", label: { fr: "Petit miroir cuisine", en: "Small kitchen mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }, { id: "km_large", label: { fr: "Grand miroir cuisine", en: "Large kitchen mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "kitchen_artwork", name: { fr: "Tableau / Oeuvre d'art", en: "Painting / Artwork" }, icon: "🖼️", variants: [{ id: "ka_lot", label: { fr: "Tableau / oeuvre", en: "Painting / artwork" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     {
       id: "kitchen_table",
@@ -330,7 +342,7 @@ export const CATALOG = {
         { id: "hifi_soundbar", label: { fr: "Barre de son",              en: "Soundbar"                }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
-    { id: "dining_mirror",  name: { fr: "Miroir",                       en: "Mirror"            }, icon: "🪞", variants: [{ id: "dm_std",     label: { fr: "Miroir salle à manger",           en: "Dining room mirror"     }, volume_m3: 0.1, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "dining_mirror",  name: { fr: "Miroir salle à manger",        en: "Dining room mirror" }, icon: "🪞", variants: [{ id: "dm_std",     label: { fr: "Miroir salle à manger",           en: "Dining room mirror"     }, volume_m3: 0.1, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "dining_artwork", name: { fr: "Tableau / Oeuvre d'art",        en: "Painting / Artwork"}, icon: "🖼️", variants: [{ id: "da_lot",    label: { fr: "Tableau / oeuvre d'art",            en: "Painting / artwork"     }, volume_m3: 0.1, fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "dining_console", name: { fr: "Console / Bahut bas",           en: "Console / Sideboard"},icon: "🗄️", variants: [{ id: "dc_console", label: { fr: "Console / bahut bas",              en: "Console / low sideboard"}, volume_m3: 0.5, fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "dining_shelf",   name: { fr: "Bibliothèque / Étagère murale", en: "Bookcase / Wall shelf"},icon: "📚", variants: [{ id: "ds_std",    label: { fr: "Bibliothèque / étagère murale",    en: "Bookcase / wall shelf"  }, volume_m3: 0.8, fragile: false, heavy: true,  requires_protection: false, requires_disassembly: true,  possible_furniture_lift: false }] },
@@ -387,7 +399,7 @@ export const CATALOG = {
     },
     { id: "office_shelf", name: { fr: "Étagère bureau", en: "Office shelf" }, icon: "📚", variants: [{ id: "oshelf_std", label: { fr: "Étagère standard", en: "Standard shelf" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false }] },
     { id: "office_wardrobe", name: { fr: "Armoire à dossiers", en: "Document wardrobe" }, icon: "🚪", variants: [{ id: "oward_std", label: { fr: "Armoire à dossiers standard", en: "Standard document wardrobe" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
-    { id: "office_mirror", name: { fr: "Miroir", en: "Mirror" }, icon: "🪞", variants: [{ id: "om_std", label: { fr: "Miroir bureau", en: "Office mirror" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "office_mirror", name: { fr: "Miroir bureau", en: "Office mirror" }, icon: "🪞", variants: [{ id: "om_std", label: { fr: "Miroir bureau", en: "Office mirror" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "office_artwork", name: { fr: "Tableau / Oeuvre d'art", en: "Painting / Artwork" }, icon: "🖼️", variants: [{ id: "oa_lot", label: { fr: "Tableau / oeuvre", en: "Painting / artwork" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     {
       id: "office_tv",
@@ -842,6 +854,25 @@ export const CATALOG = {
     ]},
   ],
 
+  vehicles: [
+    { id: "car_diesel",   name: { fr: "Voiture diesel",          en: "Diesel car"                 }, icon: "🚗", variants: [{ id: "car_d_std",    label: { fr: "Voiture diesel",            en: "Diesel car"                 }, volume_m3: 8.0,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "car_petrol",   name: { fr: "Voiture essence",         en: "Petrol car"                 }, icon: "🚗", variants: [{ id: "car_p_std",    label: { fr: "Voiture essence",           en: "Petrol car"                 }, volume_m3: 8.0,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "car_hybrid",   name: { fr: "Voiture hybride",         en: "Hybrid car"                 }, icon: "🚗", variants: [{ id: "car_h_std",    label: { fr: "Voiture hybride",           en: "Hybrid car"                 }, volume_m3: 8.0,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "car_electric", name: { fr: "Voiture électrique",      en: "Electric car"               }, icon: "🔋", variants: [{ id: "car_e_std",    label: { fr: "Voiture électrique",        en: "Electric car"               }, volume_m3: 8.0,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "suv",          name: { fr: "SUV / 4x4",              en: "SUV / 4x4"                  }, icon: "🚙", variants: [{ id: "suv_std",      label: { fr: "SUV / 4x4",                en: "SUV / 4x4"                  }, volume_m3: 10.0, fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "van",          name: { fr: "Utilitaire / Van",        en: "Van / Utility vehicle"      }, icon: "🚐", variants: [{ id: "van_std",      label: { fr: "Utilitaire / Van",          en: "Van / Utility vehicle"      }, volume_m3: 12.0, fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "scooter_50",   name: { fr: "Scooter 50cc",            en: "50cc scooter"               }, icon: "🛵", variants: [{ id: "sc50_std",     label: { fr: "Scooter 50cc",              en: "50cc scooter"               }, volume_m3: 0.8,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "scooter_125",  name: { fr: "Scooter 125cc",           en: "125cc scooter"              }, icon: "🛵", variants: [{ id: "sc125_std",    label: { fr: "Scooter 125cc",             en: "125cc scooter"              }, volume_m3: 1.0,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "moto_250",     name: { fr: "Moto 250-500cc",          en: "250-500cc motorcycle"       }, icon: "🏍️", variants: [{ id: "moto250_std",  label: { fr: "Moto 250-500cc",            en: "250-500cc motorcycle"       }, volume_m3: 1.2,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "moto_600",     name: { fr: "Moto 600-1000cc",         en: "600-1000cc motorcycle"      }, icon: "🏍️", variants: [{ id: "moto600_std",  label: { fr: "Moto 600-1000cc",           en: "600-1000cc motorcycle"      }, volume_m3: 1.5,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "moto_custom",  name: { fr: "Moto custom / Harley",    en: "Custom / Harley motorcycle" }, icon: "🏍️", variants: [{ id: "moto_c_std",  label: { fr: "Moto custom / Harley",      en: "Custom / Harley motorcycle" }, volume_m3: 1.8,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "sidecar",      name: { fr: "Side-car",                en: "Sidecar"                    }, icon: "🏍️", variants: [{ id: "sc_std",       label: { fr: "Side-car",                  en: "Sidecar"                    }, volume_m3: 2.5,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "quad",         name: { fr: "Quad",                    en: "Quad / ATV"                 }, icon: "🏎️", variants: [{ id: "quad_std",     label: { fr: "Quad / ATV",                en: "Quad / ATV"                 }, volume_m3: 2.0,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "go_kart",      name: { fr: "Karting enfant",          en: "Kids go-kart"               }, icon: "🏎️", variants: [{ id: "kart_std",     label: { fr: "Karting enfant",            en: "Kids go-kart"               }, volume_m3: 1.0,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "ebike_veh",    name: { fr: "Vélo électrique",         en: "Electric bike"              }, icon: "🚲", variants: [{ id: "ebike_v_std",  label: { fr: "Vélo électrique",           en: "Electric bike"              }, volume_m3: 0.8,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+    { id: "escooter",     name: { fr: "Trottinette électrique",  en: "Electric scooter"           }, icon: "🛴", variants: [{ id: "escoot_std",   label: { fr: "Trottinette électrique",    en: "Electric scooter"           }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]},
+  ],
+
   roomCatalogMap: {
     livingRoom:   ["livingRoom",   "diningRoom", "boxes"],
     diningRoom:   ["diningRoom",   "livingRoom", "kitchen", "boxes"],
@@ -852,11 +883,11 @@ export const CATALOG = {
     bathroom:     ["bathroom",     "boxes"],
     dressing:     ["bedroom",      "boxes"],
     laundry:      ["laundry",      "boxes"],
-    garage:       ["garageBasement","boxes"],
-    basement:     ["garageBasement","boxes"],
-    attic:        ["garageBasement","boxes"],
-    garden:       ["garden",       "garageBasement", "boxes"],
-    storageBox:   ["garageBasement","boxes"],
+    garage:       ["garageBasement","vehicles",  "boxes"],
+    basement:     ["garageBasement","vehicles",  "boxes"],
+    attic:        ["garageBasement","vehicles",  "boxes"],
+    garden:       ["garden",       "garageBasement", "vehicles", "boxes"],
+    storageBox:   ["garageBasement","vehicles",  "boxes"],
     entrance:     ["entrance",     "boxes"],
     misc:         ["bedroom",      "livingRoom", "boxes"],
   },

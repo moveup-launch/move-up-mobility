@@ -21,20 +21,23 @@ function hexToRgb(hex) {
   ];
 }
 
-function loadImageAsDataUrl(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      canvas.getContext('2d').drawImage(img, 0, 0);
-      resolve({ dataUrl: canvas.toDataURL('image/png'), w: img.width, h: img.height });
-    };
-    img.onerror = reject;
-    img.src = url;
+async function loadImageAsDataUrl(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Logo fetch failed: ${resp.status}`);
+  const blob = await resp.blob();
+  const dataUrl = await new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(blob);
   });
+  const { w, h } = await new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = rej;
+    img.src = dataUrl;
+  });
+  return { dataUrl, w, h };
 }
 
 export default function Step6PDF() {
