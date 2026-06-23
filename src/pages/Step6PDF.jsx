@@ -49,6 +49,29 @@ export default function Step6PDF() {
   const [pdfSuccess, setPdfSuccess] = useState(false);
   const isFr = lang === 'fr';
 
+  const catalogItemById = {};
+  Object.values(CATALOG).forEach(section => {
+    if (!Array.isArray(section)) return;
+    section.forEach(item => { catalogItemById[item.id] = item; });
+  });
+
+  function getItemName(item) {
+    if (item.catalogId === 'custom') return item.name;
+    const def = catalogItemById[item.catalogId];
+    if (!def) return item.name;
+    return def.name[lang] || def.name.fr || def.name.en || item.name;
+  }
+
+  function getVariantLabel(item) {
+    if (item.catalogId === 'custom') return item.variantLabel;
+    const def = catalogItemById[item.catalogId];
+    if (!def) return item.variantLabel;
+    const variantId = item.itemId?.slice((item.catalogId?.length || 0) + 1);
+    const variant = def.variants?.find(v => v.id === variantId);
+    if (!variant) return item.variantLabel;
+    return variant.label[lang] || variant.label.fr || variant.label.en || item.variantLabel;
+  }
+
   const generatePDF = async () => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const W = 210;
@@ -292,14 +315,15 @@ export default function Step6PDF() {
       items.forEach(item => {
         checkY(6);
         doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-        doc.text(safe(`  ${item.name} - ${item.variantLabel}`), 16, y);
+        doc.text(safe(`  ${getItemName(item)} - ${getVariantLabel(item)}`), 16, y);
         doc.setFont('helvetica', 'bold');
         doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
         const tags = [];
         if (item.fragile) tags.push('Fragile');
         if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
         if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
-        if (item.crate) tags.push(`Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
+        if (item.possible_furniture_lift) tags.push(isFr ? 'Monte-meubles' : 'Lift required');
+        if (item.crate) tags.push(`${isFr ? 'Caisse' : 'Crate'} ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
         if (item.roomName) {
           doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
           const tagStr = tags.length ? ` [${tags.join(', ')}]` : '';
@@ -376,16 +400,17 @@ export default function Step6PDF() {
           items.forEach(item => {
             checkY(6);
             doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-            doc.text(safe(`  ${item.name} - ${item.variantLabel}`), 16, y);
+            doc.text(safe(`  ${getItemName(item)} - ${getVariantLabel(item)}`), 16, y);
             doc.setFont('helvetica', 'bold');
             doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
             const tags = [];
             if (item.fragile) tags.push('Fragile');
             if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
             if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
+            if (item.possible_furniture_lift) tags.push(isFr ? 'Monte-meubles' : 'Lift required');
             const modeIcons = { road: '🚛', sea: '🚢', air: '✈', storage: '📦' };
             if (item.transportMode && modeIcons[item.transportMode]) tags.push(modeIcons[item.transportMode]);
-            if (item.crate) tags.push(`Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
+            if (item.crate) tags.push(`${isFr ? 'Caisse' : 'Crate'} ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
             if (tags.length) {
               doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
               doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
@@ -439,7 +464,7 @@ export default function Step6PDF() {
           roomBoxItems.forEach(item => {
             checkY(4);
             doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-            doc.text(safe(`  - ${item.qty} ${item.name}`), 22, y); y += 4;
+            doc.text(safe(`  - ${item.qty} ${getItemName(item)}`), 22, y); y += 4;
           });
         }
 
@@ -468,7 +493,7 @@ export default function Step6PDF() {
           checkY(5);
           doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
           doc.text(safe(`${r.name} :`), 16, y);
-          const parts = boxItems.map(i => `${i.qty} ${i.name}`);
+          const parts = boxItems.map(i => `${i.qty} ${getItemName(i)}`);
           doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
           doc.text(safe(parts.join(', ')), 42, y); y += 5;
         });
@@ -505,9 +530,9 @@ export default function Step6PDF() {
         checkY(5);
         doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
         const crateStr = item.crate
-          ? ` — Caisse ${item.crate.l}x${item.crate.w}x${item.crate.h} cm (${item.crate.vol} m3)`
+          ? ` — ${isFr ? 'Caisse' : 'Crate'} ${item.crate.l}x${item.crate.w}x${item.crate.h} cm (${item.crate.vol} m3)`
           : '';
-        doc.text(safe(`  - ${item.name} (${item.roomName}) x${item.qty}${crateStr}`), 20, y); y += 5;
+        doc.text(safe(`  - ${getItemName(item)} (${item.roomName}) x${item.qty}${crateStr}`), 20, y); y += 5;
       });
     }
 
