@@ -58,13 +58,18 @@ const DEFAULT_COST_LINES = {
   storage: ['Collection & Packing', 'Storage (per month)', 'Delivery'],
 };
 
-const DEFAULT_OPTIONAL = [
+const DEFAULT_OPTIONAL_FR = [
   'Assurance ad valorem (2% valeur déclarée)',
   'Caisse bois TV / objets fragiles',
   'Garde-meuble',
 ];
+const DEFAULT_OPTIONAL_EN = [
+  'Ad valorem insurance (2% declared value)',
+  'Wooden crate for TV / fragile items',
+  'Storage facility',
+];
 
-const DEFAULT_INCLUDED = [
+const DEFAULT_INCLUDED_FR = [
   'Emballage professionnel export',
   'Chargement et calage conteneur',
   'Fret maritime / aérien',
@@ -73,8 +78,17 @@ const DEFAULT_INCLUDED = [
   'Remontage meubles démontés',
   'Évacuation déchets emballages',
 ];
+const DEFAULT_INCLUDED_EN = [
+  'Professional export packing',
+  'Loading and container stuffing',
+  'Ocean / air freight',
+  'Export customs clearance',
+  'Standard documentation',
+  'Furniture reassembly',
+  'Packing material disposal',
+];
 
-const DEFAULT_EXCLUSIONS = [
+const DEFAULT_EXCLUSIONS_FR = [
   'DTHC (Destination Terminal Handling)',
   'Livraison étage difficile accès',
   'Services navette / grue / permis stationnement',
@@ -84,6 +98,17 @@ const DEFAULT_EXCLUSIONS = [
   'Frais inspection douanière',
   'Stockage transit',
   'Stockage entrepôt',
+];
+const DEFAULT_EXCLUSIONS_EN = [
+  'DTHC (Destination Terminal Handling)',
+  'Difficult access upper floor delivery',
+  'Shuttle / crane / parking permit services',
+  'Special items (piano, safe)',
+  'Customs duties and taxes',
+  'Demurrage charges',
+  'Customs inspection fees',
+  'Transit storage',
+  'Warehouse storage',
 ];
 
 function safe(str) {
@@ -221,7 +246,7 @@ export default function QuotePage() {
       setDestination(dd?.noFixedAddress
         ? (dd?.city || '')
         : [dd?.address, dd?.city].filter(Boolean).join(', '));
-      setVolumeCBM(String(visit.total_volume || ''));
+      setVolumeCBM(visit.total_volume ? parseFloat(visit.total_volume).toFixed(1) : '');
 
       // Detect primary transport mode
       const segs = (visit.client_data?.moveSegments || []).filter(s => s.type);
@@ -253,13 +278,13 @@ export default function QuotePage() {
   };
 
   const buildDefaultOptional = () =>
-    DEFAULT_OPTIONAL.map((d, i) => ({ id: `os_${i}`, desc: d, amount: '', included: false }));
+    (isFr ? DEFAULT_OPTIONAL_FR : DEFAULT_OPTIONAL_EN).map((d, i) => ({ id: `os_${i}`, desc: d, amount: '', included: false }));
 
   const buildDefaultIncluded = () =>
-    DEFAULT_INCLUDED.map((l, i) => ({ id: `si_${i}`, label: l, checked: i < 5 }));
+    (isFr ? DEFAULT_INCLUDED_FR : DEFAULT_INCLUDED_EN).map((l, i) => ({ id: `si_${i}`, label: l, checked: i < 5 }));
 
   const buildDefaultExclusions = () =>
-    DEFAULT_EXCLUSIONS.map((l, i) => ({ id: `ex_${i}`, label: l, checked: i < 7 }));
+    (isFr ? DEFAULT_EXCLUSIONS_FR : DEFAULT_EXCLUSIONS_EN).map((l, i) => ({ id: `ex_${i}`, label: l, checked: i < 7 }));
 
   const totalCost = costLines.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0);
   const totalOptIncl = optionalServices
@@ -417,7 +442,7 @@ export default function QuotePage() {
     if (destination) labelValue(qt.destination, destination);
     if (loadingPort) labelValue(qt.loadingPort, loadingPort);
     if (destPort)    labelValue(qt.destinationPort, destPort);
-    if (volumeCBM)   labelValue(qt.volume, `${volumeCBM} CBM`);
+    if (volumeCBM)   labelValue(qt.volume, `${parseFloat(volumeCBM).toFixed(1)} CBM`);
     labelValue(qt.mode, MODE_LABELS[transportMode]?.[quoteLang] || transportMode);
     if (carrier)     labelValue(qt.carrier, carrier);
     if (transitTime) labelValue(qt.transit, transitTime);

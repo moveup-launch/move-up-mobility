@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
@@ -238,7 +238,7 @@ function CustomItemSheet({ roomId, roomType }) {
 
 const GLOBAL_CATALOG_SECTIONS = [
   'bedroom', 'livingRoom', 'kitchen', 'diningRoom', 'office', 'garden',
-  'garageBasement', 'laundry', 'bathroom', 'babyEquip', 'entrance', 'exceptional', 'boxes',
+  'garageBasement', 'laundry', 'bathroom', 'babyEquip', 'entrance', 'exceptional', 'boxes', 'vehicles',
 ];
 
 const FURNITURE_IDS = new Set([
@@ -275,6 +275,7 @@ const DECO_IDS = new Set([
 ]);
 
 function getItemGroup(catKey, itemId) {
+  if (catKey === 'vehicles') return 'vehicles';
   if (catKey === 'boxes') return 'cartons';
   if (catKey === 'exceptional') return (itemId === 'artwork' || itemId === 'aquarium') ? 'deco' : 'divers';
   if (FURNITURE_IDS.has(itemId)) return 'furniture';
@@ -288,17 +289,18 @@ const ALL_CATALOG_ITEMS = GLOBAL_CATALOG_SECTIONS.flatMap(catKey =>
 );
 
 const CHIPS = [
-  { key: 'furniture', icon: '🪑', labelFr: 'Meubles', labelEn: 'Furniture' },
-  { key: 'electro',   icon: '🔌', labelFr: 'Électro', labelEn: 'Electro'   },
-  { key: 'deco',      icon: '🖼️', labelFr: 'Déco',    labelEn: 'Decor'    },
-  { key: 'cartons',   icon: '📦', labelFr: 'Cartons', labelEn: 'Boxes'    },
+  { key: 'furniture', icon: '🪑', labelFr: 'Meubles',   labelEn: 'Furniture' },
+  { key: 'electro',   icon: '🔌', labelFr: 'Électro',   labelEn: 'Electro'   },
+  { key: 'deco',      icon: '🖼️', labelFr: 'Déco',      labelEn: 'Decor'    },
+  { key: 'cartons',   icon: '📦', labelFr: 'Cartons',   labelEn: 'Boxes'    },
+  { key: 'vehicles',  icon: '🚗', labelFr: 'Véhicules', labelEn: 'Vehicles'  },
 ];
 
 function CatalogSection({ room }) {
   const { tCat, lang, addItemToRoom, openSheet, changeQty } = useApp();
   const isFr = lang === 'fr';
   const [search, setSearch] = useState('');
-  const [activeChip, setActiveChip] = useState(null); // null = objets fréquents
+  const [activeChip, setActiveChip] = useState('furniture');
 
   const query = search.trim().toLowerCase();
   const allowedSections = new Set([
@@ -340,17 +342,33 @@ function CatalogSection({ room }) {
 
   return (
     <>
-      <input
-        type="text"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder={isFr ? '🔍 Rechercher dans tout le catalogue...' : '🔍 Search all catalog...'}
-        style={{
-          width: '100%', padding: '10px 12px', borderRadius: '10px',
-          border: '1px solid var(--border)', fontSize: '14px', marginBottom: '10px',
-          background: 'var(--surface)', color: 'var(--text)', boxSizing: 'border-box',
-        }}
-      />
+      <div style={{ position: 'relative', marginBottom: '10px' }}>
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={isFr ? '🔍 Rechercher dans tout le catalogue...' : '🔍 Search all catalog...'}
+          style={{
+            width: '100%', padding: '10px 36px 10px 12px', borderRadius: '10px',
+            border: '1px solid var(--border)', fontSize: '14px',
+            background: 'var(--surface)', color: 'var(--text)', boxSizing: 'border-box',
+          }}
+        />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            style={{
+              position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+              background: 'var(--surface2)', border: 'none', borderRadius: '50%',
+              width: '22px', height: '22px', cursor: 'pointer',
+              color: 'var(--text2)', fontSize: '13px', lineHeight: '1',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
 
       {!query && (
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
@@ -437,7 +455,7 @@ const TRANSPORT_MODES = [
 ];
 
 function InventoryList({ room }) {
-  const { t, lang, changeQty, updateItemVolume, updateItemCrate, updateItemTransportMode, updateItemComment } = useApp();
+  const { t, lang, changeQty, updateItemVolume, updateItemCrate, updateItemTransportMode, updateItemComment, updateItemFlags } = useApp();
   const [editingItemId, setEditingItemId] = useState(null);
   const [editVolume, setEditVolume] = useState('');
   const [crateEditId, setCrateEditId] = useState(null);
@@ -595,11 +613,32 @@ function InventoryList({ room }) {
               </div>
             )}
 
-            <div className="inv-tags" style={{ marginTop: '3px' }}>
-              {item.fragile && <span className="tag tag-fragile">{t('tagFragile')}</span>}
-              {item.heavy && <span className="tag tag-heavy">{t('tagHeavy')}</span>}
-              {item.requires_disassembly && <span className="tag tag-disassembly">{t('tagDisassembly')}</span>}
-              {item.possible_furniture_lift && <span className="tag tag-lift">{t('tagLift')}</span>}
+            {/* Toggles manuels : Fragile / Lourd / Démontage / Monte-meubles */}
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }}>
+              {[
+                { key: 'fragile',                label: t('tagFragile'),      onBg: '#FEE2E2', onColor: '#991B1B', onBorder: '#FCA5A5' },
+                { key: 'heavy',                  label: t('tagHeavy'),        onBg: '#FEF3C7', onColor: '#92400E', onBorder: '#FCD34D' },
+                { key: 'requires_disassembly',   label: t('tagDisassembly'),  onBg: '#DBEAFE', onColor: '#1E40AF', onBorder: '#93C5FD' },
+                { key: 'possible_furniture_lift',label: t('tagLift'),         onBg: '#DCFCE7', onColor: '#166534', onBorder: '#86EFAC' },
+              ].map(({ key, label, onBg, onColor, onBorder }) => {
+                const active = !!item[key];
+                return (
+                  <button
+                    key={key}
+                    onClick={() => updateItemFlags(room.id, item.itemId, { [key]: !active })}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '4px',
+                      background: active ? onBg : 'var(--surface2)',
+                      color: active ? onColor : 'var(--text3)',
+                      border: active ? `2px solid ${onBorder}` : '1px dashed var(--border)',
+                      borderRadius: '8px', padding: '4px 8px', fontSize: '11px',
+                      cursor: 'pointer', fontWeight: active ? '700' : '400',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Commentaire — toujours visible */}
@@ -1001,20 +1040,7 @@ function DeleteRoomModal({ roomId, roomName }) {
 
 export default function Step4Inventory() {
   const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal } = useApp();
-  const touchStartX = useRef(null);
   const [roomMenuOpen, setRoomMenuOpen] = useState(false);
-
-  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
-  const handleTouchEnd = (e) => {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(dx) < 60) return;
-    const rooms = state.rooms;
-    const idx = rooms.findIndex(r => r.id === (state.currentRoomId || rooms[0].id));
-    if (dx < 0 && idx < rooms.length - 1) selectRoom(rooms[idx + 1].id);
-    else if (dx > 0 && idx > 0) selectRoom(rooms[idx - 1].id);
-  };
 
   if (state.rooms.length === 0) {
     return (
@@ -1099,7 +1125,7 @@ export default function Step4Inventory() {
         </div>
       </div>
 
-      <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <div>
         <CatalogSection room={room} />
         <InventoryList room={room} />
         <RoomPhotosSection room={room} />
