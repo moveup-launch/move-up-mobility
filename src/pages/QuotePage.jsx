@@ -213,7 +213,7 @@ export default function QuotePage() {
         setDestination(data.destination || '');
         setLoadingPort(data.loading_port || '');
         setDestPort(data.destination_port || '');
-        setVolumeCBM(String(data.volume_cbm || ''));
+        setVolumeCBM(data.volume_cbm ? parseFloat(data.volume_cbm).toFixed(1) : '');
         setTransportMode(data.transport_mode || 'sea');
         setCarrier(data.carrier || '');
         setTransitTime(data.transit_time || '');
