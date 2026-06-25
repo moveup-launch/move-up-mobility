@@ -64,9 +64,9 @@ const DEFAULT_OPTIONAL_FR = [
   'Garde-meuble',
 ];
 const DEFAULT_OPTIONAL_EN = [
-  'Ad valorem insurance (2% declared value)',
-  'Wooden crate for TV / fragile items',
-  'Storage facility',
+  'Ad valorem insurance (2% of declared value)',
+  'Wooden crate for fragile items',
+  'Temporary storage',
 ];
 
 const DEFAULT_INCLUDED_FR = [
@@ -81,11 +81,11 @@ const DEFAULT_INCLUDED_FR = [
 const DEFAULT_INCLUDED_EN = [
   'Professional export packing',
   'Loading and container stuffing',
-  'Ocean / air freight',
-  'Export customs clearance',
+  'Sea / air freight',
+  'Export customs formalities',
   'Standard documentation',
-  'Furniture reassembly',
-  'Packing material disposal',
+  'Furniture reassembly (packed by our teams)',
+  'Same-day debris removal',
 ];
 
 const DEFAULT_EXCLUSIONS_FR = [
@@ -101,14 +101,12 @@ const DEFAULT_EXCLUSIONS_FR = [
 ];
 const DEFAULT_EXCLUSIONS_EN = [
   'DTHC (Destination Terminal Handling)',
-  'Difficult access upper floor delivery',
+  'Delivery above 1st floor or difficult access',
   'Shuttle / crane / parking permit services',
-  'Special items (piano, safe)',
+  'Special items (piano, safe, etc.)',
   'Customs duties and taxes',
-  'Demurrage charges',
+  'Demurrage fees',
   'Customs inspection fees',
-  'Transit storage',
-  'Warehouse storage',
 ];
 
 function safe(str) {

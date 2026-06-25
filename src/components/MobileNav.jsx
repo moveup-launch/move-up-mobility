@@ -1,12 +1,41 @@
 import { useApp } from '../context/AppContext';
 
 export default function MobileNav() {
-  const { lang, user, viewMode, setViewMode, openPlanVisit, currentStep, nextStep, prevStep, t, sheet, modal } = useApp();
+  const { lang, user, viewMode, setViewMode, openPlanVisit, currentStep, nextStep, prevStep, t, sheet, modal, state, selectRoom } = useApp();
   if (!user) return null;
   const isFr = lang === 'fr';
 
   if (viewMode === 'wizard') {
     if (sheet?.isOpen || modal?.isOpen) return null;
+
+    // Étape inventaire : navigation entre pièces
+    if (currentStep === 2) {
+      const rooms = state?.rooms || [];
+      const curId = state?.currentRoomId || rooms[0]?.id;
+      const idx = rooms.findIndex(r => r.id === curId);
+      const isFirst = idx <= 0;
+      const isLast  = idx >= rooms.length - 1 || rooms.length === 0;
+      return (
+        <div className="mobile-bottom-nav mobile-bottom-nav-wizard">
+          <button
+            className="btn btn-secondary"
+            onClick={() => selectRoom(rooms[idx - 1]?.id)}
+            style={{ visibility: isFirst ? 'hidden' : 'visible' }}
+          >
+            ← {isFr ? 'Pièce préc.' : 'Prev room'}
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={isLast ? nextStep : () => selectRoom(rooms[idx + 1]?.id)}
+          >
+            {isLast
+              ? (isFr ? 'Voir la synthèse →' : 'View summary →')
+              : (isFr ? 'Pièce suiv. →' : 'Next room →')}
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="mobile-bottom-nav mobile-bottom-nav-wizard">
         <button
@@ -21,9 +50,7 @@ export default function MobileNav() {
           onClick={nextStep}
           style={{ visibility: currentStep >= 3 ? 'hidden' : 'visible' }}
         >
-          {currentStep === 2
-            ? (isFr ? '✅ Terminer l\'inventaire' : '✅ Finish inventory')
-            : `${t('next')} →`}
+          {t('next')} →
         </button>
       </div>
     );

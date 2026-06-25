@@ -1039,7 +1039,7 @@ function DeleteRoomModal({ roomId, roomName }) {
 }
 
 export default function Step4Inventory() {
-  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal } = useApp();
+  const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal, nextStep } = useApp();
   const [roomMenuOpen, setRoomMenuOpen] = useState(false);
 
   if (state.rooms.length === 0) {
@@ -1096,7 +1096,17 @@ export default function Step4Inventory() {
         >
           +
         </button>
-        <div style={{ position: 'relative', marginLeft: 'auto' }}>
+        <button
+          onClick={nextStep}
+          style={{
+            marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: '12px', color: 'var(--text3)', fontWeight: '500', padding: '4px 6px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {lang === 'fr' ? 'Terminer →' : 'Finish →'}
+        </button>
+        <div style={{ position: 'relative' }}>
           <button
             className="room-sel-btn"
             style={{ fontWeight: '700', fontSize: '16px', padding: '8px 10px' }}
