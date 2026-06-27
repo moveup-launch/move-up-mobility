@@ -58,56 +58,62 @@ const DEFAULT_COST_LINES = {
   storage: ['Collection & Packing', 'Storage (per month)', 'Delivery'],
 };
 
-const DEFAULT_OPTIONAL_FR = [
-  'Assurance ad valorem (2% valeur déclarée)',
-  'Caisse bois TV / objets fragiles',
-  'Garde-meuble',
-];
-const DEFAULT_OPTIONAL_EN = [
-  'Ad valorem insurance (2% of declared value)',
-  'Wooden crate for fragile items',
-  'Temporary storage',
-];
+const DEFAULT_SERVICES_INCLUDED = {
+  fr: [
+    'Emballage professionnel export',
+    'Chargement et calage conteneur',
+    'Fret maritime / aérien',
+    'Formalités douanières export',
+    'Documentation standard',
+    'Remontage meubles démontés par nos équipes',
+    'Évacuation déchets emballages le jour de livraison',
+  ],
+  en: [
+    'Professional export packing',
+    'Loading and container stuffing',
+    'Sea / air freight transportation',
+    'Export customs formalities',
+    'Standard documentation handling',
+    'Reassembly of furniture packed by our teams',
+    'Same-day debris removal after delivery',
+  ],
+};
 
-const DEFAULT_INCLUDED_FR = [
-  'Emballage professionnel export',
-  'Chargement et calage conteneur',
-  'Fret maritime / aérien',
-  'Formalités douanières export',
-  'Documentation standard',
-  'Remontage meubles démontés',
-  'Évacuation déchets emballages',
-];
-const DEFAULT_INCLUDED_EN = [
-  'Professional export packing',
-  'Loading and container stuffing',
-  'Sea / air freight',
-  'Export customs formalities',
-  'Standard documentation',
-  'Furniture reassembly (packed by our teams)',
-  'Same-day debris removal',
-];
+const DEFAULT_EXCLUSIONS = {
+  fr: [
+    'DTHC (Destination Terminal Handling)',
+    'Livraison étage difficile accès',
+    'Services navette / grue / permis stationnement',
+    'Objets spéciaux (piano, coffre-fort)',
+    'Droits et taxes douanières',
+    'Frais de surestarie',
+    'Frais inspection douanière',
+    'Stockage en transit',
+  ],
+  en: [
+    'DTHC (Destination Terminal Handling)',
+    'Delivery above 1st floor or difficult access',
+    'Shuttle / crane / parking permit services',
+    'Special items (piano, safe, etc.)',
+    'Customs duties and taxes',
+    'Demurrage or storage charges',
+    'Customs inspection fees',
+    'Storage in transit',
+  ],
+};
 
-const DEFAULT_EXCLUSIONS_FR = [
-  'DTHC (Destination Terminal Handling)',
-  'Livraison étage difficile accès',
-  'Services navette / grue / permis stationnement',
-  'Objets spéciaux (piano, coffre-fort)',
-  'Droits et taxes douanières',
-  'Frais de surestarie',
-  'Frais inspection douanière',
-  'Stockage transit',
-  'Stockage entrepôt',
-];
-const DEFAULT_EXCLUSIONS_EN = [
-  'DTHC (Destination Terminal Handling)',
-  'Delivery above 1st floor or difficult access',
-  'Shuttle / crane / parking permit services',
-  'Special items (piano, safe, etc.)',
-  'Customs duties and taxes',
-  'Demurrage fees',
-  'Customs inspection fees',
-];
+const DEFAULT_OPTIONAL = {
+  fr: [
+    'Assurance ad valorem (2% valeur déclarée)',
+    'Caisse bois TV / objets fragiles',
+    'Garde-meuble temporaire',
+  ],
+  en: [
+    'Ad valorem insurance (2% of declared value)',
+    'Wooden crate for TV / fragile items',
+    'Temporary storage',
+  ],
+};
 
 function safe(str) {
   if (!str) return '';
@@ -128,18 +134,19 @@ function hexToRgb(hex) {
 }
 
 function loadImgAsDataUrl(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const c = document.createElement('canvas');
-      c.width = img.width; c.height = img.height;
-      c.getContext('2d').drawImage(img, 0, 0);
-      resolve({ dataUrl: c.toDataURL('image/png'), w: img.width, h: img.height });
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
+  return fetch(url)
+    .then(r => r.blob())
+    .then(blob => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => resolve({ dataUrl: reader.result, w: img.width, h: img.height });
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }));
 }
 
 export default function QuotePage() {
@@ -198,10 +205,11 @@ export default function QuotePage() {
     if (editingQuoteId) {
       const { data } = await supabase.from('quotes').select('*').eq('id', editingQuoteId).single();
       if (data) {
+        const ql = data.language || 'en';
         setQuoteId(data.id);
         setReference(data.reference || ref);
         setStatus(data.status || 'draft');
-        setQuoteLang(data.language || 'en');
+        setQuoteLang(ql);
         setValidityDate(data.validity_date || '');
         setVisitId(data.visit_id);
         setClientName(data.client_name || '');
@@ -216,9 +224,9 @@ export default function QuotePage() {
         setCarrier(data.carrier || '');
         setTransitTime(data.transit_time || '');
         setCostLines(data.cost_lines?.length ? data.cost_lines : initCostLines(data.transport_mode || 'sea'));
-        setOptionalServices(data.optional_services?.length ? data.optional_services : buildDefaultOptional());
-        setServicesIncluded(data.services_included?.length ? data.services_included : buildDefaultIncluded());
-        setExclusions(data.exclusions?.length ? data.exclusions : buildDefaultExclusions());
+        setOptionalServices(data.optional_services?.length ? data.optional_services : buildDefaultOptional(ql));
+        setServicesIncluded(data.services_included?.length ? data.services_included : buildDefaultIncluded(ql));
+        setExclusions(data.exclusions?.length ? data.exclusions : buildDefaultExclusions(ql));
         setNotes(data.notes || '');
         setLoading(false);
         return;
@@ -275,14 +283,14 @@ export default function QuotePage() {
     setLoading(false);
   };
 
-  const buildDefaultOptional = () =>
-    (isFr ? DEFAULT_OPTIONAL_FR : DEFAULT_OPTIONAL_EN).map((d, i) => ({ id: `os_${i}`, desc: d, amount: '', included: false }));
+  const buildDefaultOptional = (ql = quoteLang) =>
+    (DEFAULT_OPTIONAL[ql] || DEFAULT_OPTIONAL.en).map((d, i) => ({ id: `os_${i}`, desc: d, amount: '', included: false }));
 
-  const buildDefaultIncluded = () =>
-    (isFr ? DEFAULT_INCLUDED_FR : DEFAULT_INCLUDED_EN).map((l, i) => ({ id: `si_${i}`, label: l, checked: i < 5 }));
+  const buildDefaultIncluded = (ql = quoteLang) =>
+    (DEFAULT_SERVICES_INCLUDED[ql] || DEFAULT_SERVICES_INCLUDED.en).map((l, i) => ({ id: `si_${i}`, label: l, checked: i < 5 }));
 
-  const buildDefaultExclusions = () =>
-    (isFr ? DEFAULT_EXCLUSIONS_FR : DEFAULT_EXCLUSIONS_EN).map((l, i) => ({ id: `ex_${i}`, label: l, checked: i < 7 }));
+  const buildDefaultExclusions = (ql = quoteLang) =>
+    (DEFAULT_EXCLUSIONS[ql] || DEFAULT_EXCLUSIONS.en).map((l, i) => ({ id: `ex_${i}`, label: l, checked: i < 7 }));
 
   const totalCost = costLines.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0);
   const totalOptIncl = optionalServices
@@ -395,8 +403,8 @@ export default function QuotePage() {
 
     doc.setTextColor(255, 255, 255);
     if (profile?.company_name) {
-      doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-      doc.text(safe(profile.company_name), textX, 14);
+      doc.setFontSize(17); doc.setFont('helvetica', 'bold');
+      doc.text(safe(profile.company_name), textX, 15);
     }
     const addr = [profile?.company_address, profile?.company_phone, profile?.company_email].filter(Boolean).join('  |  ');
     if (addr) {
@@ -429,15 +437,15 @@ export default function QuotePage() {
 
     // ── Client ─────────────────────────────────────────────────────
     sectionBar(qt.preparedFor);
-    if (clientName)  labelValue(quoteLang === 'fr' ? 'Nom' : 'Name', clientName);
-    if (clientEmail) labelValue('Email', clientEmail);
-    if (clientPhone) labelValue(quoteLang === 'fr' ? 'Téléphone' : 'Phone', clientPhone);
+    labelValue(quoteLang === 'fr' ? 'Nom' : 'Name', clientName || '—');
+    labelValue('Email', clientEmail || '—');
+    labelValue(quoteLang === 'fr' ? 'Téléphone' : 'Phone', clientPhone || '—');
     y += 4;
 
     // ── Shipment details ───────────────────────────────────────────
     sectionBar(qt.shipment);
-    if (origin)      labelValue(qt.origin, origin);
-    if (destination) labelValue(qt.destination, destination);
+    labelValue(qt.origin, origin || '—');
+    labelValue(qt.destination, destination || '—');
     if (loadingPort) labelValue(qt.loadingPort, loadingPort);
     if (destPort)    labelValue(qt.destinationPort, destPort);
     if (volumeCBM)   labelValue(qt.volume, `${parseFloat(volumeCBM).toFixed(1)} CBM`);
@@ -593,10 +601,7 @@ export default function QuotePage() {
       doc.setPage(p);
       doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
       doc.setTextColor(180, 178, 172);
-      doc.text(safe(`${qt.footer} — moveupapp.com`), W / 2, 294, { align: 'center' });
-      if (profile?.company_siret) {
-        doc.text(safe(`SIRET : ${profile.company_siret}`), MARGIN, 294);
-      }
+      doc.text('Generated with Move Up Mobility - moveupapp.com', W / 2, 294, { align: 'center' });
       doc.text(safe(`${p} / ${pageCount}`), W - MARGIN, 294, { align: 'right' });
     }
 
