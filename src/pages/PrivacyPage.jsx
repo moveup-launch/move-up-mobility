@@ -67,13 +67,21 @@ export default function PrivacyPage() {
       <Section title={isFr ? '1. Responsable du traitement' : '1. Data Controller'}>
         {isFr ? (
           <>
-            <p>Thomas Hoste, entrepreneur individuel en cours d'immatriculation, est responsable du traitement des données collectées via Move Up Mobility.</p>
-            <p style={{ marginTop: 8 }}>Contact : <a href="mailto:contact@moveupapp.com" style={{ color: '#2B6BE6' }}>contact@moveupapp.com</a></p>
+            <p>Thomas Hoste — Entreprise Individuelle — est responsable du traitement des données collectées via Move Up Mobility.</p>
+            <ul style={{ paddingLeft: 20, marginTop: 8, lineHeight: 1.8 }}>
+              <li>SIRET : 943 782 490 00016</li>
+              <li>Email : <a href="mailto:thomas@eur-relocation.com" style={{ color: '#2B6BE6' }}>thomas@eur-relocation.com</a></li>
+              <li>Site : <a href="https://moveupapp.com" style={{ color: '#2B6BE6' }}>moveupapp.com</a></li>
+            </ul>
           </>
         ) : (
           <>
-            <p>Thomas Hoste, individual entrepreneur in the process of registration, is the data controller for data collected via Move Up Mobility.</p>
-            <p style={{ marginTop: 8 }}>Contact: <a href="mailto:contact@moveupapp.com" style={{ color: '#2B6BE6' }}>contact@moveupapp.com</a></p>
+            <p>Thomas Hoste — Sole Trader (Entreprise Individuelle) — is the data controller for data collected via Move Up Mobility.</p>
+            <ul style={{ paddingLeft: 20, marginTop: 8, lineHeight: 1.8 }}>
+              <li>SIRET: 943 782 490 00016</li>
+              <li>Email: <a href="mailto:thomas@eur-relocation.com" style={{ color: '#2B6BE6' }}>thomas@eur-relocation.com</a></li>
+              <li>Website: <a href="https://moveupapp.com" style={{ color: '#2B6BE6' }}>moveupapp.com</a></li>
+            </ul>
           </>
         )}
       </Section>

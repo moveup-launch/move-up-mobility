@@ -67,13 +67,13 @@ export default function TermsPage() {
       <Section title={isFr ? '1. Objet' : '1. Purpose'}>
         {isFr ? (
           <>
-            <p>Les présentes Conditions Générales d'Utilisation (CGU) régissent l'utilisation de l'application Move Up Mobility, éditée par Thomas Hoste, entrepreneur individuel en cours d'immatriculation (SIRET en cours d'attribution), domicilié en France.</p>
+            <p>Les présentes Conditions Générales d'Utilisation (CGU) régissent l'utilisation de l'application Move Up Mobility, éditée par Thomas Hoste — Entreprise Individuelle — SIRET 943 782 490 00016, domicilié en France.</p>
             <p style={{ marginTop: 8 }}>Contact : <a href="mailto:contact@moveupapp.com" style={{ color: '#2B6BE6' }}>contact@moveupapp.com</a></p>
             <p style={{ marginTop: 8 }}>Move Up Mobility est un logiciel SaaS destiné aux professionnels du déménagement pour la gestion de visites commerciales, l'estimation de volumes, la génération de rapports et de devis.</p>
           </>
         ) : (
           <>
-            <p>These Terms of Service govern the use of the Move Up Mobility application, published by Thomas Hoste, individual entrepreneur in the process of registration (SIRET number pending), based in France.</p>
+            <p>These Terms of Service govern the use of the Move Up Mobility application, published by Thomas Hoste — Sole Trader (Entreprise Individuelle) — SIRET 943 782 490 00016, based in France.</p>
             <p style={{ marginTop: 8 }}>Contact: <a href="mailto:contact@moveupapp.com" style={{ color: '#2B6BE6' }}>contact@moveupapp.com</a></p>
             <p style={{ marginTop: 8 }}>Move Up Mobility is a SaaS software for moving professionals for managing commercial surveys, estimating volumes, and generating reports and quotes.</p>
           </>
