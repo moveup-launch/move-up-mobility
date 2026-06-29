@@ -244,7 +244,7 @@ const GLOBAL_CATALOG_SECTIONS = [
 const FURNITURE_IDS = new Set([
   'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair', 'bookshelf',
   'sofa2', 'sofa3', 'sofa_corner', 'sofa_bed', 'armchair', 'coffee_table', 'tv_unit', 'buffet', 'console', 'coat_rack', 'shoe_cabinet', 'bench_hallway',
-  'kitchen_table', 'chairs', 'china_cabinet',
+  'kitchen_table', 'chairs', 'china_cabinet', 'kitchen_island',
   'dining_table', 'dining_chair', 'dining_console', 'dining_shelf',
   'office_desk', 'office_chair2', 'filing_cabinet', 'office_shelf', 'office_wardrobe',
   'garden_table', 'garden_chairs', 'garden_lounger', 'garden_set', 'garden_shed', 'garden_bike',
@@ -257,7 +257,7 @@ const FURNITURE_IDS = new Set([
 
 const ELECTRO_IDS = new Set([
   'tv', 'living_tv', 'dining_tv', 'office_tv',
-  'fridge_small', 'fridge', 'fridge_combo', 'fridge_american', 'freezer_chest', 'freezer_upright',
+  'fridge', 'freezer_chest', 'freezer_upright',
   'dishwasher', 'oven', 'microwave', 'coffee_machine', 'robot_kitchen',
   'monitor', 'computer', 'printer',
   'washing_machine', 'dryer', 'washer_dryer', 'heated_towel_rail',
@@ -267,10 +267,9 @@ const ELECTRO_IDS = new Set([
 ]);
 
 const DECO_IDS = new Set([
-  'mirror', 'frames', 'lamps', 'rug', 'plants', 'deco_fragile',
-  'living_mirror', 'living_artwork', 'kitchen_mirror', 'kitchen_artwork',
-  'dining_mirror', 'dining_artwork', 'office_mirror', 'office_artwork',
-  'bath_mirror', 'entr_mirror', 'entr_artwork', 'garden_pot', 'fireplace_decor',
+  'mirror', 'lamps', 'rug', 'plants', 'deco_fragile', 'deco_statue',
+  'living_mirror', 'kitchen_mirror', 'dining_mirror', 'office_mirror',
+  'bath_mirror', 'entr_mirror', 'garden_pot', 'fireplace_decor',
   'artwork', 'aquarium',
 ]);
 
@@ -288,6 +287,8 @@ const ALL_CATALOG_ITEMS = GLOBAL_CATALOG_SECTIONS.flatMap(catKey =>
   (CATALOG[catKey] || []).map(item => ({ catKey, item, group: getItemGroup(catKey, item.id) }))
 );
 
+const normalize = str => str.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 const CHIPS = [
   { key: 'furniture', icon: '🪑', labelFr: 'Meubles',   labelEn: 'Furniture' },
   { key: 'electro',   icon: '🔌', labelFr: 'Électro',   labelEn: 'Electro'   },
@@ -302,7 +303,7 @@ function CatalogSection({ room }) {
   const [search, setSearch] = useState('');
   const [activeChip, setActiveChip] = useState('furniture');
 
-  const query = search.trim().toLowerCase();
+  const query = normalize(search.trim());
   const allowedSections = new Set([
     ...(CATALOG.roomCatalogMap[room.type] || GLOBAL_CATALOG_SECTIONS),
     'exceptional',
@@ -311,7 +312,7 @@ function CatalogSection({ room }) {
   const frequentItems = roomItems.filter(e => FREQUENT_ITEM_IDS.has(e.item.id));
 
   const entries = query
-    ? ALL_CATALOG_ITEMS.filter(e => tCat(e.item.name).toLowerCase().includes(query))
+    ? ALL_CATALOG_ITEMS.filter(e => normalize(tCat(e.item.name)).includes(query))
     : activeChip
       ? roomItems.filter(e => e.group === activeChip)
       : frequentItems;
