@@ -355,7 +355,7 @@ export function AppProvider({ children }) {
       const id = `room_${s.nextRoomId}`;
       return {
         ...s,
-        rooms: [...s.rooms, { id, type, name, items: [], boxesDone: {}, boxesRemaining: {} }],
+        rooms: [...s.rooms, { id, type, name, isCustomName: !!customName, items: [], boxesDone: {}, boxesRemaining: {} }],
         currentRoomId: id,
         nextRoomId: s.nextRoomId + 1,
       };
@@ -373,7 +373,7 @@ export function AppProvider({ children }) {
   };
 
   const renameRoom = (id, name) =>
-    setState(s => ({ ...s, rooms: s.rooms.map(r => r.id === id ? { ...r, name } : r) }));
+    setState(s => ({ ...s, rooms: s.rooms.map(r => r.id === id ? { ...r, name, isCustomName: true } : r) }));
 
   const selectRoom = (id) => setState(s => ({ ...s, currentRoomId: id }));
 

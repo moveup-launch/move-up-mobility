@@ -2,6 +2,14 @@ import { jsPDF } from 'jspdf';
 import { CATALOG } from '../data/catalog';
 import { TRANSLATIONS } from '../data/translations';
 
+function getRoomDisplayName(room, lang) {
+  if (!room) return '';
+  if (room.isCustomName) return room.name; // nom personnalisé par l'utilisateur → jamais retraduit
+  const base = TRANSLATIONS[lang]?.[room.type] || room.type;
+  const match = String(room.name || '').match(/(\d+)\s*$/); // ex: "Chambre 2" → garde le "2"
+  return match ? `${base} ${match[1]}` : base;
+}
+
 function safe(str) {
   return String(str || '')
     .replace(/[—–]/g, '-')
@@ -57,24 +65,8 @@ function getSegmentSolution(type, volume, isFr) {
   return isFr ? 'Route / National' : 'Road / National';
 }
 
-function getTotalVolume(rooms) {
-  return (rooms || []).reduce((sum, r) =>
-    sum + (r.items || []).reduce((s, i) => s + (i.qty > 0 ? (i.volume_m3 || 0) * i.qty : 0), 0), 0
-  );
-}
-
 function getRoomVolume(room) {
   return (room.items || []).reduce((s, i) => s + (i.qty > 0 ? (i.volume_m3 || 0) * i.qty : 0), 0);
-}
-
-function getAllCrateItems(rooms) {
-  const items = [];
-  (rooms || []).forEach(r =>
-    (r.items || []).filter(i => (i.crate || i.needsCrate) && i.qty > 0).forEach(i =>
-      items.push({ ...i, roomName: r.name })
-    )
-  );
-  return items;
 }
 
 const catalogItemById = {};
@@ -111,8 +103,6 @@ export async function generateVisitPDF(visitState, profile, lang) {
   const BLACK = [15, 15, 14];
   const GRAY  = [120, 118, 112];
   const LIGHT = [245, 244, 240];
-  const BLUE  = [43, 107, 230];
-  const WARN  = [220, 140, 20];
 
   const FOOTER = isFr
     ? 'Rapport genere avec Move Up Mobility - moveupapp.com'
@@ -138,14 +128,14 @@ export async function generateVisitPDF(visitState, profile, lang) {
       try { logoInfo = await loadImageAsDataUrl(profile.company_logo_url); } catch { /* skip */ }
     }
     const brandColor = hexToRgb(profile?.company_color || '#000000');
-    const headerH = 42;
+    const headerH = 36;
     doc.setFillColor(...brandColor);
     doc.rect(0, 0, W, headerH, 'F');
     let textX = 16;
     if (logoInfo) {
       const ratio = logoInfo.w / logoInfo.h;
-      const logoH = Math.min(22, 22);
-      const logoW = Math.min(logoH * ratio, 45);
+      const logoH = Math.min(20, 20);
+      const logoW = Math.min(logoH * ratio, 42);
       const logoY = (headerH - logoH) / 2;
       try { doc.addImage(logoInfo.dataUrl, 'PNG', 14, logoY, logoW, logoH); textX = 14 + logoW + 8; } catch { /* skip */ }
     }
@@ -154,17 +144,19 @@ export async function generateVisitPDF(visitState, profile, lang) {
     doc.text(safe(profile.company_name || ''), textX, 13);
     const details = [profile.company_address, profile.company_phone, profile.company_email].filter(Boolean).join('  |  ');
     if (details) {
-      doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 210, 210);
-      doc.text(safe(details), textX, 21);
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(215, 215, 215);
+      doc.text(safe(details), textX, 20);
     }
-    doc.setFontSize(8); doc.setTextColor(170, 170, 170);
-    doc.text(isFr ? 'Rapport de visite de demenagement' : 'Moving Survey Report', textX, 30);
     if (profile.company_website) {
-      doc.setFontSize(7); doc.setTextColor(150, 150, 150);
-      doc.text(safe(profile.company_website), textX, 37);
+      const cleanWebsite = String(profile.company_website).replace(/^[^a-zA-Z0-9]+/, '');
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(195, 195, 195);
+      doc.text(safe(cleanWebsite), textX, 26);
     }
-    doc.setTextColor(255, 255, 255); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.text(new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'), W - 16, 30, { align: 'right' });
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text(isFr ? 'Rapport de visite' : 'Survey report', W - 16, 13, { align: 'right' });
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 210, 210);
+    doc.text(new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'), W - 16, 19, { align: 'right' });
     y = headerH + 12;
   } else {
     doc.setFillColor(...BLACK);
@@ -278,7 +270,7 @@ export async function generateVisitPDF(visitState, profile, lang) {
     (room.items || []).filter(i => i.qty > 0).forEach(item => {
       const m = item.transportMode || 'none';
       if (!pdfModeGroups[m]) pdfModeGroups[m] = [];
-      pdfModeGroups[m].push({ ...item, roomName: room.name });
+      pdfModeGroups[m].push({ ...item, roomName: getRoomDisplayName(room, lang) });
     });
   });
   const pdfDefinedModes = ['road', 'sea', 'air', 'storage'].filter(m => pdfModeGroups[m]?.length > 0);
@@ -362,7 +354,7 @@ export async function generateVisitPDF(visitState, profile, lang) {
       doc.setFillColor(...BLACK);
       doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
       doc.setTextColor(255, 255, 255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-      doc.text(safe(`${room.name}  -  ${getRoomVolume(room).toFixed(2)} m3`), 16, y + 4.8);
+      doc.text(safe(`${getRoomDisplayName(room, lang)}  -  ${getRoomVolume(room).toFixed(2)} m3`), 16, y + 4.8);
       y += 10;
 
       const items = (room.items || []).filter(i => i.qty > 0);
@@ -463,7 +455,7 @@ export async function generateVisitPDF(visitState, profile, lang) {
       roomsWithBoxes.forEach(({ r, boxItems }) => {
         checkY(5);
         doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
-        doc.text(safe(`${r.name} :`), 16, y);
+        doc.text(safe(`${getRoomDisplayName(r, lang)} :`), 16, y);
         const parts = boxItems.map(i => `${i.qty} ${getItemName(i, lang)}`);
         doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
         doc.text(safe(parts.join(', ')), 42, y); y += 5;
@@ -476,74 +468,6 @@ export async function generateVisitPDF(visitState, profile, lang) {
       divider();
     }
   }
-
-  // ── Volume & logistique ──────────────────────────────────────
-  const vol = getTotalVolume(visitState.rooms);
-  sectionTitle(isFr ? 'Solution logistique recommandee' : 'Recommended logistics');
-  doc.setFillColor(...BLUE);
-  doc.roundedRect(12, y, W - 24, 16, 3, 3, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-  doc.text(`${vol.toFixed(1)} m3`, W / 2, y + 7, { align: 'center' });
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-  doc.text(safe(t('totalVolumeLabel')), W / 2, y + 12, { align: 'center' });
-  y += 22;
-
-  const crateItems = getAllCrateItems(visitState.rooms);
-  if (crateItems.length > 0) {
-    checkY(6);
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WARN);
-    doc.text(safe(isFr ? 'Caisses sur mesure' : 'Custom crates'), 16, y); y += 5;
-    crateItems.forEach(item => {
-      checkY(5);
-      doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
-      const crateStr = item.crate
-        ? ` — ${isFr ? 'Caisse' : 'Crate'} ${item.crate.l}x${item.crate.w}x${item.crate.h} cm (${item.crate.vol} m3)`
-        : '';
-      doc.text(safe(`  - ${getItemName(item, lang)} (${item.roomName}) x${item.qty}${crateStr}`), 20, y); y += 5;
-    });
-  }
-
-  const segments = visitState.moveSegments || [];
-  if (segments.length > 0) {
-    checkY(6);
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK);
-    doc.text(safe(isFr ? 'Repartition du demenagement' : 'Move breakdown'), 16, y); y += 5;
-    const segTypeLabels = {
-      local:   isFr ? 'Local / National' : 'Local / National',
-      road:    isFr ? 'Routier international' : 'International road',
-      sea:     isFr ? 'Maritime' : 'Sea freight',
-      air:     isFr ? 'Aerien' : 'Air freight',
-      storage: isFr ? 'Stockage' : 'Storage',
-    };
-    segments.forEach(seg => {
-      checkY(6);
-      doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-      const typeLabel = segTypeLabels[seg.type] || seg.type;
-      const solution = getSegmentSolution(seg.type, seg.volume, isFr);
-      const volStr = seg.volume ? ` ${seg.volume}m3` : '';
-      const commentStr = seg.comment ? ` - ${seg.comment}` : '';
-      doc.text(safe(`  - ${typeLabel}${volStr} : ${solution}${commentStr}`), 20, y); y += 5;
-    });
-  }
-
-  {
-    const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
-    let grandBoxCount = 0, grandBoxVol = 0;
-    (visitState.rooms || []).forEach(r => {
-      (r.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId)).forEach(i => {
-        grandBoxCount += i.qty;
-        grandBoxVol += (i.volume_m3 || 0) * i.qty;
-      });
-    });
-    if (grandBoxCount > 0) {
-      row(
-        isFr ? 'Cartons a prevoir' : 'Boxes to prepare',
-        `${grandBoxCount} ${isFr ? 'cartons' : 'boxes'} — ${grandBoxVol.toFixed(2)} m3`
-      );
-    }
-  }
-  divider();
 
   // ── Signatures ───────────────────────────────────────────────
   checkY(40);
