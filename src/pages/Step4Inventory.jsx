@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
 import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
+
+// Bug terrain : sur mobile, un scroll rapide qui démarre sur un bouton de
+// sélection de pièce pouvait être interprété comme un tap ("clic fantôme
+// après scroll"), changeant la pièce affichée sans que l'utilisateur l'ait
+// voulu. Les boutons de pièce ci-dessous ne déclenchent le changement que si
+// le doigt n'a quasiment pas bougé entre le pointerdown et le pointerup.
 
 function ItemIcon({ catalogId, fallbackIcon, size = 28 }) {
   const Comp = CATALOG_ICON_BY_ID[catalogId];
@@ -1042,6 +1048,7 @@ function DeleteRoomModal({ roomId, roomName }) {
 export default function Step4Inventory() {
   const { t, lang, state, getTotalVolume, getRoomVolume, getRoomIcon, selectRoom, openSheet, openModal, nextStep } = useApp();
   const [roomMenuOpen, setRoomMenuOpen] = useState(false);
+  const tapStartPos = useRef(null); // partagé, un seul doigt à la fois
 
   if (state.rooms.length === 0) {
     return (
@@ -1083,7 +1090,17 @@ export default function Step4Inventory() {
           <button
             key={r.id}
             className={`room-sel-btn ${r.id === (state.currentRoomId || state.rooms[0].id) ? 'active' : ''}`}
-            onClick={() => selectRoom(r.id)}
+            onPointerDown={(e) => { tapStartPos.current = { x: e.clientX, y: e.clientY }; }}
+            onPointerMove={(e) => {
+              if (!tapStartPos.current) return;
+              const dx = Math.abs(e.clientX - tapStartPos.current.x);
+              const dy = Math.abs(e.clientY - tapStartPos.current.y);
+              if (dx > 10 || dy > 10) tapStartPos.current = null;
+            }}
+            onPointerUp={() => {
+              if (tapStartPos.current) selectRoom(r.id);
+              tapStartPos.current = null;
+            }}
           >
             <span className="sel-icon">{getRoomIcon(r.type)}</span>
             <span className="sel-name">{r.name}</span>

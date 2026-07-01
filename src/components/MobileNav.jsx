@@ -25,11 +25,11 @@ export default function MobileNav() {
             ← {isFr ? 'Pièce préc.' : 'Prev room'}
           </button>
           <button
-            className="btn btn-primary"
+            className={`btn ${isLast ? 'btn-finish-inventory' : 'btn-primary'}`}
             onClick={isLast ? nextStep : () => selectRoom(rooms[idx + 1]?.id)}
           >
             {isLast
-              ? (isFr ? 'Voir la synthèse →' : 'View summary →')
+              ? (isFr ? '✅ Voir la synthèse' : '✅ View summary')
               : (isFr ? 'Pièce suiv. →' : 'Next room →')}
           </button>
         </div>

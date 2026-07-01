@@ -522,6 +522,16 @@ textarea { min-height: 80px; resize: vertical; }
 }
 .mobile-bottom-nav-wizard .btn { flex: 1; }
 
+/* Bug terrain : le bouton "Voir la synthèse" doit se démarquer nettement du
+   bouton "Pièce suivante" (même position) pour éviter les clics accidentels
+   par habitude en fin de visite. */
+.btn-finish-inventory {
+  background: var(--success) !important;
+  color: white !important;
+  flex: 1.6 !important;
+}
+.btn-finish-inventory:active { background: #23814A !important; }
+
 /* ══════════════════════════════════════════
    DESKTOP LAYOUT  ≥ 1025px
 ══════════════════════════════════════════ */
