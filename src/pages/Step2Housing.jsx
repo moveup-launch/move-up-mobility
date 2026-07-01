@@ -109,26 +109,26 @@ function AccessBlock({ prefix, label }) {
       {/* Adresse */}
       {!d.noFixedAddress && (
         <div className="field">
-          <label>{t('originAddress')}</label>
+          <label><span className="field-icon">📍</span>{t('originAddress')}</label>
           <input type="text" value={d.address} onChange={e => update('address', e.target.value)}
             placeholder={isFr ? 'Rue, numéro...' : 'Street, number...'} />
         </div>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: d.noFixedAddress ? '1fr' : '1fr 1fr', gap: '8px' }}>
         <div className="field">
-          <label>{t('city')}</label>
+          <label><span className="field-icon">🏙️</span>{t('city')}</label>
           <input type="text" value={d.city} onChange={e => update('city', e.target.value)} />
         </div>
         {!d.noFixedAddress && (
           <div className="field">
-            <label>{t('postalCode')}</label>
+            <label><span className="field-icon">📮</span>{t('postalCode')}</label>
             <input type="text" value={d.postalCode} onChange={e => update('postalCode', e.target.value)} />
           </div>
         )}
       </div>
       {!d.noFixedAddress && (
         <div className="field">
-          <label>{t('floor')}</label>
+          <label><span className="field-icon">🔼</span>{t('floor')}</label>
           <input type="text" value={d.floor} onChange={e => update('floor', e.target.value)} placeholder="RDC / 2 / ..." />
         </div>
       )}
@@ -139,7 +139,7 @@ function AccessBlock({ prefix, label }) {
           {showElevator && (
             <>
               <div className="field">
-                <label>{t('elevator')}</label>
+                <label><span className="field-icon">🛗</span>{t('elevator')}</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {[{ val: 'yes', lbl: isFr ? 'Oui' : 'Yes' }, { val: 'no', lbl: isFr ? 'Non' : 'No' }].map(o => (
                     <div key={o.val} className={`radio-option ${d.elevator === o.val ? 'selected' : ''}`}
@@ -167,7 +167,7 @@ function AccessBlock({ prefix, label }) {
 
           {/* Stationnement */}
           <div className="field" style={{ marginTop: '6px' }}>
-            <label>{t('parkingTruck')}</label>
+            <label><span className="field-icon">🅿️</span>{t('parkingTruck')}</label>
             <YesNoCheck value={d.parkingAvailable} onChange={v => update('parkingAvailable', v)} isFr={isFr} />
           </div>
           <div className="field">
@@ -175,7 +175,7 @@ function AccessBlock({ prefix, label }) {
             <YesNoCheck value={d.accessDifficult} onChange={v => update('accessDifficult', v)} isFr={isFr} />
           </div>
           <div className="field">
-            <label style={{ fontSize: '12px' }}>{t('truckDistance')}</label>
+            <label style={{ fontSize: '12px' }}><span className="field-icon">📏</span>{t('truckDistance')}</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {truckOpts.map(o => (
                 <div key={o.val} className={`radio-option ${d.truckDistance === o.val ? 'selected' : ''}`}
@@ -215,7 +215,7 @@ function AccessBlock({ prefix, label }) {
                 </div>
               </div>
               <div className="field">
-                <label style={{ fontSize: '12px' }}>{isFr ? 'Commentaire monte-meubles' : 'Furniture lift comment'}</label>
+                <label style={{ fontSize: '12px' }}><span className="field-icon">💬</span>{isFr ? 'Commentaire monte-meubles' : 'Furniture lift comment'}</label>
                 <input
                   type="text"
                   value={d.furnitureLiftComment || ''}
@@ -238,7 +238,7 @@ function AccessBlock({ prefix, label }) {
           )}
 
           <div className="field" style={{ marginTop: '8px' }}>
-            <label>{t('accessNotes')}</label>
+            <label><span className="field-icon">📝</span>{t('accessNotes')}</label>
             <textarea value={d.accessNotes} onChange={e => update('accessNotes', e.target.value)}
               placeholder={isFr ? 'Remarques accès, digicode, gardien...' : 'Access notes, code, caretaker...'} />
           </div>

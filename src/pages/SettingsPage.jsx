@@ -81,20 +81,20 @@ function ProfileSection() {
     <Section title={`👤 ${t('settingsProfile')}`}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
         <div className="field">
-          <label>{t('firstName')}</label>
+          <label><span className="field-icon">👤</span>{t('firstName')}</label>
           <input type="text" value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="Jean" />
         </div>
         <div className="field">
-          <label>{t('lastName')}</label>
+          <label><span className="field-icon">👤</span>{t('lastName')}</label>
           <input type="text" value={form.last_name} onChange={e => set('last_name', e.target.value)} placeholder="Dupont" />
         </div>
       </div>
       <div className="field">
-        <label>{t('companyName')}</label>
+        <label><span className="field-icon">🏢</span>{t('companyName')}</label>
         <input type="text" value={form.company_name} onChange={e => set('company_name', e.target.value)} placeholder="Move Up SAS" />
       </div>
       <div className="field">
-        <label>{t('phone')}</label>
+        <label><span className="field-icon">📱</span>{t('phone')}</label>
         <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+33 6 12 34 56 78" />
       </div>
       <button
@@ -196,9 +196,7 @@ function CompanySection() {
             : `Save error: ${saveErr.message}`);
           setLogoPreview(null);
         } else {
-          // Succès : l'URL propre est dans profile.company_logo_url via AppContext
-          // logoPreview (base64) garde l'affichage immédiat, s'efface au rechargement
-          setLogoPreview(null); // laisser profile.company_logo_url prendre le relais
+          setLogoPreview(null);
         }
       }
     } catch (err) {
@@ -293,7 +291,7 @@ function CompanySection() {
 
       {/* Nom entreprise */}
       <div className="field">
-        <label>{isFr ? "Nom de l'entreprise" : 'Company name'}</label>
+        <label><span className="field-icon">🏢</span>{isFr ? "Nom de l'entreprise" : 'Company name'}</label>
         <input
           type="text"
           value={form.company_name}
@@ -304,7 +302,7 @@ function CompanySection() {
 
       {/* Adresse */}
       <div className="field">
-        <label>{isFr ? 'Adresse entreprise' : 'Company address'}</label>
+        <label><span className="field-icon">📍</span>{isFr ? 'Adresse entreprise' : 'Company address'}</label>
         <input
           type="text"
           value={form.company_address}
@@ -316,7 +314,7 @@ function CompanySection() {
       {/* Téléphone + Email */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <div className="field">
-          <label>{isFr ? 'Téléphone' : 'Phone'}</label>
+          <label><span className="field-icon">📱</span>{isFr ? 'Téléphone' : 'Phone'}</label>
           <input
             type="tel"
             value={form.company_phone}
@@ -325,7 +323,7 @@ function CompanySection() {
           />
         </div>
         <div className="field">
-          <label>Email</label>
+          <label><span className="field-icon">✉️</span>Email</label>
           <input
             type="email"
             value={form.company_email}
@@ -338,7 +336,7 @@ function CompanySection() {
       {/* Site web + SIRET */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <div className="field">
-          <label>{isFr ? 'Site web' : 'Website'}</label>
+          <label><span className="field-icon">🌐</span>{isFr ? 'Site web' : 'Website'}</label>
           <input
             type="text"
             value={form.company_website}
@@ -347,7 +345,7 @@ function CompanySection() {
           />
         </div>
         <div className="field">
-          <label>{isFr ? 'SIRET (optionnel)' : 'SIRET (optional)'}</label>
+          <label><span className="field-icon">🧾</span>{isFr ? 'SIRET (optionnel)' : 'SIRET (optional)'}</label>
           <input
             type="text"
             value={form.company_siret}
@@ -359,7 +357,7 @@ function CompanySection() {
 
       {/* Couleur principale */}
       <div className="field">
-        <label>{isFr ? 'Couleur principale' : 'Brand color'}</label>
+        <label><span className="field-icon">🎨</span>{isFr ? 'Couleur principale' : 'Brand color'}</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <input
             type="color"

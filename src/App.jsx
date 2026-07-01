@@ -10,6 +10,7 @@ import Modal from './components/Modal';
 import SidebarNav from './components/SidebarNav';
 import LiveVolumePanel from './components/LiveVolumePanel';
 import DemoBanner from './components/DemoBanner';
+import BoxMascot from './components/BoxMascot';
 import Step1Client from './pages/Step1Client';
 import Step2Housing from './pages/Step2Housing';
 import Step4Inventory from './pages/Step4Inventory';
@@ -202,7 +203,7 @@ function AppContent() {
   if (authLoading) {
     content = (
       <div id="app" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 40 }}>📦</div>
+        <BoxMascot mood="loading" size={56} className="mascot-breathe" />
       </div>
     );
   } else if (!user) {

@@ -317,8 +317,14 @@ export async function generateVisitPDF(visitState, profile, lang) {
   }
 
   if (pdfDefinedModes.length >= 2) {
+    // Bug connu : le mode "route" affichait toujours "Route / National" même
+    // pour un déménagement international par la route. On distingue maintenant
+    // selon le type de déménagement déclaré pour cette visite.
+    const isRoadInternational = primaryMoveType !== 'local';
     const modeHeaders = {
-      road:    isFr ? 'ROUTE / NATIONAL' : 'ROAD / NATIONAL',
+      road:    isRoadInternational
+        ? (isFr ? 'ROUTIER INTERNATIONAL' : 'INTERNATIONAL ROAD')
+        : (isFr ? 'ROUTE / NATIONAL' : 'ROAD / NATIONAL'),
       sea:     isFr ? 'MARITIME' : 'SEA',
       air:     isFr ? 'AERIEN' : 'AIR',
       storage: isFr ? 'STOCKAGE' : 'STORAGE',
@@ -467,6 +473,13 @@ export async function generateVisitPDF(visitState, profile, lang) {
     } else {
       divider();
     }
+  }
+
+  // ── Volume total ─────────────────────────────────────────────
+  {
+    const totalVol = (visitState.rooms || []).reduce((s, r) => s + getRoomVolume(r), 0);
+    row(isFr ? 'Volume total estime' : 'Total estimated volume', `${totalVol.toFixed(1)} m3`);
+    divider();
   }
 
   // ── Signatures ───────────────────────────────────────────────

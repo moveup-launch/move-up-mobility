@@ -251,6 +251,7 @@ export const CATALOG = {
     },
     { id: "freezer_chest", name: { fr: "Congélateur coffre", en: "Chest freezer" }, icon: "🧊", variants: [{ id: "freezer_chest_std", label: { fr: "Congélateur coffre", en: "Chest freezer" }, volume_m3: 0.6, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "freezer_upright", name: { fr: "Congélateur armoire", en: "Upright freezer" }, icon: "🧊", variants: [{ id: "freezer_up_std", label: { fr: "Congélateur armoire", en: "Upright freezer" }, volume_m3: 0.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "wine_fridge", name: { fr: "Cave à vin", en: "Wine fridge" }, icon: "🍷", variants: [{ id: "wf_std", label: { fr: "Cave à vin", en: "Wine fridge" }, volume_m3: 0.35, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     {
       id: "dishwasher",
       name: { fr: "Lave-vaisselle", en: "Dishwasher" },
@@ -306,6 +307,7 @@ export const CATALOG = {
         { id: "island_large", label: { fr: "Grand îlot", en: "Large island" }, volume_m3: 0.8, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
       ]
     },
+    { id: "bar_stools", name: { fr: "Tabouret de bar", en: "Bar stool" }, icon: "🪑", variants: [{ id: "bstool_std", label: { fr: "Tabouret de bar", en: "Bar stool" }, volume_m3: 0.12, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
   ],
 
   diningRoom: [
@@ -367,9 +369,21 @@ export const CATALOG = {
         { id: "odesk_small", label: { fr: "Petit bureau", en: "Small desk" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "odesk_std", label: { fr: "Bureau standard", en: "Standard desk" }, volume_m3: 0.5, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "odesk_large", label: { fr: "Grand bureau / L", en: "Large / L-shaped desk" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+        { id: "odesk_standing", label: { fr: "Bureau assis-debout électrique", en: "Electric standing desk" }, volume_m3: 0.7, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
       ]
     },
     { id: "office_chair2", name: { fr: "Chaise de bureau", en: "Office chair" }, icon: "🪑", variants: [{ id: "ochair_std", label: { fr: "Chaise de bureau", en: "Office chair" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "office_guest_chair", name: { fr: "Chaise visiteur / réunion", en: "Guest / meeting chair" }, icon: "🪑", variants: [{ id: "oguest_std", label: { fr: "Chaise visiteur", en: "Guest chair" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    {
+      id: "meeting_table",
+      name: { fr: "Table de réunion", en: "Meeting table" },
+      icon: "🪑",
+      variants: [
+        { id: "mtable_small", label: { fr: "Petite table de réunion (4-6p)", en: "Small meeting table (4-6p)" }, volume_m3: 0.8, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+        { id: "mtable_large", label: { fr: "Grande table de réunion (8p+)", en: "Large meeting table (8p+)" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: true },
+      ]
+    },
+    { id: "reception_desk", name: { fr: "Comptoir / Meuble d'accueil", en: "Reception desk" }, icon: "🛎️", variants: [{ id: "rdesk_std", label: { fr: "Comptoir d'accueil", en: "Reception desk" }, volume_m3: 1.2, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false }] },
     {
       id: "monitor",
       name: { fr: "Écran / Monitor", en: "Monitor / Screen" },
@@ -397,6 +411,8 @@ export const CATALOG = {
         { id: "printer_large", label: { fr: "Imprimante grand format", en: "Large format printer" }, volume_m3: 0.3, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
+    { id: "shredder", name: { fr: "Destructeur de documents", en: "Paper shredder" }, icon: "🗑️", variants: [{ id: "shred_std", label: { fr: "Destructeur de documents", en: "Paper shredder" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "office_fridge", name: { fr: "Petit frigo bureau", en: "Mini office fridge" }, icon: "🧊", variants: [{ id: "ofridge_std", label: { fr: "Petit frigo bureau", en: "Mini office fridge" }, volume_m3: 0.15, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     {
       id: "filing_cabinet",
       name: { fr: "Caisson / Classeur", en: "Filing cabinet" },
@@ -409,6 +425,7 @@ export const CATALOG = {
     },
     { id: "office_shelf", name: { fr: "Étagère bureau", en: "Office shelf" }, icon: "📚", variants: [{ id: "oshelf_std", label: { fr: "Étagère standard", en: "Standard shelf" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false }] },
     { id: "office_wardrobe", name: { fr: "Armoire à dossiers", en: "Document wardrobe" }, icon: "🚪", variants: [{ id: "oward_std", label: { fr: "Armoire à dossiers standard", en: "Standard document wardrobe" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "whiteboard", name: { fr: "Tableau blanc mural", en: "Wall whiteboard" }, icon: "🖊️", variants: [{ id: "wb_std", label: { fr: "Tableau blanc mural", en: "Wall whiteboard" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: true, possible_furniture_lift: false }] },
     { id: "office_mirror", name: { fr: "Miroir bureau", en: "Office mirror" }, icon: "🪞", variants: [{ id: "om_std", label: { fr: "Miroir bureau", en: "Office mirror" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     {
       id: "office_tv",
@@ -523,6 +540,8 @@ export const CATALOG = {
     { id: "golf_bag", name: { fr: "Sac de golf", en: "Golf bag" }, icon: "⛳", variants: [{ id: "golf_bag_std", label: { fr: "Sac de golf", en: "Golf bag" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "car_seat_gb", name: { fr: "Siège auto enfant", en: "Child car seat" }, icon: "🪑", variants: [{ id: "car_seat_gb_std", label: { fr: "Siège auto enfant", en: "Child car seat" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "suitcases", name: { fr: "Valises", en: "Suitcases" }, icon: "🧳", variants: [{ id: "suitcase_lot", label: { fr: "Lot de valises", en: "Set of suitcases" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "roof_box", name: { fr: "Coffre de toit", en: "Roof box" }, icon: "🚗", variants: [{ id: "rbox_std", label: { fr: "Coffre de toit", en: "Roof box" }, volume_m3: 0.5, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "ski_equipment", name: { fr: "Équipement de ski / snowboard", en: "Ski / snowboard equipment" }, icon: "🎿", variants: [{ id: "ski_lot", label: { fr: "Lot skis + bâtons + chaussures", en: "Skis + poles + boots set" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
   ],
 
   laundry: [

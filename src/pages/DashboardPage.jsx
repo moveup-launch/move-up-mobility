@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
+import BoxMascot from '../components/BoxMascot';
 
 const QUICK_BTN = {
   width: '100%', textAlign: 'left', padding: '9px 12px',
@@ -357,6 +358,31 @@ export default function DashboardPage() {
           );
         })()}
 
+        {/* Petites victoires — discret, valorise l'usage régulier sans faire "gadget" */}
+        {(() => {
+          const VISIT_MILESTONES = [10, 25, 50, 100, 250, 500];
+          const VOLUME_MILESTONES = [100, 500, 1000, 2500, 5000, 10000];
+          const completedVisits = allVisits.filter(v => (v.total_volume || 0) > 0);
+          const totalVolumeSum = completedVisits.reduce((s, v) => s + (v.total_volume || 0), 0);
+          const visitMilestone = [...VISIT_MILESTONES].reverse().find(m => completedVisits.length >= m);
+          const volumeMilestone = [...VOLUME_MILESTONES].reverse().find(m => totalVolumeSum >= m);
+          if (!visitMilestone && !volumeMilestone) return null;
+          return (
+            <div className="achievement-row">
+              {visitMilestone && (
+                <div className="achievement-badge">
+                  🏆 {visitMilestone} {isFr ? 'visites réalisées' : 'visits completed'}
+                </div>
+              )}
+              {volumeMilestone && (
+                <div className="achievement-badge">
+                  📦 {volumeMilestone} m³ {isFr ? 'cumulés' : 'total moved'}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* CTA Nouvelle visite */}
         <button className="dashboard-cta" onClick={() => {
           const plan = profile?.plan || 'free';
@@ -436,8 +462,8 @@ export default function DashboardPage() {
 
             {upcoming.length === 0 ? (
               <div className="empty-state" style={{ paddingTop: 16 }}>
-                <div className="empty-icon">📅</div>
-                <div className="empty-title">{isFr ? 'Aucune visite planifiée' : 'No visits planned'}</div>
+                <BoxMascot mood="neutral" size={56} />
+                <div className="empty-title" style={{ marginTop: 10 }}>{isFr ? 'Aucune visite planifiée' : 'No visits planned'}</div>
                 <button
                   style={{
                     marginTop: '12px', padding: '10px 20px', borderRadius: '10px',

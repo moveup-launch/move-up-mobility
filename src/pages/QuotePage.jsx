@@ -413,8 +413,9 @@ export default function QuotePage() {
       doc.text(safe(addr), textX, 22);
     }
     if (profile?.company_website) {
+      const cleanWebsite = String(profile.company_website).replace(/^[^a-zA-Z0-9]+/, '');
       doc.setFontSize(6.5); doc.setTextColor(180, 180, 180);
-      doc.text(safe(profile.company_website), textX, 29);
+      doc.text(safe(cleanWebsite), textX, 29);
     }
 
     // Quote title + ref (right)
@@ -529,10 +530,11 @@ export default function QuotePage() {
       const rowH = 5.2;
       inclList.forEach((s, i) => {
         const ry = y + i * rowH;
-        doc.setFontSize(7.8); doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0, 140, 60);
-        doc.text(String.fromCharCode(0xF6), leftX + 2, ry + 4);
+        doc.setDrawColor(0, 140, 60); doc.setLineWidth(0.55);
+        doc.line(leftX + 1.3, ry + 2.6, leftX + 2.3, ry + 3.6);
+        doc.line(leftX + 2.3, ry + 3.6, leftX + 4.3, ry + 1.2);
         doc.setTextColor(...DARK);
+        doc.setFontSize(7.8); doc.setFont('helvetica', 'normal');
         const txt = doc.splitTextToSize(safe(s.label), halfW - 10);
         doc.text(txt[0] || '', leftX + 7, ry + 4);
       });

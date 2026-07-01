@@ -252,7 +252,7 @@ const FURNITURE_IDS = new Set([
   'sofa2', 'sofa3', 'sofa_corner', 'sofa_bed', 'armchair', 'coffee_table', 'tv_unit', 'buffet', 'console', 'coat_rack', 'shoe_cabinet', 'bench_hallway',
   'kitchen_table', 'chairs', 'china_cabinet', 'kitchen_island',
   'dining_table', 'dining_chair', 'dining_console', 'dining_shelf',
-  'office_desk', 'office_chair2', 'filing_cabinet', 'office_shelf', 'office_wardrobe',
+  'office_desk', 'office_chair2', 'office_guest_chair', 'meeting_table', 'reception_desk', 'whiteboard', 'filing_cabinet', 'office_shelf', 'office_wardrobe',
   'garden_table', 'garden_chairs', 'garden_lounger', 'garden_set', 'garden_shed', 'garden_bike',
   'shelving', 'workbench', 'stepladder', 'ladder',
   'vanity_unit', 'storage_column_bath', 'medicine_cabinet', 'bath_stool', 'bathtub', 'washbasin',
@@ -263,9 +263,9 @@ const FURNITURE_IDS = new Set([
 
 const ELECTRO_IDS = new Set([
   'tv', 'living_tv', 'dining_tv', 'office_tv',
-  'fridge', 'freezer_chest', 'freezer_upright',
+  'fridge', 'freezer_chest', 'freezer_upright', 'wine_fridge',
   'dishwasher', 'oven', 'microwave', 'coffee_machine', 'robot_kitchen',
-  'monitor', 'computer', 'printer',
+  'monitor', 'computer', 'printer', 'shredder', 'office_fridge',
   'washing_machine', 'dryer', 'washer_dryer', 'heated_towel_rail',
   'vacuum_cleaner', 'steam_cleaner', 'dining_hifi', 'bike_electric',
   'garden_mower', 'mower', 'iron_board', 'ironing_board_standalone',
@@ -308,6 +308,7 @@ function CatalogSection({ room }) {
   const isFr = lang === 'fr';
   const [search, setSearch] = useState('');
   const [activeChip, setActiveChip] = useState('furniture');
+  const [pulseKey, setPulseKey] = useState(null); // petit rebond visuel à l'ajout
 
   const query = normalize(search.trim());
   const allowedSections = new Set([
@@ -330,6 +331,9 @@ function CatalogSection({ room }) {
   const handleItemClick = (item, catKey) => {
     if (item.variants.length === 1) {
       addItemToRoom(room.id, catKey, item.id, item.variants[0].id);
+      const key = `${catKey}_${item.id}`;
+      setPulseKey(key);
+      setTimeout(() => setPulseKey(k => (k === key ? null : k)), 350);
     } else {
       openSheet(<QuickAdjustSheet roomId={room.id} catKey={catKey} itemId={item.id} />);
     }
@@ -405,7 +409,7 @@ function CatalogSection({ room }) {
           return (
             <div
               key={`${catKey}_${item.id}`}
-              className={`item-card ${qty > 0 ? 'in-inventory' : ''}`}
+              className={`item-card ${qty > 0 ? 'in-inventory' : ''} ${pulseKey === `${catKey}_${item.id}` ? 'item-card-pulse' : ''}`}
               style={{ position: 'relative' }}
               onClick={() => handleItemClick(item, catKey)}
             >

@@ -79,6 +79,7 @@ const initialState = {
   householdPersons: 0,
   transportOverride: null,
   editingVisitId: null,
+  justFinishedInventory: false,
 };
 
 export function AppProvider({ children }) {
@@ -168,7 +169,14 @@ export function AppProvider({ children }) {
   const goToStep = (i) => {
     if (i >= 0 && i <= 3) setCurrentStepState(i);
   };
-  const nextStep = () => setCurrentStepState(s => Math.min(3, s + 1));
+  const nextStep = () => {
+    setCurrentStepState(s => {
+      if (s === 2) setState(st => ({ ...st, justFinishedInventory: true }));
+      return Math.min(3, s + 1);
+    });
+  };
+  const clearJustFinishedInventory = () =>
+    setState(s => ({ ...s, justFinishedInventory: false }));
   const prevStep = () => setCurrentStepState(s => Math.max(0, s - 1));
 
   const signOut = async () => {
@@ -1105,7 +1113,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       lang, setLang,
-      currentStep, goToStep, nextStep, prevStep,
+      currentStep, goToStep, nextStep, prevStep, clearJustFinishedInventory,
       state,
       t, tCat,
       updateClient, updateOrigin, updateDestination,

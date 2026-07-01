@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG } from '../data/catalog';
 import Step6PDF from './Step6PDF';
+import BoxMascot from '../components/BoxMascot';
 
 const MOVE_TYPE_OPTIONS_FR = [
   { val: 'local', label: 'Local / National' },
@@ -75,6 +76,43 @@ function MoveSegmentRow({ seg }) {
   );
 }
 
+function CompletionCelebration({ isFr, vol, roomCount, itemCount, onClose }) {
+  return (
+    <div className="celebration-overlay" onClick={onClose}>
+      <div className="celebration-card" onClick={e => e.stopPropagation()}>
+        <div className="celebration-burst">
+          {['🎉', '📦', '✨', '🚚', '⭐'].map((emoji, i) => (
+            <span key={i} className={`celebration-particle celebration-particle-${i}`}>{emoji}</span>
+          ))}
+          <div className="celebration-check">
+            <BoxMascot mood="happy" size={44} />
+          </div>
+        </div>
+        <div className="celebration-title">
+          {isFr ? 'Visite terminée !' : 'Visit completed!'}
+        </div>
+        <div className="celebration-stats">
+          <div className="celebration-stat">
+            <div className="celebration-stat-num">{vol.toFixed(1)}</div>
+            <div className="celebration-stat-label">m³</div>
+          </div>
+          <div className="celebration-stat">
+            <div className="celebration-stat-num">{roomCount}</div>
+            <div className="celebration-stat-label">{isFr ? 'pièces' : 'rooms'}</div>
+          </div>
+          <div className="celebration-stat">
+            <div className="celebration-stat-num">{itemCount}</div>
+            <div className="celebration-stat-label">{isFr ? 'objets' : 'items'}</div>
+          </div>
+        </div>
+        <button className="btn btn-primary celebration-btn" onClick={onClose}>
+          {isFr ? 'Voir le récapitulatif' : 'View summary'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Step5Summary() {
   const {
     t, lang, state, profile,
@@ -82,7 +120,7 @@ export default function Step5Summary() {
     getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems,
     getRoomVolume, getRoomIcon,
     getSegmentSolution, getItemsByTransportMode,
-    saveVisit, setViewMode, addMoveSegment, openNewQuote,
+    saveVisit, setViewMode, addMoveSegment, openNewQuote, clearJustFinishedInventory,
   } = useApp();
 
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -95,6 +133,23 @@ export default function Step5Summary() {
   const isFr = lang === 'fr';
   const isEditing = !!state.editingVisitId;
   const segments = state.moveSegments || [];
+
+  // Petit moment de satisfaction en fin de visite fraîchement complétée
+  // (pas ré-affiché si on rouvre une visite existante pour la modifier).
+  const [showCelebration, setShowCelebration] = useState(!!state.justFinishedInventory);
+  const totalItems = state.rooms.reduce((s, r) =>
+    s + (r.items || []).filter(i => i.qty > 0).reduce((ss, i) => ss + i.qty, 0), 0);
+
+  useEffect(() => {
+    if (state.justFinishedInventory) clearJustFinishedInventory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!showCelebration) return;
+    const timer = setTimeout(() => setShowCelebration(false), 4000);
+    return () => clearTimeout(timer);
+  }, [showCelebration]);
 
   const handleSave = async () => {
     setSaveStatus('saving');
@@ -138,6 +193,15 @@ export default function Step5Summary() {
 
   return (
     <>
+      {showCelebration && (
+        <CompletionCelebration
+          isFr={isFr}
+          vol={vol}
+          roomCount={state.rooms.length}
+          itemCount={totalItems}
+          onClose={() => setShowCelebration(false)}
+        />
+      )}
       <div className="section-header">
         <div className="section-title">{t('summary')}</div>
         {isEditing && (
