@@ -80,6 +80,11 @@ export default function VisitCard({
     : `Hello ${clientFirstName}, your moving visit is confirmed on ${dateStr}${timeStr ? ' at ' + timeStr : ''}.\n\n${smsSignature}`;
   const smsHref = phone ? `sms:${phone}?body=${encodeURIComponent(smsBody)}` : '';
 
+  const proposeSmsBody = isFr
+    ? `Bonjour ${clientFirstName}, nous vous proposons de passer réaliser votre visite de déménagement le ${dateStr}${timeStr ? ' à ' + timeStr : ''}. Cette date vous convient-elle ? N'hésitez pas à nous indiquer vos disponibilités si besoin.\n\n${smsSignature}`
+    : `Hello ${clientFirstName}, we would like to propose ${dateStr}${timeStr ? ' at ' + timeStr : ''} for your moving survey visit. Does this work for you? Let us know your availability if not.\n\n${smsSignature}`;
+  const proposeSmsHref = phone ? `sms:${phone}?body=${encodeURIComponent(proposeSmsBody)}` : '';
+
   const emailSignature = [
     commercialFullName,
     companyName,
@@ -97,6 +102,14 @@ export default function VisitCard({
     : `Hello ${clientFirstName},\n\nWe confirm your moving visit:\n\nDate: ${dateStr}\nTime: ${timeStr || 'To be confirmed'}\nAddress: ${address || 'To be confirmed'}\n\nOur team will be there to assess your move.\n\n${emailSignature}`;
   const mailtoHref = email
     ? `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBodyText)}`
+    : '';
+
+  const proposeEmailSubject = isFr ? 'Proposition de date de visite' : 'Visit date proposal';
+  const proposeEmailBody = isFr
+    ? `Bonjour ${clientFirstName},\n\nNous vous proposons de passer réaliser votre visite de déménagement :\n\nDate proposée : ${dateStr}\nHeure : ${timeStr || 'À définir'}\n\nCette date vous convient-elle ? N'hésitez pas à nous indiquer vos disponibilités si vous préférez un autre créneau.\n\n${emailSignature}`
+    : `Hello ${clientFirstName},\n\nWe would like to propose the following for your moving survey visit:\n\nProposed date: ${dateStr}\nTime: ${timeStr || 'To be defined'}\n\nDoes this work for you? Let us know your availability if you'd prefer another slot.\n\n${emailSignature}`;
+  const proposeMailtoHref = email
+    ? `mailto:${email}?subject=${encodeURIComponent(proposeEmailSubject)}&body=${encodeURIComponent(proposeEmailBody)}`
     : '';
 
   const btn = {
@@ -319,7 +332,36 @@ export default function VisitCard({
         </div>
       )}
 
-      {/* Boutons confirmation SMS + Email */}
+      {!isPast && (
+        <>
+          <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text3)', marginTop: '8px', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+            {isFr ? '1. Proposer la date' : '1. Propose the date'}
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {phone ? (
+              <a href={proposeSmsHref} style={{ ...btn, flex: 1, background: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA', textDecoration: 'none' }}>
+                📱 SMS
+              </a>
+            ) : (
+              <button disabled style={{ ...btn, flex: 1, background: 'var(--surface2)', color: 'var(--text3)', border: '1px solid var(--border)', opacity: 0.4, cursor: 'not-allowed' }}>
+                📱 SMS
+              </button>
+            )}
+            {email ? (
+              <a href={proposeMailtoHref} style={{ ...btn, flex: 1, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', textDecoration: 'none' }}>
+                📧 Email
+              </a>
+            ) : (
+              <button disabled style={{ ...btn, flex: 1, background: 'var(--surface2)', color: 'var(--text3)', border: '1px solid var(--border)', opacity: 0.4, cursor: 'not-allowed' }}>
+                📧 Email
+              </button>
+            )}
+          </div>
+          <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text3)', marginTop: '8px', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+            {isFr ? '2. Confirmer le RDV' : '2. Confirm the appointment'}
+          </div>
+        </>
+      )}
       <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
         {phone ? (
           <a

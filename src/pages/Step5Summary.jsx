@@ -124,6 +124,7 @@ export default function Step5Summary() {
   } = useApp();
 
   const [saveStatus, setSaveStatus] = useState('idle');
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const vol = getTotalVolume();
   const fragile = getAllFragile();
@@ -162,6 +163,8 @@ export default function Step5Summary() {
     }
   };
 
+  const trackingUrl = state.shareToken ? `${window.location.origin}/suivi/${state.shareToken}` : null;
+
   const handleSendSMS = () => {
     const phone = state.client.phone;
     if (!phone) return;
@@ -169,9 +172,10 @@ export default function Step5Summary() {
     const surveyor = state.client.surveyor || profile?.first_name || '';
     const company = profile?.company_name || '';
     const sign = [surveyor, company].filter(Boolean).join(' - ');
+    const linkLine = trackingUrl ? (isFr ? `\n\nSuivez votre dossier ici : ${trackingUrl}` : `\n\nTrack your file here: ${trackingUrl}`) : '';
     const msg = isFr
-      ? `Bonjour ${firstName}, merci pour cette visite. Nous revenons vers vous très prochainement avec notre proposition. À bientôt${sign ? ', ' + sign : ''}`
-      : `Hello ${firstName}, thank you for this visit. We will get back to you very soon with our proposal. See you soon${sign ? ', ' + sign : ''}`;
+      ? `Bonjour ${firstName}, merci pour cette visite. Nous revenons vers vous très prochainement avec notre proposition.${linkLine} À bientôt${sign ? ', ' + sign : ''}`
+      : `Hello ${firstName}, thank you for this visit. We will get back to you very soon with our proposal.${linkLine} See you soon${sign ? ', ' + sign : ''}`;
     window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`);
   };
 
@@ -185,9 +189,10 @@ export default function Step5Summary() {
     const dest = state.destination.noFixedAddress
       ? (isFr ? state.destination.city || 'Destination à définir' : state.destination.city || 'Destination TBD')
       : [state.destination.address, state.destination.postalCode, state.destination.city].filter(Boolean).join(', ');
+    const linkLine = trackingUrl ? (isFr ? `\n\nSuivez votre dossier ici : ${trackingUrl}` : `\n\nTrack your file here: ${trackingUrl}`) : '';
     const body = isFr
-      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³\n\nCordialement,\n${state.client.surveyor || ''}`
-      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³\n\nBest regards,\n${state.client.surveyor || ''}`;
+      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³${linkLine}\n\nCordialement,\n${state.client.surveyor || ''}`
+      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³${linkLine}\n\nBest regards,\n${state.client.surveyor || ''}`;
     window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
@@ -489,6 +494,22 @@ export default function Step5Summary() {
                   </button>
                 )}
               </div>
+            )}
+            {trackingUrl && (
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(trackingUrl);
+                  setLinkCopied(true);
+                  setTimeout(() => setLinkCopied(false), 2000);
+                }}
+                style={{
+                  width: '100%', marginTop: '8px', padding: '10px', borderRadius: '10px',
+                  border: '1.5px dashed var(--border)', background: 'var(--surface2)', color: 'var(--text2)',
+                  fontWeight: '600', fontSize: '12.5px', cursor: 'pointer',
+                }}
+              >
+                {linkCopied ? '✅ ' + (isFr ? 'Lien copié !' : 'Link copied!') : '🔗 ' + (isFr ? 'Copier le lien de suivi client' : "Copy client's tracking link")}
+              </button>
             )}
           </div>
         ) : (

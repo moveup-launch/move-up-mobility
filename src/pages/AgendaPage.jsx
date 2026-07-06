@@ -16,6 +16,79 @@ function sortByDateTime(a, b) {
   return da < db ? -1 : da > db ? 1 : 0;
 }
 
+function ymd(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function buildMonthGrid(year, month) {
+  const first = new Date(year, month, 1);
+  const firstWeekday = (first.getDay() + 6) % 7;
+  const start = new Date(year, month, 1 - firstWeekday);
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
+const WEEKDAY_LABELS_FR = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const WEEKDAY_LABELS_EN = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+function MonthCalendar({ visitsByDate, statusColors, today, selectedDay, onSelectDay, isFr }) {
+  const [cursor, setCursor] = useState(() => {
+    const t = new Date();
+    return new Date(t.getFullYear(), t.getMonth(), 1);
+  });
+
+  const days = buildMonthGrid(cursor.getFullYear(), cursor.getMonth());
+  const monthLabel = cursor.toLocaleDateString(isFr ? 'fr-FR' : 'en-US', { month: 'long', year: 'numeric' });
+  const weekdayLabels = isFr ? WEEKDAY_LABELS_FR : WEEKDAY_LABELS_EN;
+
+  return (
+    <div className="month-calendar">
+      <div className="month-calendar-nav">
+        <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() - 1, 1))}>‹</button>
+        <div className="month-calendar-label">{monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}</div>
+        <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() + 1, 1))}>›</button>
+      </div>
+      <div className="month-calendar-weekdays">
+        {weekdayLabels.map((w, i) => <div key={i}>{w}</div>)}
+      </div>
+      <div className="month-calendar-grid">
+        {days.map((d, i) => {
+          const key = ymd(d);
+          const inMonth = d.getMonth() === cursor.getMonth();
+          const dayVisits = visitsByDate[key] || [];
+          const isToday = key === today;
+          const isSelected = key === selectedDay;
+          return (
+            <div
+              key={i}
+              className={`month-calendar-day ${inMonth ? '' : 'muted'} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+              onClick={() => inMonth && onSelectDay(key)}
+            >
+              <span className="month-calendar-daynum">{d.getDate()}</span>
+              {dayVisits.length > 0 && (
+                <div className="month-calendar-dots">
+                  {dayVisits.slice(0, 3).map((v, di) => (
+                    <span
+                      key={di}
+                      className="month-calendar-dot"
+                      style={{ background: (statusColors[v.visit_status || 'prevue'] || statusColors.prevue).color }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function AgendaPage() {
   const { t, lang, loadVisit, goToStep, planVisitSignal } = useApp();
   const isFr = lang === 'fr';
@@ -31,6 +104,8 @@ export default function AgendaPage() {
   const [updatingStatus, setUpdatingStatus] = useState(null);
   const [opening, setOpening] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [viewMode, setViewMode] = useState('list');
+  const [selectedDay, setSelectedDay] = useState(null);
 
   const today = localToday();
 
@@ -167,6 +242,48 @@ export default function AgendaPage() {
 
   const filteredVisits = getFiltered();
 
+  const visitsByDate = allVisits.reduce((acc, v) => {
+    if (!v.visit_date) return acc;
+    (acc[v.visit_date] = acc[v.visit_date] || []).push(v);
+    return acc;
+  }, {});
+
+  const renderVisitCard = (v) => {
+    const sc = STATUS_COLORS[v.visit_status || 'prevue'] || STATUS_COLORS.prevue;
+    const statusSel = (
+      <select
+        value={v.visit_status || 'prevue'}
+        onChange={e => handleUpdateStatus(v.id, e.target.value)}
+        disabled={updatingStatus === v.id}
+        style={{
+          padding: '4px 8px', borderRadius: '8px', fontSize: '12px',
+          border: `1px solid ${sc.color}`, background: sc.bg,
+          color: sc.color, fontWeight: '700', cursor: 'pointer', flexShrink: 0,
+        }}
+      >
+        {STATUS_OPTS.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
+      </select>
+    );
+
+    const vid = v._offlineId || v.id;
+    return (
+      <VisitCard
+        key={vid}
+        visit={v}
+        isPast={!v._pending && v.visit_date < today}
+        isPending={!!v._pending}
+        isOpening={opening === vid}
+        isConfirmingDelete={confirmDelete === vid}
+        isDeleting={deleting === vid}
+        onOpen={openVisit}
+        onDeleteRequest={id => setConfirmDelete(id)}
+        onDeleteConfirm={handleDelete}
+        onDeleteCancel={() => setConfirmDelete(null)}
+        statusSelector={v._pending ? null : statusSel}
+      />
+    );
+  };
+
   if (loadError) {
     return (
       <div style={{ padding: '16px' }}>
@@ -183,7 +300,7 @@ export default function AgendaPage() {
   return (
     <>
     <div style={{ padding: '16px', maxWidth: '640px', margin: '0 auto' }}>
-      <div className="section-header">
+      <div className="section-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
         <div>
           <div className="section-title">🗓️ {t('agenda')}</div>
           <div className="section-subtitle">
@@ -192,93 +309,99 @@ export default function AgendaPage() {
               : `${allVisits.length} visit${allVisits.length !== 1 ? 's' : ''}`}
           </div>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          style={{
-            padding: '9px 16px', borderRadius: '10px', border: 'none',
-            background: 'var(--accent)', color: 'white',
-            fontWeight: '700', fontSize: '14px', cursor: 'pointer',
-            flexShrink: 0,
-          }}
-        >
-          + {isFr ? 'Planifier' : 'Schedule'}
-        </button>
-      </div>
-
-      {/* Recherche */}
-      <div className="field" style={{ marginBottom: '10px' }}>
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={isFr ? '🔍 Nom, ville, email, téléphone…' : '🔍 Name, city, email, phone…'}
-        />
-      </div>
-
-      {/* Filtres */}
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', overflowX: 'auto', paddingBottom: '2px' }}>
-        {FILTERS.map(f => (
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
           <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
+            onClick={() => setViewMode(m => m === 'list' ? 'calendar' : 'list')}
+            className="btn btn-secondary"
+            style={{ padding: '9px 14px', fontSize: '13px' }}
+          >
+            {viewMode === 'list' ? '🗓️ ' + (isFr ? 'Calendrier' : 'Calendar') : '📋 ' + (isFr ? 'Liste' : 'List')}
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
             style={{
-              padding: '7px 14px', borderRadius: '20px', whiteSpace: 'nowrap',
-              fontSize: '13px', fontWeight: '600', cursor: 'pointer', border: 'none',
-              background: filter === f.key ? 'var(--accent)' : 'var(--surface2)',
-              color: filter === f.key ? 'white' : 'var(--text2)',
-              flexShrink: 0,
+              padding: '9px 16px', borderRadius: '10px', border: 'none',
+              background: 'var(--accent)', color: 'white',
+              fontWeight: '700', fontSize: '14px', cursor: 'pointer',
             }}
           >
-            {f.label}
+            + {isFr ? 'Planifier' : 'Schedule'}
           </button>
-        ))}
+        </div>
       </div>
 
-      {loading ? (
-        <div className="empty-state"><div className="empty-icon">⏳</div></div>
-      ) : filteredVisits.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📅</div>
-          <div className="empty-title">{isFr ? 'Aucune visite' : 'No visits'}</div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filteredVisits.map(v => {
-            const sc = STATUS_COLORS[v.visit_status || 'prevue'] || STATUS_COLORS.prevue;
-            const statusSel = (
-              <select
-                value={v.visit_status || 'prevue'}
-                onChange={e => handleUpdateStatus(v.id, e.target.value)}
-                disabled={updatingStatus === v.id}
+      {viewMode === 'list' ? (
+        <>
+          <div className="field" style={{ marginBottom: '10px' }}>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={isFr ? '🔍 Nom, ville, email, téléphone…' : '🔍 Name, city, email, phone…'}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {FILTERS.map(f => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
                 style={{
-                  padding: '4px 8px', borderRadius: '8px', fontSize: '12px',
-                  border: `1px solid ${sc.color}`, background: sc.bg,
-                  color: sc.color, fontWeight: '700', cursor: 'pointer', flexShrink: 0,
+                  padding: '7px 14px', borderRadius: '20px', whiteSpace: 'nowrap',
+                  fontSize: '13px', fontWeight: '600', cursor: 'pointer', border: 'none',
+                  background: filter === f.key ? 'var(--accent)' : 'var(--surface2)',
+                  color: filter === f.key ? 'white' : 'var(--text2)',
+                  flexShrink: 0,
                 }}
               >
-                {STATUS_OPTS.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
-              </select>
-            );
+                {f.label}
+              </button>
+            ))}
+          </div>
 
-            const vid = v._offlineId || v.id;
-            return (
-              <VisitCard
-                key={vid}
-                visit={v}
-                isPast={!v._pending && v.visit_date < today}
-                isPending={!!v._pending}
-                isOpening={opening === vid}
-                isConfirmingDelete={confirmDelete === vid}
-                isDeleting={deleting === vid}
-                onOpen={openVisit}
-                onDeleteRequest={id => setConfirmDelete(id)}
-                onDeleteConfirm={handleDelete}
-                onDeleteCancel={() => setConfirmDelete(null)}
-                statusSelector={v._pending ? null : statusSel}
-              />
-            );
-          })}
-        </div>
+          {loading ? (
+            <div className="empty-state"><div className="empty-icon">⏳</div></div>
+          ) : filteredVisits.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📅</div>
+              <div className="empty-title">{isFr ? 'Aucune visite' : 'No visits'}</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {filteredVisits.map(renderVisitCard)}
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <MonthCalendar
+            visitsByDate={visitsByDate}
+            statusColors={STATUS_COLORS}
+            today={today}
+            selectedDay={selectedDay}
+            onSelectDay={d => setSelectedDay(d === selectedDay ? null : d)}
+            isFr={isFr}
+          />
+          <div style={{ marginTop: '16px' }}>
+            {!selectedDay ? (
+              <div className="empty-state" style={{ paddingTop: 8 }}>
+                <div className="empty-title" style={{ fontSize: '13px', color: 'var(--text3)' }}>
+                  {isFr ? 'Sélectionnez un jour pour voir ses visites' : 'Select a day to see its visits'}
+                </div>
+              </div>
+            ) : (visitsByDate[selectedDay] || []).length === 0 ? (
+              <div className="empty-state" style={{ paddingTop: 8 }}>
+                <div className="empty-title" style={{ fontSize: '13px', color: 'var(--text3)' }}>
+                  {isFr ? 'Aucune visite ce jour-là' : 'No visits that day'}
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {(visitsByDate[selectedDay] || []).map(renderVisitCard)}
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
 

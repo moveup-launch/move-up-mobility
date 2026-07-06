@@ -80,6 +80,7 @@ const initialState = {
   transportOverride: null,
   editingVisitId: null,
   justFinishedInventory: false,
+  shareToken: null,
 };
 
 export function AppProvider({ children }) {
@@ -875,9 +876,14 @@ export function AppProvider({ children }) {
       const { data, error } = await supabase
         .from('visits').update(payload).eq('id', editId).select().single();
       if (!error) {
+        let token = data?.share_token;
+        if (!token) {
+          token = crypto.randomUUID();
+          await supabase.from('visits').update({ share_token: token }).eq('id', editId);
+        }
         const roomsSnapshot = state.rooms;
         lastSavedVisitIdRef.current = editId;
-        setState(s => ({ ...s, editingVisitId: null }));
+        setState(s => ({ ...s, editingVisitId: null, shareToken: token }));
         uploadPhotos(editId, roomsSnapshot);
       }
       return { data, error };
@@ -885,10 +891,12 @@ export function AppProvider({ children }) {
 
     const { data, error } = await supabase.from('visits').insert({
       user_id: user.id,
+      share_token: crypto.randomUUID(),
       ...payload,
     }).select().single();
     if (!error && data) {
       lastSavedVisitIdRef.current = data.id;
+      setState(s => ({ ...s, shareToken: data.share_token }));
       uploadPhotos(data.id, state.rooms);
     }
     return { data, error };

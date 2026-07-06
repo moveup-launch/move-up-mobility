@@ -254,7 +254,7 @@ export default function DashboardPage() {
     setLoadError(null);
     const { data, error } = await supabase
       .from('visits')
-      .select('id, client_name, client_phone, client_email, visit_date, visit_time, visit_status, visit_type, video_link, origin_data, client_data')
+      .select('id, client_name, client_phone, client_email, visit_date, visit_time, visit_status, visit_type, video_link, origin_data, client_data, total_volume, real_volume')
       .order('visit_date', { ascending: true });
     if (error) {
       console.error('DashboardPage loadData error:', error);
@@ -379,6 +379,25 @@ export default function DashboardPage() {
                   📦 {volumeMilestone} m³ {isFr ? 'cumulés' : 'total moved'}
                 </div>
               )}
+            </div>
+          );
+        })()}
+
+        {/* Précision des estimations — argument commercial fort, calculé sur les
+            visites où le volume réel chargé a été renseigné après coup. */}
+        {(() => {
+          const withReal = allVisits.filter(v => (v.total_volume || 0) > 0 && (v.real_volume || 0) > 0);
+          if (withReal.length < 3) return null;
+          const avgAccuracy = withReal.reduce((sum, v) => {
+            const diff = Math.abs(v.total_volume - v.real_volume) / v.real_volume;
+            return sum + Math.max(0, 1 - diff);
+          }, 0) / withReal.length;
+          const pct = Math.round(avgAccuracy * 100);
+          return (
+            <div className="accuracy-banner">
+              🎯 {isFr
+                ? `Précision moyenne de vos estimations : ${pct}% (sur ${withReal.length} visites)`
+                : `Your estimates' average accuracy: ${pct}% (based on ${withReal.length} visits)`}
             </div>
           );
         })()}

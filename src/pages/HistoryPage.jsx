@@ -29,6 +29,8 @@ export default function HistoryPage() {
   const [visitPhotos, setVisitPhotos] = useState({});
   const [photosLoading, setPhotosLoading] = useState({});
   const [lightboxUrl, setLightboxUrl] = useState(null);
+  const [realVolumeDraft, setRealVolumeDraft] = useState({});
+  const [savingRealVolume, setSavingRealVolume] = useState(null);
   const fetchedIds = useRef(new Set());
 
   useEffect(() => { fetchVisits(); }, []);
@@ -72,6 +74,18 @@ export default function HistoryPage() {
   };
 
   const handleEdit = (visit) => { loadVisit(visit); };
+
+  const handleSaveRealVolume = async (visitId) => {
+    const raw = realVolumeDraft[visitId];
+    const value = parseFloat(raw);
+    if (!raw || isNaN(value) || value <= 0) return;
+    setSavingRealVolume(visitId);
+    const { error } = await supabase.from('visits').update({ real_volume: value }).eq('id', visitId);
+    if (!error) {
+      setVisits(vs => vs.map(v => v.id === visitId ? { ...v, real_volume: value } : v));
+    }
+    setSavingRealVolume(null);
+  };
 
   const handlePDF = async (visit) => {
     setPdfGenerating(visit.id);
@@ -294,6 +308,35 @@ export default function HistoryPage() {
                     <span>{isFr ? 'Enregistré le' : 'Saved on'}</span>
                     <span>{formatDate(v.created_at)}</span>
                   </div>
+
+                  {(v.total_volume || 0) > 0 && (
+                    <div className="history-detail-row" style={{ alignItems: 'center' }}>
+                      <span>🎯 {isFr ? 'Volume réel chargé' : 'Actual loaded volume'}</span>
+                      {v.real_volume ? (
+                        <span style={{ fontWeight: 700 }}>{v.real_volume} m³</span>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            placeholder="m³"
+                            value={realVolumeDraft[v.id] ?? ''}
+                            onChange={e => setRealVolumeDraft(d => ({ ...d, [v.id]: e.target.value }))}
+                            style={{ width: '70px', padding: '5px 8px', fontSize: '13px' }}
+                          />
+                          <button
+                            className="btn btn-secondary"
+                            style={{ padding: '5px 10px', fontSize: '12px' }}
+                            disabled={savingRealVolume === v.id}
+                            onClick={() => handleSaveRealVolume(v.id)}
+                          >
+                            {savingRealVolume === v.id ? '…' : 'OK'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Photos par pièce */}
                   {photosLoading[v.id] && (

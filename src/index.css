@@ -380,6 +380,27 @@ textarea { min-height: 80px; resize: vertical; }
   50% { transform: scale(1.08); }
 }
 
+/* Vue calendrier de l'agenda */
+.month-calendar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.month-calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.month-calendar-nav button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); font-size: 16px; cursor: pointer; color: var(--text); }
+.month-calendar-label { font-weight: 700; font-size: 15px; text-transform: capitalize; }
+.month-calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; font-weight: 700; color: var(--text3); margin-bottom: 4px; }
+.month-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.month-calendar-day {
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 8px; cursor: pointer; gap: 2px; transition: background 0.15s;
+}
+.month-calendar-day:hover { background: var(--surface2); }
+.month-calendar-day.muted { opacity: 0.3; cursor: default; }
+.month-calendar-day.muted:hover { background: none; }
+.month-calendar-day.today .month-calendar-daynum { color: var(--accent); font-weight: 800; }
+.month-calendar-day.selected { background: var(--text); }
+.month-calendar-day.selected .month-calendar-daynum { color: white; }
+.month-calendar-daynum { font-size: 13px; font-weight: 600; }
+.month-calendar-dots { display: flex; gap: 2px; }
+.month-calendar-dot { width: 5px; height: 5px; border-radius: 50%; }
+
 .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .empty-state .empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
 .empty-state .empty-sub { font-size: 14px; }
@@ -518,6 +539,13 @@ textarea { min-height: 80px; resize: vertical; }
   display: inline-flex; align-items: center; gap: 5px;
   background: #FDF6E3; color: #8A6D1F; border: 1px solid #F0E0AD;
   padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+
+.accuracy-banner {
+  background: var(--accent-light); color: var(--accent-dark);
+  border: 1px solid #C9DCF7; border-radius: var(--radius-sm);
+  padding: 10px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 14px;
 }
 .dashboard-cta {
   width: 100%; padding: 16px; border: none; border-radius: var(--radius);
