@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="15" fill="#1A1917"/>
-  <text x="32" y="43" font-size="32" text-anchor="middle" font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">📦</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="118" fill="#1A1917"/>
+  <path d="M 256 146 L 366 201 L 256 256 L 146 201 Z" fill="#D9A96E"/>
+  <path d="M 146 201 L 256 256 L 256 386 L 146 331 Z" fill="#B07D4F"/>
+  <path d="M 366 201 L 256 256 L 256 386 L 366 331 Z" fill="#C89159"/>
+  <path d="M 256 146 L 296 166 L 186 221 L 146 201 Z" fill="#E8C89A" opacity="0.6"/>
+  <path d="M 256 256 L 282 243 L 282 360 L 256 373 Z" fill="#E8C89A" opacity="0.45"/>
 </svg>
