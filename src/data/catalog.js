@@ -4,6 +4,7 @@ export const CATALOG = {
       id: "bed",
       name: { fr: "Lit", en: "Bed" },
       icon: "🛏️",
+      keywords: ["sommier", "cadre de lit", "lit gigogne"],
       variants: [
         { id: "bed_single", label: { fr: "Lit simple (90cm)", en: "Single bed" }, volume_m3: 0.8, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
         { id: "bed_double", label: { fr: "Lit double (140cm)", en: "Double bed" }, volume_m3: 1.0, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
@@ -40,6 +41,7 @@ export const CATALOG = {
       id: "dresser",
       name: { fr: "Commode", en: "Dresser" },
       icon: "🗄️",
+      keywords: ["chiffonnier", "meuble à tiroirs"],
       variants: [
         { id: "dresser_chiffonnier", label: { fr: "Chiffonnier (étroit)", en: "Chiffonnier (narrow)" }, volume_m3: 0.3, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "dresser_small", label: { fr: "Petite commode", en: "Small dresser" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
@@ -53,6 +55,7 @@ export const CATALOG = {
       id: "wardrobe",
       name: { fr: "Armoire", en: "Wardrobe" },
       icon: "🚪",
+      keywords: ["penderie", "dressing", "garde-robe"],
       variants: [
         { id: "ward_1door", label: { fr: "1 porte", en: "1 door" }, volume_m3: 0.6, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
         { id: "ward_2door", label: { fr: "2 portes", en: "2 doors" }, volume_m3: 1.2, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: true },
@@ -111,16 +114,12 @@ export const CATALOG = {
     { id: "bed_linen", name: { fr: "Linge de lit", en: "Bed linen" }, icon: "🧺", variants: [
       { id: "bed_linen_set", label: { fr: "Linge de lit (lot)", en: "Bed linen set" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
     ]},
-    {
-      id: "tv",
-      name: { fr: "TV", en: "TV" },
-      icon: "📺",
-      variants: [
-        { id: "tv_small", label: { fr: 'TV < 43"', en: 'TV < 43"' }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-        { id: "tv_medium", label: { fr: 'TV 43" à 65"', en: 'TV 43" to 65"' }, volume_m3: 0.3, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-        { id: "tv_large", label: { fr: 'TV > 65"', en: 'TV > 65"' }, volume_m3: 0.5, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-      ]
-    },
+    { id: "vanity_table", name: { fr: "Coiffeuse", en: "Vanity table" }, icon: "💄", keywords: ["coiffeuse", "table de maquillage", "meuble maquillage"], variants: [
+      { id: "vanity_std", label: { fr: "Coiffeuse", en: "Vanity table" }, volume_m3: 0.4, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "pouf_bedroom", name: { fr: "Pouf / Repose-pieds", en: "Pouf / Footstool" }, icon: "🛋️", keywords: ["pouf", "repose-pieds", "poire"], variants: [
+      { id: "pouf_std", label: { fr: "Pouf", en: "Pouf" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
     {
       id: "mirror",
       name: { fr: "Miroir de chambre", en: "Bedroom mirror" },
@@ -142,10 +141,20 @@ export const CATALOG = {
   ],
 
   livingRoom: [
-    { id: "sofa2", name: { fr: "Canapé 2 places", en: "2-seat sofa" }, icon: "🛋️", variants: [{ id: "sofa2_std", label: { fr: "Canapé 2 places", en: "2-seat sofa" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
-    { id: "sofa3", name: { fr: "Canapé 3 places", en: "3-seat sofa" }, icon: "🛋️", variants: [{ id: "sofa3_std", label: { fr: "Canapé 3 places", en: "3-seat sofa" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "sofa2", name: { fr: "Canapé 2 places", en: "2-seat sofa" }, icon: "🛋️", keywords: ["sofa", "divan", "canape"], variants: [{ id: "sofa2_std", label: { fr: "Canapé 2 places", en: "2-seat sofa" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "sofa3", name: { fr: "Canapé 3 places", en: "3-seat sofa" }, icon: "🛋️", keywords: ["sofa", "divan", "canape"], variants: [{ id: "sofa3_std", label: { fr: "Canapé 3 places", en: "3-seat sofa" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "sofa_corner", name: { fr: "Canapé d'angle", en: "Corner sofa" }, icon: "🛋️", variants: [{ id: "sofa_corner_std", label: { fr: "Canapé d'angle", en: "Corner sofa" }, volume_m3: 3.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: true }] },
     { id: "sofa_bed", name: { fr: "Canapé convertible", en: "Sofa bed" }, icon: "🛋️", variants: [{ id: "sofabed_std", label: { fr: "Canapé convertible", en: "Sofa bed" }, volume_m3: 2.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: true }] },
+    { id: "meridienne", name: { fr: "Méridienne", en: "Chaise longue / Méridienne" }, icon: "🛋️", keywords: ["meridienne", "chaise longue interieur", "recamier"], variants: [{ id: "meridienne_std", label: { fr: "Méridienne", en: "Méridienne" }, volume_m3: 1.2, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "chauffeuse", name: { fr: "Chauffeuse / Fauteuil 1 place", en: "Single seat / Chauffeuse" }, icon: "💺", keywords: ["chauffeuse", "fauteuil une place"], variants: [{ id: "chauffeuse_std", label: { fr: "Chauffeuse", en: "Chauffeuse" }, volume_m3: 0.5, fragile: false, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "banquette", name: { fr: "Banquette", en: "Bench seat / Banquette" }, icon: "🛋️", keywords: ["banquette", "banc rembourre"], variants: [{ id: "banquette_std", label: { fr: "Banquette", en: "Banquette" }, volume_m3: 0.7, fragile: false, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "display_cabinet", name: { fr: "Vitrine", en: "Display cabinet" }, icon: "🗄️", keywords: ["vitrine", "argentier", "meuble vitré"], variants: [
+      { id: "vitrine_std", label: { fr: "Vitrine standard", en: "Standard display cabinet" }, volume_m3: 0.8, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "vitrine_large", label: { fr: "Grande vitrine", en: "Large display cabinet" }, volume_m3: 1.3, fragile: true, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: true },
+    ]},
+    { id: "side_table", name: { fr: "Guéridon / Table d'appoint", en: "Side table" }, icon: "🪑", keywords: ["gueridon", "table d'appoint", "desserte", "sellette", "bout de canape"], variants: [{ id: "side_table_std", label: { fr: "Guéridon / table d'appoint", en: "Side table" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "curtains", name: { fr: "Rideaux / Tringles", en: "Curtains / Rods" }, icon: "🪟", keywords: ["rideaux", "voilages", "tringle", "store"], variants: [{ id: "curtains_set", label: { fr: "Lot de rideaux + tringles", en: "Set of curtains + rods" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "room_divider", name: { fr: "Paravent", en: "Room divider" }, icon: "🚪", keywords: ["paravent", "cloison", "separateur"], variants: [{ id: "divider_std", label: { fr: "Paravent", en: "Room divider" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     {
       id: "armchair",
       name: { fr: "Fauteuil", en: "Armchair" },
@@ -173,16 +182,6 @@ export const CATALOG = {
         { id: "tvunit_small", label: { fr: "Petit meuble TV", en: "Small TV unit" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "tvunit_std", label: { fr: "Meuble TV standard", en: "Standard TV unit" }, volume_m3: 0.6, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "tvunit_large", label: { fr: "Grand meuble TV / bibliothèque TV", en: "Large TV unit / media center" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
-      ]
-    },
-    {
-      id: "living_tv",
-      name: { fr: "TV", en: "TV" },
-      icon: "📺",
-      variants: [
-        { id: "ltv_small",  label: { fr: 'TV < 43"',      en: 'TV < 43"'       }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-        { id: "ltv_medium", label: { fr: 'TV 43" à 65"',  en: 'TV 43" to 65"'  }, volume_m3: 0.3,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-        { id: "ltv_large",  label: { fr: 'TV > 65"',      en: 'TV > 65"'       }, volume_m3: 0.5,  fragile: true, heavy: true,  requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
     {
@@ -228,7 +227,7 @@ export const CATALOG = {
         { id: "plant_large", label: { fr: "Grande plante / pot lourd", en: "Large plant / heavy pot" }, volume_m3: 0.2, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
-    { id: "deco_fragile", name: { fr: "Objets déco fragiles", en: "Fragile decor items" }, icon: "🏺", variants: [{ id: "deco_lot", label: { fr: "Lot objets déco fragiles", en: "Set of fragile decor" }, volume_m3: 0.2, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "deco_fragile", name: { fr: "Objets déco fragiles", en: "Fragile decor items" }, icon: "🏺", keywords: ["vase", "horloge", "pendule", "pot de fleur", "cadre", "bibelot", "bougeoir"], variants: [{ id: "deco_lot", label: { fr: "Lot objets déco fragiles", en: "Set of fragile decor" }, volume_m3: 0.2, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "living_mirror", name: { fr: "Miroir salon / décoratif", en: "Living room / decorative mirror" }, icon: "🪞", variants: [{ id: "lm_small", label: { fr: "Miroir salon petit / rond", en: "Small / round decorative mirror" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }, { id: "lm_large", label: { fr: "Miroir salon grand / design", en: "Large design mirror" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "deco_statue", name: { fr: "Déco / Statuette", en: "Decor / Statuette" }, icon: "🗿", variants: [
       { id: "deco_small", label: { fr: "Petite déco (< 30cm)", en: "Small decor" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
@@ -272,8 +271,20 @@ export const CATALOG = {
       ]
     },
     { id: "microwave", name: { fr: "Micro-ondes", en: "Microwave" }, icon: "📦", variants: [{ id: "mw_std", label: { fr: "Micro-ondes standard", en: "Standard microwave" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "cooktop", name: { fr: "Plaque de cuisson", en: "Cooktop" }, icon: "🍳", keywords: ["plaque de cuisson", "plaque induction", "gaziniere", "table de cuisson"], variants: [{ id: "cooktop_std", label: { fr: "Plaque de cuisson", en: "Cooktop" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "hood", name: { fr: "Hotte aspirante", en: "Extractor hood" }, icon: "💨", keywords: ["hotte", "hotte aspirante"], variants: [{ id: "hood_std", label: { fr: "Hotte aspirante", en: "Extractor hood" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false }] },
     { id: "coffee_machine", name: { fr: "Machine à café", en: "Coffee machine" }, icon: "☕", variants: [{ id: "coffee_std", label: { fr: "Machine à café", en: "Coffee machine" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "robot_kitchen", name: { fr: "Robot cuisine", en: "Kitchen robot" }, icon: "🤖", variants: [{ id: "robot_std", label: { fr: "Robot cuisine (Thermomix...)", en: "Kitchen robot (Thermomix...)" }, volume_m3: 0.08, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
+    {
+      id: "small_appliance",
+      name: { fr: "Petit électroménager", en: "Small appliance" },
+      icon: "🍞",
+      keywords: ["grille-pain", "toaster", "bouilloire", "blender", "mixeur", "friteuse", "cocotte", "airfryer", "gaufrier", "presse-agrumes", "batteur"],
+      variants: [
+        { id: "small_appliance_unit", label: { fr: "Appareil (grille-pain, bouilloire, blender...)", en: "Unit (toaster, kettle, blender...)" }, volume_m3: 0.03, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "small_appliance_box", label: { fr: "Carton de petits appareils", en: "Box of small appliances" }, volume_m3: 0.12, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
     { id: "trash_bin", name: { fr: "Poubelle", en: "Trash bin" }, icon: "🗑️", variants: [
       { id: "trash_std", label: { fr: "Poubelle standard", en: "Standard trash bin" }, volume_m3: 0.05, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
       { id: "trash_large", label: { fr: "Grande poubelle / tri sélectif", en: "Large / sorting bin" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
@@ -334,15 +345,6 @@ export const CATALOG = {
         { id: "dc_stool",     label: { fr: "Tabouret haut",           en: "Bar stool"          }, volume_m3: 0.1,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "dc_pouf",      label: { fr: "Pouf",                    en: "Pouf"               }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
         { id: "dc_banquette", label: { fr: "Banquette",               en: "Bench"              }, volume_m3: 0.5,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
-      ]
-    },
-    {
-      id: "dining_tv",
-      name: { fr: "TV salle à manger", en: "Dining room TV" },
-      icon: "📺",
-      variants: [
-        { id: "dtv_small",  label: { fr: 'TV < 43"',  en: 'TV < 43"'  }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-        { id: "dtv_medium", label: { fr: 'TV 43-65"', en: 'TV 43-65"' }, volume_m3: 0.3,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
     {
@@ -425,17 +427,8 @@ export const CATALOG = {
     },
     { id: "office_shelf", name: { fr: "Étagère bureau", en: "Office shelf" }, icon: "📚", variants: [{ id: "oshelf_std", label: { fr: "Étagère standard", en: "Standard shelf" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false }] },
     { id: "office_wardrobe", name: { fr: "Armoire à dossiers", en: "Document wardrobe" }, icon: "🚪", variants: [{ id: "oward_std", label: { fr: "Armoire à dossiers standard", en: "Standard document wardrobe" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
-    { id: "whiteboard", name: { fr: "Tableau blanc mural", en: "Wall whiteboard" }, icon: "🖊️", variants: [{ id: "wb_std", label: { fr: "Tableau blanc mural", en: "Wall whiteboard" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: true, possible_furniture_lift: false }] },
+    { id: "whiteboard", name: { fr: "Tableau blanc mural", en: "Wall whiteboard" }, icon: "🖊️", variants: [{ id: "whiteboard_std", label: { fr: "Tableau blanc mural", en: "Wall whiteboard" }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: true, possible_furniture_lift: false }] },
     { id: "office_mirror", name: { fr: "Miroir bureau", en: "Office mirror" }, icon: "🪞", variants: [{ id: "om_std", label: { fr: "Miroir bureau", en: "Office mirror" }, volume_m3: 0.1, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false }] },
-    {
-      id: "office_tv",
-      name: { fr: "TV / Écran TV", en: "TV / Screen" },
-      icon: "📺",
-      variants: [
-        { id: "otv_small",  label: { fr: 'TV < 43"',     en: 'TV < 43"'      }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-        { id: "otv_medium", label: { fr: 'TV 43" à 65"', en: 'TV 43" to 65"' }, volume_m3: 0.3,  fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
-      ]
-    },
   ],
 
   garden: [
@@ -448,7 +441,7 @@ export const CATALOG = {
       { id: "garden_chair_4", label: { fr: "4 chaises de jardin", en: "4 garden chairs" }, volume_m3: 0.4, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
       { id: "garden_chair_6", label: { fr: "6 chaises de jardin", en: "6 garden chairs" }, volume_m3: 0.6, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
     ]},
-    { id: "garden_lounger", name: { fr: "Transat / Bain de soleil", en: "Lounger / Sun bed" }, icon: "🛋️", variants: [
+    { id: "garden_lounger", name: { fr: "Transat / Bain de soleil", en: "Lounger / Sun bed" }, icon: "🛋️", keywords: ["chaise longue", "relax", "transat", "bain de soleil", "hamac"], variants: [
       { id: "lounger_1", label: { fr: "1 transat", en: "1 lounger" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
       { id: "lounger_2", label: { fr: "2 transats", en: "2 loungers" }, volume_m3: 0.4, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
     ]},
@@ -464,6 +457,10 @@ export const CATALOG = {
     { id: "garden_shed", name: { fr: "Abri de jardin / Serre", en: "Garden shed / Greenhouse" }, icon: "🏡", variants: [
       { id: "shed_small", label: { fr: "Petit abri de jardin", en: "Small garden shed" }, volume_m3: 2.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
       { id: "shed_large", label: { fr: "Grand abri de jardin", en: "Large garden shed" }, volume_m3: 5.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+    ]},
+    { id: "playground", name: { fr: "Portique / Toboggan", en: "Swing set / Slide" }, icon: "🛝", keywords: ["toboggan", "portique", "balançoire", "aire de jeux", "cabane enfant"], variants: [
+      { id: "playground_slide", label: { fr: "Toboggan seul", en: "Slide only" }, volume_m3: 0.5, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      { id: "playground_set", label: { fr: "Portique complet (balançoire + toboggan)", en: "Full swing set" }, volume_m3: 1.5, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
     ]},
     { id: "garden_trampoline", name: { fr: "Trampoline", en: "Trampoline" }, icon: "⭕", variants: [
       { id: "trampoline_small", label: { fr: "Trampoline petit (< 3m)", en: "Small trampoline (< 3m)" }, volume_m3: 1.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
@@ -525,6 +522,9 @@ export const CATALOG = {
     },
     { id: "tools", name: { fr: "Outils / Outillage", en: "Tools" }, icon: "🔧", variants: [{ id: "tools_lot", label: { fr: "Lot d'outils", en: "Tool set" }, volume_m3: 0.3, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "workbench", name: { fr: "Établi", en: "Workbench" }, icon: "🪚", variants: [{ id: "wb_std", label: { fr: "Établi standard", en: "Standard workbench" }, volume_m3: 0.8, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false }] },
+    { id: "tool_cabinet", name: { fr: "Servante / Rangement outils", en: "Tool cabinet" }, icon: "🧰", keywords: ["servante", "servante d'atelier", "caisse à outils", "rangement outils"], variants: [{ id: "tool_cab_std", label: { fr: "Servante d'atelier", en: "Tool cabinet" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "pressure_washer", name: { fr: "Nettoyeur haute pression", en: "Pressure washer" }, icon: "💦", keywords: ["karcher", "kärcher", "nettoyeur haute pression", "compresseur"], variants: [{ id: "pw_std", label: { fr: "Nettoyeur haute pression / compresseur", en: "Pressure washer / compressor" }, volume_m3: 0.2, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "trunk_chest", name: { fr: "Malle / Coffre de rangement", en: "Trunk / Storage chest" }, icon: "🧳", keywords: ["malle", "coffre", "cantine metallique"], variants: [{ id: "trunk_std", label: { fr: "Malle / coffre", en: "Trunk / chest" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "tires", name: { fr: "Pneus", en: "Tires" }, icon: "⭕", variants: [{ id: "tires_set", label: { fr: "Jeu de 4 pneus", en: "Set of 4 tires" }, volume_m3: 0.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     {
       id: "mower",
@@ -704,6 +704,28 @@ export const CATALOG = {
     { id: "baby_bath",             name: { fr: "Baignoire bébé",       en: "Baby bathtub"        }, icon: "🛁", variants: [{ id: "bbath_std",   label: { fr: "Baignoire bébé",        en: "Baby bathtub"        }, volume_m3: 0.1,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
   ],
 
+  // Objets communs à TOUTES les pièces (comme 'exceptional', toujours inclus).
+  // Évite les doublons : une seule TV pour tout l'inventaire, avec ses tailles.
+  common: [
+    {
+      id: "tv",
+      name: { fr: "TV", en: "TV" },
+      icon: "📺",
+      keywords: ["télé", "television", "téléviseur", "écran tv", "tele"],
+      variants: [
+        { id: "tv_small", label: { fr: 'TV < 43"', en: 'TV < 43"' }, volume_m3: 0.15, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "tv_medium", label: { fr: 'TV 43" à 65"', en: 'TV 43" to 65"' }, volume_m3: 0.3, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "tv_large", label: { fr: 'TV > 65"', en: 'TV > 65"' }, volume_m3: 0.5, fragile: true, heavy: true, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
+      ]
+    },
+    { id: "radiator", name: { fr: "Radiateur électrique", en: "Electric radiator" }, icon: "🔥", keywords: ["radiateur", "chauffage", "convecteur", "chauffage d'appoint"], variants: [
+      { id: "radiator_std", label: { fr: "Radiateur / chauffage d'appoint", en: "Radiator / heater" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+    { id: "aircon", name: { fr: "Climatiseur mobile", en: "Portable AC" }, icon: "❄️", keywords: ["climatiseur", "clim", "climatisation", "ventilateur"], variants: [
+      { id: "aircon_std", label: { fr: "Climatiseur mobile", en: "Portable AC unit" }, volume_m3: 0.2, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
+  ],
+
   exceptional: [
     {
       id: "piano_bench",
@@ -809,6 +831,25 @@ export const CATALOG = {
       icon: "🎱",
       allowedRooms: ['livingRoom', 'garage', 'basement', 'storageBox', 'misc'],
       variants: [{ id: "pt_std", label: { fr: "Table de billard", en: "Pool table" }, volume_m3: 4.0, fragile: false, heavy: true, requires_protection: true, requires_disassembly: true, possible_furniture_lift: false }]
+    },
+    {
+      id: "foosball",
+      name: { fr: "Baby-foot", en: "Foosball table" },
+      icon: "⚽",
+      keywords: ["baby-foot", "babyfoot", "football de table"],
+      allowedRooms: ['livingRoom', 'garage', 'basement', 'storageBox', 'misc'],
+      variants: [{ id: "foosball_std", label: { fr: "Baby-foot", en: "Foosball table" }, volume_m3: 0.8, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }]
+    },
+    {
+      id: "pet_equipment",
+      name: { fr: "Équipement animaux", en: "Pet equipment" },
+      icon: "🐾",
+      keywords: ["cage", "niche", "clapier", "aquarium vide", "arbre à chat", "panier chien", "litière", "terrarium"],
+      allowedRooms: ['livingRoom', 'garden', 'garage', 'basement', 'storageBox', 'bedroom', 'childBedroom', 'misc'],
+      variants: [
+        { id: "pet_small", label: { fr: "Cage / niche / arbre à chat", en: "Cage / kennel / cat tree" }, volume_m3: 0.3, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+        { id: "pet_large", label: { fr: "Grande niche / grand enclos", en: "Large kennel / pen" }, volume_m3: 0.8, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+      ]
     },
     {
       id: "aquarium",

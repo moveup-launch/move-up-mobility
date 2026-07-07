@@ -244,17 +244,18 @@ function CustomItemSheet({ roomId, roomType }) {
 
 const GLOBAL_CATALOG_SECTIONS = [
   'bedroom', 'livingRoom', 'kitchen', 'diningRoom', 'office', 'garden',
-  'garageBasement', 'laundry', 'bathroom', 'babyEquip', 'entrance', 'exceptional', 'boxes', 'vehicles',
+  'garageBasement', 'laundry', 'bathroom', 'babyEquip', 'entrance', 'common', 'exceptional', 'boxes', 'vehicles',
 ];
 
 const FURNITURE_IDS = new Set([
   'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair', 'bookshelf',
   'sofa2', 'sofa3', 'sofa_corner', 'sofa_bed', 'armchair', 'coffee_table', 'tv_unit', 'buffet', 'console', 'coat_rack', 'shoe_cabinet', 'bench_hallway',
+  'meridienne', 'chauffeuse', 'banquette', 'vanity_table', 'pouf_bedroom', 'display_cabinet', 'side_table', 'room_divider',
   'kitchen_table', 'chairs', 'china_cabinet', 'kitchen_island',
   'dining_table', 'dining_chair', 'dining_console', 'dining_shelf',
   'office_desk', 'office_chair2', 'office_guest_chair', 'meeting_table', 'reception_desk', 'whiteboard', 'filing_cabinet', 'office_shelf', 'office_wardrobe',
   'garden_table', 'garden_chairs', 'garden_lounger', 'garden_set', 'garden_shed', 'garden_bike',
-  'shelving', 'workbench', 'stepladder', 'ladder',
+  'shelving', 'workbench', 'stepladder', 'ladder', 'tool_cabinet', 'trunk_chest',
   'vanity_unit', 'storage_column_bath', 'medicine_cabinet', 'bath_stool', 'bathtub', 'washbasin',
   'entr_shoe_cabinet', 'entr_coat_rack', 'entr_console', 'entr_bench',
   'laundry_cabinet', 'clothes_rack',
@@ -262,12 +263,12 @@ const FURNITURE_IDS = new Set([
 ]);
 
 const ELECTRO_IDS = new Set([
-  'tv', 'living_tv', 'dining_tv', 'office_tv',
+  'tv', 'radiator', 'aircon',
   'fridge', 'freezer_chest', 'freezer_upright', 'wine_fridge',
-  'dishwasher', 'oven', 'microwave', 'coffee_machine', 'robot_kitchen',
+  'dishwasher', 'oven', 'microwave', 'coffee_machine', 'robot_kitchen', 'small_appliance', 'cooktop', 'hood',
   'monitor', 'computer', 'printer', 'shredder', 'office_fridge',
   'washing_machine', 'dryer', 'washer_dryer', 'heated_towel_rail',
-  'vacuum_cleaner', 'steam_cleaner', 'dining_hifi', 'bike_electric',
+  'vacuum_cleaner', 'steam_cleaner', 'dining_hifi', 'bike_electric', 'pressure_washer',
   'garden_mower', 'mower', 'iron_board', 'ironing_board_standalone',
   'garden_trimmer', 'garden_hedger', 'garden_blower',
 ]);
@@ -276,7 +277,7 @@ const DECO_IDS = new Set([
   'mirror', 'lamps', 'rug', 'plants', 'deco_fragile', 'deco_statue',
   'living_mirror', 'kitchen_mirror', 'dining_mirror', 'office_mirror',
   'bath_mirror', 'entr_mirror', 'garden_pot', 'fireplace_decor',
-  'artwork', 'aquarium',
+  'artwork', 'aquarium', 'curtains',
 ]);
 
 function getItemGroup(catKey, itemId) {
@@ -299,6 +300,7 @@ const CHIPS = [
   { key: 'furniture', icon: '🪑', labelFr: 'Meubles',   labelEn: 'Furniture' },
   { key: 'electro',   icon: '🔌', labelFr: 'Électro',   labelEn: 'Electro'   },
   { key: 'deco',      icon: '🖼️', labelFr: 'Déco',      labelEn: 'Decor'    },
+  { key: 'divers',    icon: '🎯', labelFr: 'Divers',    labelEn: 'Misc'     },
   { key: 'cartons',   icon: '📦', labelFr: 'Cartons',   labelEn: 'Boxes'    },
   { key: 'vehicles',  icon: '🚗', labelFr: 'Véhicules', labelEn: 'Vehicles'  },
 ];
@@ -313,13 +315,20 @@ function CatalogSection({ room }) {
   const query = normalize(search.trim());
   const allowedSections = new Set([
     ...(CATALOG.roomCatalogMap[room.type] || GLOBAL_CATALOG_SECTIONS),
+    'common',
     'exceptional',
   ]);
   const roomItems = ALL_CATALOG_ITEMS.filter(e => allowedSections.has(e.catKey));
   const frequentItems = roomItems.filter(e => FREQUENT_ITEM_IDS.has(e.item.id));
 
   const entries = query
-    ? ALL_CATALOG_ITEMS.filter(e => normalize(tCat(e.item.name)).includes(query))
+    ? ALL_CATALOG_ITEMS.filter(e => {
+        const inName = normalize(tCat(e.item.name)).includes(query);
+        // Synonymes / mots-clés optionnels (ex: "transat" trouve "Bain de soleil")
+        const kw = e.item.keywords || [];
+        const inKeywords = kw.some(k => normalize(k).includes(query));
+        return inName || inKeywords;
+      })
     : activeChip
       ? roomItems.filter(e => e.group === activeChip)
       : frequentItems;
@@ -590,7 +599,7 @@ function InventoryList({ room }) {
                   cursor: 'pointer', fontWeight: '600',
                 }}
               >
-                📐 {item.crate ? `${item.crate.l}×${item.crate.w}×${item.crate.h} cm` : (isFr ? 'Caisse' : 'Crate')}
+                📦 {item.crate ? `${item.crate.l}×${item.crate.w}×${item.crate.h} cm` : (isFr ? 'Caisse' : 'Crate')}
               </button>
             </div>
 
