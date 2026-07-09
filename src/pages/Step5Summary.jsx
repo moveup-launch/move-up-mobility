@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import { useState, useEffect } from 'react';import { useApp } from '../context/AppContext';
 import { CATALOG } from '../data/catalog';
 import Step6PDF from './Step6PDF';
 import BoxMascot from '../components/BoxMascot';
@@ -165,6 +164,11 @@ export default function Step5Summary() {
 
   const trackingUrl = state.shareToken ? `${window.location.origin}/suivi/${state.shareToken}` : null;
 
+  // Langue des MESSAGES CLIENT : basée sur la langue du client (modifiable ici),
+  // distincte de la langue de l'interface (isFr).
+  const [msgLang, setMsgLang] = useState(state.client.clientLang || 'fr');
+  const msgFr = msgLang === 'fr';
+
   const handleSendSMS = () => {
     const phone = state.client.phone;
     if (!phone) return;
@@ -172,8 +176,8 @@ export default function Step5Summary() {
     const surveyor = state.client.surveyor || profile?.first_name || '';
     const company = profile?.company_name || '';
     const sign = [surveyor, company].filter(Boolean).join(' - ');
-    const linkLine = trackingUrl ? (isFr ? `\n\nSuivez votre dossier ici : ${trackingUrl}` : `\n\nTrack your file here: ${trackingUrl}`) : '';
-    const msg = isFr
+    const linkLine = trackingUrl ? (msgFr ? `\n\nSuivez votre dossier ici : ${trackingUrl}` : `\n\nTrack your file here: ${trackingUrl}`) : '';
+    const msg = msgFr
       ? `Bonjour ${firstName}, merci pour cette visite. Nous revenons vers vous très prochainement avec notre proposition.${linkLine} À bientôt${sign ? ', ' + sign : ''}`
       : `Hello ${firstName}, thank you for this visit. We will get back to you very soon with our proposal.${linkLine} See you soon${sign ? ', ' + sign : ''}`;
     window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`);
@@ -182,15 +186,15 @@ export default function Step5Summary() {
   const handleSendEmail = () => {
     const email = state.client.email;
     if (!email) return;
-    const subject = isFr
+    const subject = msgFr
       ? `Récapitulatif visite déménagement — ${state.client.visitDate}`
       : `Moving visit summary — ${state.client.visitDate}`;
     const origin = [state.origin.address, state.origin.postalCode, state.origin.city].filter(Boolean).join(', ');
     const dest = state.destination.noFixedAddress
-      ? (isFr ? state.destination.city || 'Destination à définir' : state.destination.city || 'Destination TBD')
+      ? (msgFr ? state.destination.city || 'Destination à définir' : state.destination.city || 'Destination TBD')
       : [state.destination.address, state.destination.postalCode, state.destination.city].filter(Boolean).join(', ');
-    const linkLine = trackingUrl ? (isFr ? `\n\nSuivez votre dossier ici : ${trackingUrl}` : `\n\nTrack your file here: ${trackingUrl}`) : '';
-    const body = isFr
+    const linkLine = trackingUrl ? (msgFr ? `\n\nSuivez votre dossier ici : ${trackingUrl}` : `\n\nTrack your file here: ${trackingUrl}`) : '';
+    const body = msgFr
       ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³${linkLine}\n\nCordialement,\n${state.client.surveyor || ''}`
       : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³${linkLine}\n\nBest regards,\n${state.client.surveyor || ''}`;
     window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
@@ -468,7 +472,27 @@ export default function Step5Summary() {
             </div>
             {/* Boutons contact client */}
             {(state.client.phone || state.client.email) && (
-              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '12px', color: 'var(--text3)' }}>
+                  <span>{isFr ? 'Langue du message :' : 'Message language:'}</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {['fr', 'en'].map(lg => (
+                      <button
+                        key={lg}
+                        onClick={() => setMsgLang(lg)}
+                        style={{
+                          padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
+                          cursor: 'pointer', border: '1px solid ' + (msgLang === lg ? 'var(--accent)' : 'var(--border)'),
+                          background: msgLang === lg ? 'var(--accent-light)' : 'var(--surface2)',
+                          color: msgLang === lg ? 'var(--accent)' : 'var(--text3)',
+                        }}
+                      >
+                        {lg === 'fr' ? 'FR' : 'EN'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                 {state.client.phone && (
                   <button
                     onClick={handleSendSMS}
@@ -494,6 +518,7 @@ export default function Step5Summary() {
                   </button>
                 )}
               </div>
+              </>
             )}
             {trackingUrl && (
               <button

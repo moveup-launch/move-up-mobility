@@ -263,7 +263,7 @@ const FURNITURE_IDS = new Set([
 ]);
 
 const ELECTRO_IDS = new Set([
-  'tv', 'radiator', 'aircon',
+  'tv', 'radiator', 'aircon', 'fan',
   'fridge', 'freezer_chest', 'freezer_upright', 'wine_fridge',
   'dishwasher', 'oven', 'microwave', 'coffee_machine', 'robot_kitchen', 'small_appliance', 'cooktop', 'hood',
   'monitor', 'computer', 'printer', 'shredder', 'office_fridge',
@@ -343,8 +343,12 @@ function CatalogSection({ room }) {
       const key = `${catKey}_${item.id}`;
       setPulseKey(key);
       setTimeout(() => setPulseKey(k => (k === key ? null : k)), 350);
+      // Si l'objet a été trouvé via une recherche, on vide la barre pour
+      // repartir sur une recherche vierge (demande terrain : enchaîner les ajouts).
+      if (query) setSearch('');
     } else {
       openSheet(<QuickAdjustSheet roomId={room.id} catKey={catKey} itemId={item.id} />);
+      if (query) setSearch('');
     }
   };
 

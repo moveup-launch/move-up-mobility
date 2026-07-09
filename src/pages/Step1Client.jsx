@@ -73,6 +73,21 @@ export default function Step1Client() {
           <input type="text" value={d.surveyor} onChange={e => updateClient('surveyor', e.target.value)} placeholder={isFr ? 'Nom du commercial' : 'Sales rep name'} />
         </div>
         <div className="field">
+          <label><span className="field-icon">🗣️</span>{isFr ? 'Langue du client' : 'Client language'}</label>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[{ v: 'fr', l: 'Français' }, { v: 'en', l: 'English' }].map(opt => (
+              <div
+                key={opt.v}
+                className={`radio-option ${(d.clientLang || 'fr') === opt.v ? 'selected' : ''}`}
+                style={{ flex: 1, padding: '10px', justifyContent: 'center' }}
+                onClick={() => updateClient('clientLang', opt.v)}
+              >
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>{opt.l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="field">
           <label><span className="field-icon">🚚</span>{t('moveDate')}</label>
           <input type="date" value={d.moveDate} onChange={e => updateClient('moveDate', e.target.value)} />
         </div>

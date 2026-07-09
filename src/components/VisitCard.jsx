@@ -44,6 +44,10 @@ export default function VisitCard({
   const isFr = lang === 'fr';
   const v = visit;
 
+  // Langue du client (pour les messages qui LUI sont destinés), distincte de
+  // la langue de l'interface. Stockée dans client_data lors de la création.
+  const msgFr = (v.client_data?.clientLang || 'fr') === 'fr';
+
   const status    = getStatusInfo(v.visit_status, isFr);
   const phone     = v.client_phone || v.client_data?.phone || '';
   const email     = v.client_email || v.client_data?.email || '';
@@ -75,12 +79,12 @@ export default function VisitCard({
     ? `${commercialFullName}${commercialFullName ? ' — ' : ''}${companyName}${companyPhone ? '\n' + companyPhone : ''}\nPowered by Move Up Mobility`
     : (commercialFullName || 'Move Up Mobility');
 
-  const smsBody = isFr
+  const smsBody = msgFr
     ? `Bonjour ${clientFirstName}, votre visite de déménagement est confirmée le ${dateStr}${timeStr ? ' à ' + timeStr : ''}.\n\n${smsSignature}`
     : `Hello ${clientFirstName}, your moving visit is confirmed on ${dateStr}${timeStr ? ' at ' + timeStr : ''}.\n\n${smsSignature}`;
   const smsHref = phone ? `sms:${phone}?body=${encodeURIComponent(smsBody)}` : '';
 
-  const proposeSmsBody = isFr
+  const proposeSmsBody = msgFr
     ? `Bonjour ${clientFirstName}, nous vous proposons de passer réaliser votre visite de déménagement le ${dateStr}${timeStr ? ' à ' + timeStr : ''}. Cette date vous convient-elle ? N'hésitez pas à nous indiquer vos disponibilités si besoin.\n\n${smsSignature}`
     : `Hello ${clientFirstName}, we would like to propose ${dateStr}${timeStr ? ' at ' + timeStr : ''} for your moving survey visit. Does this work for you? Let us know your availability if not.\n\n${smsSignature}`;
   const proposeSmsHref = phone ? `sms:${phone}?body=${encodeURIComponent(proposeSmsBody)}` : '';
@@ -94,18 +98,18 @@ export default function VisitCard({
     'Powered by Move Up Mobility',
   ].filter(Boolean).join('\n');
 
-  const emailSubject = isFr
+  const emailSubject = msgFr
     ? 'Confirmation de votre visite de déménagement'
     : 'Moving visit confirmation';
-  const emailBodyText = isFr
+  const emailBodyText = msgFr
     ? `Bonjour ${clientFirstName},\n\nNous confirmons votre visite de déménagement :\n\nDate : ${dateStr}\nHeure : ${timeStr || 'À confirmer'}\nAdresse : ${address || 'À confirmer'}\n\nNotre équipe sera présente pour évaluer votre déménagement.\n\n${emailSignature}`
     : `Hello ${clientFirstName},\n\nWe confirm your moving visit:\n\nDate: ${dateStr}\nTime: ${timeStr || 'To be confirmed'}\nAddress: ${address || 'To be confirmed'}\n\nOur team will be there to assess your move.\n\n${emailSignature}`;
   const mailtoHref = email
     ? `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBodyText)}`
     : '';
 
-  const proposeEmailSubject = isFr ? 'Proposition de date de visite' : 'Visit date proposal';
-  const proposeEmailBody = isFr
+  const proposeEmailSubject = msgFr ? 'Proposition de date de visite' : 'Visit date proposal';
+  const proposeEmailBody = msgFr
     ? `Bonjour ${clientFirstName},\n\nNous vous proposons de passer réaliser votre visite de déménagement :\n\nDate proposée : ${dateStr}\nHeure : ${timeStr || 'À définir'}\n\nCette date vous convient-elle ? N'hésitez pas à nous indiquer vos disponibilités si vous préférez un autre créneau.\n\n${emailSignature}`
     : `Hello ${clientFirstName},\n\nWe would like to propose the following for your moving survey visit:\n\nProposed date: ${dateStr}\nTime: ${timeStr || 'To be defined'}\n\nDoes this work for you? Let us know your availability if you'd prefer another slot.\n\n${emailSignature}`;
   const proposeMailtoHref = email

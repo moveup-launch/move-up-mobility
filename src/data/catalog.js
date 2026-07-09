@@ -721,6 +721,10 @@ export const CATALOG = {
     { id: "radiator", name: { fr: "Radiateur électrique", en: "Electric radiator" }, icon: "🔥", keywords: ["radiateur", "chauffage", "convecteur", "chauffage d'appoint"], variants: [
       { id: "radiator_std", label: { fr: "Radiateur / chauffage d'appoint", en: "Radiator / heater" }, volume_m3: 0.15, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
     ]},
+    { id: "fan", name: { fr: "Ventilateur", en: "Fan" }, icon: "🌀", keywords: ["ventilateur", "ventilo", "brasseur d'air"], variants: [
+      { id: "fan_floor", label: { fr: "Ventilateur sur pied / colonne", en: "Floor / tower fan" }, volume_m3: 0.1, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "fan_table", label: { fr: "Ventilateur de table", en: "Table fan" }, volume_m3: 0.04, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+    ]},
     { id: "aircon", name: { fr: "Climatiseur mobile", en: "Portable AC" }, icon: "❄️", keywords: ["climatiseur", "clim", "climatisation", "ventilateur"], variants: [
       { id: "aircon_std", label: { fr: "Climatiseur mobile", en: "Portable AC unit" }, volume_m3: 0.2, fragile: false, heavy: true, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
     ]},

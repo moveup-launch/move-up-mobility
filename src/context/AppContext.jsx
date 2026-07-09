@@ -60,6 +60,7 @@ const baseClient = {
   visitDate: new Date().toISOString().split('T')[0],
   visitTime: '', visitStatus: 'prevue', agendaNotes: '',
   surveyor: '', moveDate: '', notes: '',
+  clientLang: 'fr',
 };
 
 const initialState = {
@@ -936,6 +937,7 @@ export function AppProvider({ children }) {
         surveyor: cd.surveyor || visitData.commercial_name || user?.email || '',
         moveDate: cd.moveDate || '',
         notes: cd.notes || '',
+        clientLang: cd.clientLang || 'fr',
       },
       housingType: cd.housingType || '',
       housingTypeOrigin: cd.housingTypeOrigin || cd.housingType || '',
