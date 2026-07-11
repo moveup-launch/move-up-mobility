@@ -432,15 +432,21 @@ export default function DashboardPage() {
           <>
             {/* Stats */}
             <div className="dashboard-stats" style={{ marginBottom: '20px' }}>
-              <div className="stat-card">
+              <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setViewMode('agenda')} role="button" tabIndex={0}>
                 <div className="stat-card-num">{monthVisits.length}</div>
                 <div className="stat-card-label">{isFr ? 'visites ce mois' : 'visits this month'}</div>
               </div>
-              <div className="stat-card">
+              <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setViewMode('agenda')} role="button" tabIndex={0}>
                 <div className="stat-card-num">{upcoming.length}</div>
                 <div className="stat-card-label">{isFr ? 'à venir' : 'upcoming'}</div>
               </div>
-              <div className="stat-card">
+              <div
+                className="stat-card"
+                style={{ cursor: nextVisit ? 'pointer' : 'default' }}
+                onClick={() => { if (nextVisit) openVisit(nextVisit.id); }}
+                role={nextVisit ? 'button' : undefined}
+                tabIndex={nextVisit ? 0 : undefined}
+              >
                 <div className="stat-card-num" style={{ fontSize: nextVisit ? '12px' : '20px' }}>
                   {nextVisit ? (
                     <>

@@ -120,55 +120,147 @@ export async function generateVisitPDF(visitState, profile, lang) {
   function addPage() { doc.addPage(); y = 20; }
   function checkY(needed = 10) { if (y + needed > 270) addPage(); }
 
-  // ── En-tête ──────────────────────────────────────────────────
-  const hasCompany = profile?.company_name || profile?.company_logo_url;
-  if (hasCompany) {
-    let logoInfo = null;
-    if (profile.company_logo_url) {
-      try { logoInfo = await loadImageAsDataUrl(profile.company_logo_url); } catch { /* skip */ }
-    }
-    const brandColor = hexToRgb(profile?.company_color || '#000000');
-    const headerH = 36;
-    doc.setFillColor(...brandColor);
-    doc.rect(0, 0, W, headerH, 'F');
-    let textX = 16;
-    if (logoInfo) {
-      const ratio = logoInfo.w / logoInfo.h;
-      const logoH = Math.min(20, 20);
-      const logoW = Math.min(logoH * ratio, 42);
-      const logoY = (headerH - logoH) / 2;
-      try { doc.addImage(logoInfo.dataUrl, 'PNG', 14, logoY, logoW, logoH); textX = 14 + logoW + 8; } catch { /* skip */ }
-    }
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-    doc.text(safe(profile.company_name || ''), textX, 13);
-    const details = [profile.company_address, profile.company_phone, profile.company_email].filter(Boolean).join('  |  ');
-    if (details) {
-      doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(215, 215, 215);
-      doc.text(safe(details), textX, 20);
-    }
-    if (profile.company_website) {
-      const cleanWebsite = String(profile.company_website).replace(/^[^a-zA-Z0-9]+/, '');
-      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(195, 195, 195);
-      doc.text(safe(cleanWebsite), textX, 26);
-    }
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-    doc.text(isFr ? 'Rapport de visite' : 'Survey report', W - 16, 13, { align: 'right' });
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 210, 210);
-    doc.text(new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'), W - 16, 19, { align: 'right' });
-    y = headerH + 12;
-  } else {
-    doc.setFillColor(...BLACK);
-    doc.rect(0, 0, W, 32, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20); doc.setFont('helvetica', 'bold');
-    doc.text('MOVE UP MOBILITY', 16, 14);
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(200, 200, 200);
-    doc.text(isFr ? 'Rapport de visite de demenagement' : 'Moving Survey Report', 16, 22);
-    doc.text(new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB'), W - 16, 22, { align: 'right' });
-    y = 44;
+  // ── PAGE DE GARDE DYNAMIQUE ──────────────────────────────────
+  const brandColor = hexToRgb(profile?.company_color || '#2B6BE6');
+  const darken = (c, f) => c.map(v => Math.round(v * f));
+  const brandDark = darken(brandColor, 0.55);
+
+  const heroH = 92;
+  const bands = 60;
+  for (let i = 0; i < bands; i++) {
+    const t2 = i / (bands - 1);
+    const r = Math.round(brandDark[0] + (brandColor[0] - brandDark[0]) * t2);
+    const g = Math.round(brandDark[1] + (brandColor[1] - brandDark[1]) * t2);
+    const b = Math.round(brandDark[2] + (brandColor[2] - brandDark[2]) * t2);
+    doc.setFillColor(r, g, b);
+    doc.rect(0, (heroH / bands) * i, W, heroH / bands + 0.5, 'F');
   }
+
+  let coverLogo = null;
+  if (profile?.company_logo_url) {
+    try { coverLogo = await loadImageAsDataUrl(profile.company_logo_url); } catch { /* skip */ }
+  }
+  if (coverLogo) {
+    try {
+      const ratio = coverLogo.w / coverLogo.h;
+      const lH = 14, lW = Math.min(lH * ratio, 46);
+      doc.addImage(coverLogo.dataUrl, 'PNG', 18, 10, lW, lH);
+    } catch { /* skip */ }
+  }
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+  doc.text(safe((profile?.company_name || 'MOVE UP MOBILITY').toUpperCase()), 18, coverLogo ? 30 : 22);
+  doc.setFontSize(28); doc.setFont('helvetica', 'bold');
+  doc.text(safe(isFr ? 'Rapport de visite' : 'Survey report'), 18, 44);
+  doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(230, 235, 245);
+  const coverClientName = visitState.client?.name || '';
+  const moveTypeLabel = isFr ? 'Demenagement' : 'Move survey';
+  doc.text(safe(`${coverClientName}${coverClientName ? ' - ' : ''}${moveTypeLabel}`), 18, 54);
+
+  doc.setFontSize(9); doc.setTextColor(220, 228, 242);
+  const coverDateStr = new Date().toLocaleDateString(isFr ? 'fr-FR' : 'en-GB');
+  doc.text(safe(coverDateStr), W - 18, 22, { align: 'right' });
+
+  const totalVol = (visitState.rooms || []).reduce((s, rr) => s + getRoomVolume(rr), 0);
+  const totalItems = (visitState.rooms || []).reduce((s, rr) => s + (rr.items || []).reduce((a, i) => a + (i.qty > 0 ? i.qty : 0), 0), 0);
+  const roomCount = (visitState.rooms || []).filter(rr => (rr.items || []).some(i => i.qty > 0)).length;
+
+  const cardX = 18, cardY = 76, cardW = W - 36, cardH = 46;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(235, 235, 235);
+  doc.roundedRect(cardX, cardY, cardW, cardH, 4, 4, 'FD');
+
+  doc.setTextColor(...brandDark);
+  doc.setFontSize(34); doc.setFont('helvetica', 'bold');
+  const volInt = Math.floor(totalVol);
+  const volDec = Math.round((totalVol - volInt) * 10);
+  doc.text(safe(`${volInt}`), cardX + 12, cardY + 30);
+  const volIntW = doc.getTextWidth(`${volInt}`);
+  doc.setFontSize(16); doc.setTextColor(...brandColor);
+  doc.text(safe(`,${volDec} m3`), cardX + 12 + volIntW + 1, cardY + 30);
+  doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(120, 120, 120);
+  doc.text(safe(isFr ? 'Volume total estime' : 'Total estimated volume'), cardX + 12, cardY + 39);
+
+  doc.setDrawColor(230, 230, 230); doc.setLineWidth(0.3);
+  doc.line(cardX + 90, cardY + 8, cardX + 90, cardY + 38);
+
+  doc.setTextColor(...brandDark); doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+  doc.text(safe(`${roomCount}`), cardX + 102, cardY + 20);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(120, 120, 120);
+  doc.text(safe(isFr ? 'pieces inventoriees' : 'rooms surveyed'), cardX + 112, cardY + 20);
+  doc.setTextColor(...brandDark); doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+  doc.text(safe(`${totalItems}`), cardX + 102, cardY + 34);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(120, 120, 120);
+  doc.text(safe(isFr ? 'objets au total' : 'items in total'), cardX + 112, cardY + 34);
+
+  let cy = cardY + cardH + 18;
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(150, 150, 150);
+  doc.text(safe(isFr ? 'TRAJET DU DEMENAGEMENT' : 'MOVE ROUTE'), 18, cy);
+  cy += 10;
+  const oCity = visitState.origin?.city || (isFr ? 'Depart' : 'Origin');
+  const dCity = visitState.destination?.city || (isFr ? 'Arrivee' : 'Destination');
+  const oAddr = [visitState.origin?.address, visitState.origin?.postalCode].filter(Boolean).join(', ');
+  const dAddr = visitState.destination?.noFixedAddress ? '' : [visitState.destination?.address, visitState.destination?.postalCode].filter(Boolean).join(', ');
+  doc.setTextColor(...brandColor); doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+  doc.text(safe(isFr ? 'DEPART' : 'ORIGIN'), 18, cy);
+  doc.setTextColor(30, 30, 30); doc.setFontSize(15);
+  doc.text(safe(oCity), 18, cy + 8);
+  doc.setTextColor(130, 130, 130); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text(safe(oAddr), 18, cy + 14);
+  doc.setTextColor(...brandColor); doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+  doc.text(safe(isFr ? 'ARRIVEE' : 'DESTINATION'), W - 18, cy, { align: 'right' });
+  doc.setTextColor(30, 30, 30); doc.setFontSize(15);
+  doc.text(safe(dCity), W - 18, cy + 8, { align: 'right' });
+  doc.setTextColor(130, 130, 130); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text(safe(dAddr), W - 18, cy + 14, { align: 'right' });
+  const trackY = cy + 5;
+  const trackX1 = 95, trackX2 = W - 95;
+  doc.setDrawColor(...brandColor); doc.setLineWidth(1.2);
+  doc.line(trackX1, trackY, trackX2, trackY);
+  doc.setFillColor(...brandColor);
+  doc.circle(trackX1, trackY, 1.8, 'F');
+  doc.circle(trackX2, trackY, 1.8, 'F');
+
+  cy += 30;
+  const roomsWithVol = (visitState.rooms || [])
+    .map(rr => ({ name: getRoomDisplayName(rr, lang), vol: getRoomVolume(rr) }))
+    .filter(rr => rr.vol > 0)
+    .sort((a, b) => b.vol - a.vol);
+
+  if (roomsWithVol.length > 0 && totalVol > 0) {
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(150, 150, 150);
+    doc.text(safe(isFr ? 'REPARTITION DU VOLUME PAR PIECE' : 'VOLUME BREAKDOWN BY ROOM'), 18, cy);
+    cy += 10;
+    const maxVol = roomsWithVol[0].vol;
+    const barMaxW = 95;
+    const barX = 62;
+    roomsWithVol.slice(0, 8).forEach(rr => {
+      const pct = Math.round((rr.vol / totalVol) * 100);
+      const barW = Math.max(6, (rr.vol / maxVol) * barMaxW);
+      doc.setTextColor(60, 60, 60); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.text(safe(rr.name.length > 20 ? rr.name.slice(0, 19) + '.' : rr.name), 18, cy + 4.5);
+      doc.setFillColor(243, 243, 243);
+      doc.roundedRect(barX, cy, barMaxW, 6.5, 1.5, 1.5, 'F');
+      doc.setFillColor(...brandColor);
+      doc.roundedRect(barX, cy, barW, 6.5, 1.5, 1.5, 'F');
+      doc.setTextColor(...brandDark); doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+      doc.text(safe(`${rr.vol.toFixed(1)} m3`), barX + barMaxW + 6, cy + 4.8);
+      doc.setTextColor(150, 150, 150); doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+      doc.text(safe(`${pct}%`), W - 18, cy + 4.8, { align: 'right' });
+      cy += 11;
+    });
+  }
+
+  doc.setDrawColor(240, 240, 240); doc.setLineWidth(0.3);
+  doc.line(18, 275, W - 18, 275);
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(160, 160, 160);
+  doc.text(safe([profile?.company_name, profile?.company_email].filter(Boolean).join(' - ')), 18, 281);
+  doc.text(safe(isFr ? 'Genere avec Move Up Mobility' : 'Generated with Move Up Mobility'), W - 18, 281, { align: 'right' });
+
+  doc.addPage();
+  y = 20;
+
 
   // ── Helpers ──────────────────────────────────────────────────
   function sectionTitle(title) {
@@ -495,5 +587,5 @@ export async function generateVisitPDF(visitState, profile, lang) {
 
   addFooters();
 
-  doc.save(safe(`MoveUp_${visitState.client?.name || 'client'}_${visitState.client?.visitDate || 'visite'}.pdf`));
+  doc.save(safe(`MoveUp_${visitState.client?.name || "client"}_${visitState.client?.visitDate || "visite"}.pdf`));
 }
