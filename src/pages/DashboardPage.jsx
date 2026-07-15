@@ -3,6 +3,10 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
 import BoxMascot from '../components/BoxMascot';
+import NewVisitModal from '../components/NewVisitModal';
+import VisitCard from '../components/VisitCard';
+import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
+import { scheduleVisitReminders, showSyncedNotification } from '../lib/notifications';
 
 const QUICK_BTN = {
   width: '100%', textAlign: 'left', padding: '9px 12px',
@@ -164,11 +168,6 @@ export function DashboardRightPanel() {
     </div>
   );
 }
-import NewVisitModal from '../components/NewVisitModal';
-import VisitCard from '../components/VisitCard';
-import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
-import { scheduleVisitReminders, showSyncedNotification } from '../lib/notifications';
-
 function localToday() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

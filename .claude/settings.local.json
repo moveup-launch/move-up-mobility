@@ -31,7 +31,29 @@
       "Bash(pkill -f \"vite preview\")",
       "Bash(supabase --version)",
       "Bash(Get-ChildItem -Recurse -Directory)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(grep *)",
+      "Bash(brew install *)",
+      "Bash(gh auth *)",
+      "Bash(npx cap *)",
+      "Bash(git --version)",
+      "Bash(cp \"/Users/thomas/Downloads/moveup update/catalog.js\" /Users/thomas/move-up-mobility/src/data/catalog.js)",
+      "Bash(cp \"/Users/thomas/Downloads/moveup update/Step4Inventory.jsx\" /Users/thomas/move-up-mobility/src/pages/Step4Inventory.jsx)",
+      "Bash(cp \"/Users/thomas/Downloads/moveup update/favicon.svg\" /Users/thomas/move-up-mobility/public/favicon.svg)",
+      "Bash(cp \"/Users/thomas/Downloads/moveup update/AgendaPage.jsx\" /Users/thomas/move-up-mobility/src/pages/AgendaPage.jsx)",
+      "Bash(cp \"/Users/thomas/Downloads/moveup update/VisitCard.jsx\" /Users/thomas/move-up-mobility/src/components/VisitCard.jsx)",
+      "Bash(gh api *)",
+      "Bash(NODE_PATH=\"$\\(pwd\\)/node_modules\" node /tmp/gen-icons.mjs)",
+      "Bash(cp \"/Users/thomas/Downloads/files/icon-192.png\" /Users/thomas/move-up-mobility/public/icon-192.png)",
+      "Bash(cp \"/Users/thomas/Downloads/files/icon-512.png\" /Users/thomas/move-up-mobility/public/icon-512.png)",
+      "Bash(cp \"/Users/thomas/Downloads/files/favicon.svg\" /Users/thomas/move-up-mobility/public/favicon.svg)",
+      "Bash(cp \"/Users/thomas/Downloads/files update0907/catalog.js\" /Users/thomas/move-up-mobility/src/data/catalog.js)",
+      "Bash(cp \"/Users/thomas/Downloads/files update0907/Step4Inventory.jsx\" /Users/thomas/move-up-mobility/src/pages/Step4Inventory.jsx)",
+      "Bash(cp /Users/thomas/Downloads/files09072/catalog.js /Users/thomas/move-up-mobility/src/data/catalog.js)",
+      "Bash(cp /Users/thomas/Downloads/files09072/Step4Inventory.jsx /Users/thomas/move-up-mobility/src/pages/Step4Inventory.jsx)",
+      "Bash(cp /Users/thomas/Downloads/files09072/AppContext.jsx /Users/thomas/move-up-mobility/src/context/AppContext.jsx)",
+      "Bash(cp /Users/thomas/Downloads/files09072/Step1Client.jsx /Users/thomas/move-up-mobility/src/pages/Step1Client.jsx)",
+      "Bash(cp /Users/thomas/Downloads/files09072/Step5Summary.jsx /Users/thomas/move-up-mobility/src/pages/Step5Summary.jsx)"
     ]
   }
 }

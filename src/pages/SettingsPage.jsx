@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
 import { openProCheckout } from '../lib/stripe';
+import Onboarding from '../components/Onboarding';
 
 const CATEGORIES_FR = ['chambre', 'salon', 'cuisine', 'bureau', 'garage', 'autre'];
 const CATEGORIES_EN = ['bedroom', 'living room', 'kitchen', 'office', 'garage', 'other'];
@@ -188,7 +189,12 @@ function CompanySection() {
           .from('company-logos')
           .getPublicUrl(path);
 
-        const { error: saveErr } = await saveProfile({ company_logo_url: publicUrl });
+        // Cache-buster : l'URL du logo est toujours la même (logo.<ext> écrasé),
+        // donc le navigateur/CDN resservirait l'ancienne image en cache.
+        // On ajoute un paramètre unique à chaque upload pour forcer le rechargement.
+        const bustedUrl = `${publicUrl}?v=${Date.now()}`;
+
+        const { error: saveErr } = await saveProfile({ company_logo_url: bustedUrl });
         if (saveErr) {
           console.error('Logo save error:', saveErr);
           setUploadError(isFr
@@ -214,7 +220,9 @@ function CompanySection() {
     setUploadError(null);
     // Suppression du fichier dans Storage
     if (profile?.company_logo_url) {
-      const match = profile.company_logo_url.match(/company-logos\/(.+)$/);
+      // On retire l'éventuel paramètre ?v=... (cache-buster) avant d'extraire le chemin
+      const cleanUrl = profile.company_logo_url.split('?')[0];
+      const match = cleanUrl.match(/company-logos\/(.+)$/);
       if (match) {
         await supabase.storage.from('company-logos').remove([match[1]]);
       }
@@ -813,6 +821,7 @@ function DangerZoneSection() {
 export default function SettingsPage() {
   const { t, lang, user, setViewMode } = useApp();
   const isFr = lang === 'fr';
+  const [showGuide, setShowGuide] = useState(false);
   return (
     <div style={{ padding: '16px', maxWidth: '640px', margin: '0 auto' }}>
       <div className="section-header">
@@ -825,6 +834,26 @@ export default function SettingsPage() {
       <CustomCatalogSection />
       <VolumeDefaultsSection />
       <PrefsSection />
+
+      {/* Guide d'utilisation */}
+      <Section title={`❓ ${isFr ? "Guide d'utilisation" : 'User guide'}`}>
+        <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: 12, lineHeight: 1.5 }}>
+          {isFr
+            ? 'Revoyez les bases : créer une visite, faire un inventaire, générer un PDF, partager un lien de suivi.'
+            : 'Review the basics: create a visit, build an inventory, generate a PDF, share a tracking link.'}
+        </p>
+        <button
+          onClick={() => setShowGuide(true)}
+          style={{
+            padding: '10px 16px', borderRadius: '8px',
+            border: '1px solid var(--accent)', background: 'var(--accent-light, #EEF3FD)',
+            color: 'var(--accent)', fontSize: '13px', fontWeight: '600',
+            cursor: 'pointer', width: '100%',
+          }}
+        >
+          📖 {isFr ? 'Revoir le guide' : 'Review the guide'}
+        </button>
+      </Section>
 
       {/* Liens légaux */}
       <Section title={`📋 ${isFr ? 'Mentions légales' : 'Legal'}`}>
@@ -847,6 +876,8 @@ export default function SettingsPage() {
       </Section>
 
       <DangerZoneSection />
+
+      {showGuide && <Onboarding asGuide onDone={() => setShowGuide(false)} />}
     </div>
   );
 }

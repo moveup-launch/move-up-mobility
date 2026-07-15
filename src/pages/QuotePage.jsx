@@ -705,6 +705,9 @@ export default function QuotePage() {
 
       {/* Lang + Status */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: '12px', color: 'var(--text3)', fontWeight: 600 }}>
+          {isFr ? 'Langue du devis :' : 'Quote language:'}
+        </span>
         <div style={{ display: 'flex', gap: '4px' }}>
           {['fr', 'en'].map(l => (
             <button
