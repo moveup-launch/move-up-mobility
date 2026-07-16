@@ -53,7 +53,8 @@
       "Bash(cp /Users/thomas/Downloads/files09072/Step4Inventory.jsx /Users/thomas/move-up-mobility/src/pages/Step4Inventory.jsx)",
       "Bash(cp /Users/thomas/Downloads/files09072/AppContext.jsx /Users/thomas/move-up-mobility/src/context/AppContext.jsx)",
       "Bash(cp /Users/thomas/Downloads/files09072/Step1Client.jsx /Users/thomas/move-up-mobility/src/pages/Step1Client.jsx)",
-      "Bash(cp /Users/thomas/Downloads/files09072/Step5Summary.jsx /Users/thomas/move-up-mobility/src/pages/Step5Summary.jsx)"
+      "Bash(cp /Users/thomas/Downloads/files09072/Step5Summary.jsx /Users/thomas/move-up-mobility/src/pages/Step5Summary.jsx)",
+      "Bash(unzip *)"
     ]
   }
 }

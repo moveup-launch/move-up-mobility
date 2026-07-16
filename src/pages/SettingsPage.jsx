@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
 import { openProCheckout } from '../lib/stripe';
 import Onboarding from '../components/Onboarding';
+import Guide from '../components/Guide';
 
 const CATEGORIES_FR = ['chambre', 'salon', 'cuisine', 'bureau', 'garage', 'autre'];
 const CATEGORIES_EN = ['bedroom', 'living room', 'kitchen', 'office', 'garage', 'other'];
@@ -128,6 +129,8 @@ function CompanySection() {
     company_website: profile?.company_website || '',
     company_siret:   profile?.company_siret   || '',
     company_color:   profile?.company_color   || '#2B6BE6',
+    default_vat_rate: profile?.default_vat_rate ?? '',
+    quote_terms:     profile?.quote_terms     || '',
   });
   const [logoPreview, setLogoPreview] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -145,6 +148,8 @@ function CompanySection() {
         company_website: profile.company_website || '',
         company_siret:   profile.company_siret   || '',
         company_color:   profile.company_color   || '#2B6BE6',
+        default_vat_rate: profile.default_vat_rate ?? '',
+        quote_terms:     profile.quote_terms     || '',
       });
     }
   }, [profile?.id]);
@@ -387,6 +392,49 @@ function CompanySection() {
               {isFr ? 'Réinitialiser' : 'Reset'}
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Taux de TVA par défaut (pour les devis) */}
+      <div className="field">
+        <label><span className="field-icon">%</span>{isFr ? 'Taux de TVA par défaut (devis)' : 'Default VAT rate (quotes)'}</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="number"
+            inputMode="decimal"
+            min="0"
+            max="100"
+            step="0.1"
+            value={form.default_vat_rate}
+            onChange={e => set('default_vat_rate', e.target.value)}
+            placeholder={isFr ? 'ex. 20' : 'e.g. 20'}
+            style={{ width: '100px' }}
+          />
+          <span style={{ fontSize: '13px', color: 'var(--text2)' }}>%</span>
+        </div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
+          {isFr
+            ? "Valeur pré-remplie sur les nouveaux devis. Modifiable devis par devis. Laissez vide si vous n'appliquez pas de TVA."
+            : 'Pre-filled on new quotes. Editable per quote. Leave empty if you do not apply VAT.'}
+        </div>
+      </div>
+
+      {/* Phrase de renvoi CGV (pied de devis) */}
+      <div className="field">
+        <label><span className="field-icon">📄</span>{isFr ? 'Mention conditions générales (devis)' : 'Terms note (quotes)'}</label>
+        <textarea
+          rows={2}
+          value={form.quote_terms}
+          onChange={e => set('quote_terms', e.target.value)}
+          placeholder={isFr
+            ? 'ex. Devis soumis à nos conditions générales de vente disponibles sur moveupapp.com'
+            : 'e.g. Quote subject to our terms and conditions available at moveupapp.com'}
+          style={{ width: '100%', resize: 'vertical' }}
+        />
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
+          {isFr
+            ? 'Affichée en bas de vos devis PDF. Laissez vide pour ne rien afficher.'
+            : 'Shown at the bottom of your PDF quotes. Leave empty to show nothing.'}
         </div>
       </div>
 
@@ -877,7 +925,7 @@ export default function SettingsPage() {
 
       <DangerZoneSection />
 
-      {showGuide && <Onboarding asGuide onDone={() => setShowGuide(false)} />}
+      {showGuide && <Guide onDone={() => setShowGuide(false)} />}
     </div>
   );
 }

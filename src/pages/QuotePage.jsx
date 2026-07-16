@@ -182,6 +182,12 @@ export default function QuotePage() {
   const [exclusions, setExclusions]     = useState([]);
   const [notes, setNotes]               = useState('');
 
+  // TVA : applicable ou non + taux + mention d'exonération
+  const [vatEnabled, setVatEnabled]     = useState(false);
+  const [vatRate, setVatRate]           = useState('');
+  const DEFAULT_EXEMPTION = 'TVA non applicable, art. 262 ter I du CGI';
+  const [vatExemptionNote, setVatExemptionNote] = useState(DEFAULT_EXEMPTION);
+
   useEffect(() => { init(); }, []);
 
   const buildRef = async () => {
@@ -228,6 +234,10 @@ export default function QuotePage() {
         setServicesIncluded(data.services_included?.length ? data.services_included : buildDefaultIncluded(ql));
         setExclusions(data.exclusions?.length ? data.exclusions : buildDefaultExclusions(ql));
         setNotes(data.notes || '');
+        // TVA : anciens devis sans info → désactivée par défaut (ne change rien)
+        setVatEnabled(data.vat_enabled === true);
+        setVatRate(data.vat_rate != null ? String(data.vat_rate) : '');
+        setVatExemptionNote(data.vat_exemption_note || DEFAULT_EXEMPTION);
         setLoading(false);
         return;
       }
@@ -280,6 +290,11 @@ export default function QuotePage() {
     setOptionalServices(buildDefaultOptional());
     setServicesIncluded(buildDefaultIncluded());
     setExclusions(buildDefaultExclusions());
+    // TVA : sur un nouveau devis, on pré-remplit le taux depuis le profil,
+    // mais on laisse la TVA désactivée (l'utilisateur l'active selon le cas : Europe vs export).
+    if (profile?.default_vat_rate != null && profile.default_vat_rate !== '') {
+      setVatRate(String(profile.default_vat_rate));
+    }
     setLoading(false);
   };
 
@@ -296,6 +311,12 @@ export default function QuotePage() {
   const totalOptIncl = optionalServices
     .filter(s => s.included)
     .reduce((s, o) => s + (parseFloat(o.amount) || 0), 0);
+
+  // Calculs TVA (le sous-total ci-dessus est le montant HT)
+  const subtotalHT = totalCost + totalOptIncl;
+  const vatRateNum = parseFloat(vatRate) || 0;
+  const vatAmount = vatEnabled ? subtotalHT * (vatRateNum / 100) : 0;
+  const totalTTC = subtotalHT + vatAmount;
 
   const handleSave = async () => {
     setSaving(true);
@@ -321,7 +342,10 @@ export default function QuotePage() {
       services_included: servicesIncluded,
       exclusions,
       notes,
-      total_amount: totalCost + totalOptIncl,
+      vat_enabled: vatEnabled,
+      vat_rate: vatEnabled ? vatRateNum : null,
+      vat_exemption_note: vatEnabled ? null : vatExemptionNote,
+      total_amount: totalTTC,
       currency: 'EUR',
       language: quoteLang,
       updated_at: new Date().toISOString(),
@@ -494,16 +518,44 @@ export default function QuotePage() {
       y += 7;
     });
 
-    // Total bar
-    checkY(14);
-    y += 2;
-    doc.setFillColor(...BRAND);
-    doc.roundedRect(MARGIN, y, CW, 11, 1.5, 1.5, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-    doc.text(safe(qt.total), MARGIN + 4, y + 7.5);
-    doc.text(safe(`${(totalCost + totalOptIncl).toFixed(2)} ${qt.currency}`), W - MARGIN - 2, y + 7.5, { align: 'right' });
-    y += 16;
+    // ── Totaux (avec ou sans TVA) ──────────────────────────────────
+    const isFrPdf = quoteLang === 'fr';
+    if (vatEnabled) {
+      // Sous-total HT + ligne TVA, puis barre TOTAL TTC
+      checkY(28);
+      y += 2;
+      doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK);
+      doc.text(safe(isFrPdf ? 'Total HT' : 'Subtotal (excl. VAT)'), MARGIN + 4, y + 4);
+      doc.text(safe(`${subtotalHT.toFixed(2)} ${qt.currency}`), W - MARGIN - 2, y + 4, { align: 'right' });
+      y += 8;
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+      doc.text(safe(`${isFrPdf ? 'TVA' : 'VAT'} (${vatRateNum}%)`), MARGIN + 4, y + 4);
+      doc.text(safe(`${vatAmount.toFixed(2)} ${qt.currency}`), W - MARGIN - 2, y + 4, { align: 'right' });
+      y += 8;
+      doc.setFillColor(...BRAND);
+      doc.roundedRect(MARGIN, y, CW, 11, 1.5, 1.5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+      doc.text(safe(isFrPdf ? 'TOTAL TTC' : 'TOTAL (incl. VAT)'), MARGIN + 4, y + 7.5);
+      doc.text(safe(`${totalTTC.toFixed(2)} ${qt.currency}`), W - MARGIN - 2, y + 7.5, { align: 'right' });
+      y += 16;
+    } else {
+      // Total simple + mention d'exonération
+      checkY(20);
+      y += 2;
+      doc.setFillColor(...BRAND);
+      doc.roundedRect(MARGIN, y, CW, 11, 1.5, 1.5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+      doc.text(safe(qt.total), MARGIN + 4, y + 7.5);
+      doc.text(safe(`${subtotalHT.toFixed(2)} ${qt.currency}`), W - MARGIN - 2, y + 7.5, { align: 'right' });
+      y += 14;
+      if (vatExemptionNote && vatExemptionNote.trim()) {
+        doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY);
+        doc.text(safe(vatExemptionNote), MARGIN + 2, y + 2);
+        y += 8;
+      }
+    }
 
     // ── Services included + Exclusions (2 columns) ─────────────────
     const inclList = servicesIncluded.filter(s => s.checked);
@@ -596,6 +648,21 @@ export default function QuotePage() {
     const midRight = (120 + W - MARGIN) / 2;
     doc.text(safe(qt.signCommercial), midLeft, sigY + 26, { align: 'center' });
     doc.text(safe(qt.signClient), midRight, sigY + 26, { align: 'center' });
+    y = sigY + 34;
+
+    // ── Mention conditions générales (phrase de renvoi, si définie) ──
+    if (profile?.quote_terms && profile.quote_terms.trim()) {
+      const termLines = doc.splitTextToSize(safe(profile.quote_terms.trim()), CW - 4);
+      checkY(termLines.length * 4 + 4);
+      doc.setDrawColor(230, 229, 224); doc.setLineWidth(0.3);
+      doc.line(MARGIN, y, W - MARGIN, y);
+      y += 4;
+      doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(150, 148, 143);
+      termLines.forEach(line => {
+        doc.text(line, MARGIN, y);
+        y += 3.6;
+      });
+    }
 
     // ── Footer on every page ───────────────────────────────────────
     const pageCount = doc.internal.getNumberOfPages();
@@ -979,6 +1046,69 @@ export default function QuotePage() {
         >
           + {isFr ? 'Ajouter' : 'Add'}
         </button>
+      </div>
+
+      {/* G bis — TVA */}
+      <div className="card">
+        <div className="card-title">🧾 {isFr ? 'TVA' : 'VAT'}</div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: vatEnabled ? '12px' : '0' }}>
+          <input
+            type="checkbox"
+            checked={vatEnabled}
+            onChange={e => setVatEnabled(e.target.checked)}
+            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)' }}>
+            {isFr ? 'Appliquer la TVA sur ce devis' : 'Apply VAT on this quote'}
+          </span>
+        </label>
+
+        {vatEnabled ? (
+          <>
+            <div className="field" style={{ marginBottom: '10px' }}>
+              <label>{isFr ? 'Taux de TVA' : 'VAT rate'}</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="number" inputMode="decimal" min="0" max="100" step="0.1"
+                  value={vatRate}
+                  onChange={e => setVatRate(e.target.value)}
+                  placeholder={isFr ? 'ex. 20' : 'e.g. 20'}
+                  style={{ width: '100px' }}
+                />
+                <span style={{ fontSize: '13px', color: 'var(--text2)' }}>%</span>
+              </div>
+            </div>
+            <div style={{ background: 'var(--surface2)', borderRadius: '8px', padding: '10px 12px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text2)', marginBottom: '4px' }}>
+                <span>{isFr ? 'Total HT' : 'Subtotal (excl. VAT)'}</span>
+                <span style={{ fontWeight: 600 }}>{subtotalHT.toFixed(2)} €</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text2)', marginBottom: '4px' }}>
+                <span>{isFr ? 'TVA' : 'VAT'} ({vatRateNum}%)</span>
+                <span>{vatAmount.toFixed(2)} €</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--accent)', fontWeight: 800, fontSize: '15px', paddingTop: '4px', borderTop: '1px solid var(--border)' }}>
+                <span>{isFr ? 'Total TTC' : 'Total (incl. VAT)'}</span>
+                <span>{totalTTC.toFixed(2)} €</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="field" style={{ marginTop: '12px' }}>
+            <label>{isFr ? "Mention d'exonération (affichée sur le devis)" : 'Exemption note (shown on quote)'}</label>
+            <input
+              type="text"
+              value={vatExemptionNote}
+              onChange={e => setVatExemptionNote(e.target.value)}
+              placeholder={DEFAULT_EXEMPTION}
+            />
+            <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
+              {isFr
+                ? 'À valider avec votre comptable selon votre situation (export, autoliquidation…).'
+                : 'To be confirmed with your accountant depending on your situation.'}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* H — Notes */}
