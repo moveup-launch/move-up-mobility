@@ -564,7 +564,7 @@ export default function DashboardPage() {
             <button
               className="btn btn-primary"
               style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
-              onClick={() => { setShowUpgradeModal(false); openProCheckout(user?.email); }}
+              onClick={() => { setShowUpgradeModal(false); openProCheckout(user?.email, user?.id); }}
             >
               {isFr ? "S'abonner au Plan Pro à 19,99€/mois →" : 'Subscribe to Pro at 19.99€/month →'}
             </button>

@@ -262,7 +262,7 @@ export function AppProvider({ children }) {
           <UpgradePlanModal
             lang={lang}
             onClose={closeModal}
-            onUpgrade={() => { closeModal(); openProCheckout(user?.email); }}
+            onUpgrade={() => { closeModal(); openProCheckout(user?.email, user?.id); }}
           />
         );
         return;

@@ -86,7 +86,7 @@ export default function PricingPage() {
           <button
             className="btn btn-primary"
             style={{ width: '100%', padding: '14px', fontSize: 15 }}
-            onClick={() => openProCheckout(user?.email)}
+            onClick={() => openProCheckout(user?.email, user?.id)}
             disabled={!PRO_PAYMENT_LINK}
           >
             {isFr ? 'S\'abonner au plan Pro →' : 'Subscribe to Pro →'}

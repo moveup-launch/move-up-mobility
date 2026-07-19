@@ -40,8 +40,22 @@ export default async function handler(req, res) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const userId = session.metadata?.userId;
-    if (!userId) return res.status(400).json({ error: 'No userId in metadata' });
+    // On identifie l'utilisateur par (dans l'ordre) : metadata.userId,
+    // client_reference_id (transmis par le Payment Link), puis email en dernier recours.
+    let userId = session.metadata?.userId || session.client_reference_id || null;
+
+    // Fallback : si pas d'identifiant direct, on retrouve le compte via l'email du client
+    if (!userId && session.customer_details?.email) {
+      const { data: byEmail } = await supabase
+        .from('profiles').select('id').eq('email', session.customer_details.email).limit(1);
+      if (byEmail?.[0]) userId = byEmail[0].id;
+    }
+
+    if (!userId) {
+      console.error('Webhook: impossible d\'identifier l\'utilisateur pour la session', session.id);
+      return res.status(400).json({ error: 'No user identified' });
+    }
+
     const subscription = await stripe.subscriptions.retrieve(session.subscription);
     const priceId = subscription.items.data[0]?.price.id;
     await supabase.from('profiles').upsert({

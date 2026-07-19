@@ -915,7 +915,7 @@ export default function SettingsPage() {
             🔒 {isFr ? 'Politique de confidentialité' : 'Privacy Policy'} ↗
           </a>
           <button
-            onClick={() => openProCheckout(user?.email)}
+            onClick={() => openProCheckout(user?.email, user?.id)}
             style={{ textAlign: 'left', background: 'none', border: 'none', padding: 0, fontSize: '13px', color: 'var(--accent)', cursor: 'pointer' }}
           >
             ✨ {isFr ? "S'abonner au plan Pro →" : 'Subscribe to Pro →'}
