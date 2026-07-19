@@ -558,15 +558,15 @@ export default function DashboardPage() {
             </div>
             <div style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               {isFr
-                ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 9,99€/mois pour des visites illimitées, des photos et un PDF complet.`
-                : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 9.99€/month for unlimited visits, photos and full PDF.`}
+                ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées, des photos et un PDF complet.`
+                : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits, photos and full PDF.`}
             </div>
             <button
               className="btn btn-primary"
               style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
               onClick={() => { setShowUpgradeModal(false); openProCheckout(user?.email); }}
             >
-              {isFr ? "S'abonner au Plan Pro à 9,99€/mois →" : 'Subscribe to Pro at 9.99€/month →'}
+              {isFr ? "S'abonner au Plan Pro à 19,99€/mois →" : 'Subscribe to Pro at 19.99€/month →'}
             </button>
             <button
               className="btn btn-secondary"

@@ -18,15 +18,15 @@ function UpgradePlanModal({ lang, onClose, onUpgrade }) {
       </div>
       <div style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 24, lineHeight: 1.6 }}>
         {isFr
-          ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 9,99€/mois pour des visites illimitées.`
-          : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 9.99€/month for unlimited visits.`}
+          ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées.`
+          : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits.`}
       </div>
       <button
         className="btn btn-primary"
         style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
         onClick={onUpgrade}
       >
-        {isFr ? "S'abonner au Plan Pro à 9,99€/mois →" : 'Subscribe to Pro at 9.99€/month →'}
+        {isFr ? "S'abonner au Plan Pro à 19,99€/mois →" : 'Subscribe to Pro at 19.99€/month →'}
       </button>
       <button
         className="btn btn-secondary"

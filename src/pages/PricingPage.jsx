@@ -62,7 +62,7 @@ export default function PricingPage() {
           <div>
             <div style={{ fontWeight: 700, fontSize: 16, color: ACCENT }}>Pro ✨</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#1A1917' }}>
-              9,99 €<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text3)' }}>/mois</span>
+              19,99 €<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text3)' }}>/mois</span>
             </div>
           </div>
           {currentPlan === 'pro' ? (
