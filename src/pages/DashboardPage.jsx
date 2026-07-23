@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
 import BoxMascot from '../components/BoxMascot';
-import { FileText, Calendar, BarChart3, Trophy, Package, Sparkles, Pencil, CalendarClock } from 'lucide-react';
+import { FileText, Calendar, Clock, MapPin, BarChart3, Pencil, CalendarClock } from 'lucide-react';
 import NewVisitModal from '../components/NewVisitModal';
 import VisitCard from '../components/VisitCard';
 import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
@@ -191,6 +191,15 @@ function formatDateShort(dateStr, isFr) {
   } catch { return dateStr; }
 }
 
+function relativeDateLabel(dateStr, isFr) {
+  const target = new Date(dateStr + 'T00:00:00');
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((target - now) / 86400000);
+  if (diffDays === 0) return isFr ? "Aujourd'hui" : 'Today';
+  if (diffDays === 1) return isFr ? 'Demain' : 'Tomorrow';
+  return formatDateShort(dateStr, isFr);
+}
+
 const PLAN_BADGE = {
   free: { label: 'Gratuit',    bg: '#F0EFE9', color: '#6B6860' },
   pro:  { label: 'Pro ✨',     bg: '#EEF3FD', color: '#2B6BE6' },
@@ -214,10 +223,6 @@ export default function DashboardPage() {
   const [syncedVisitName, setSyncedVisitName] = useState(null);
 
   const today = localToday();
-  const firstOfMonth = (() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-  })();
 
   useEffect(() => { loadData(); }, []);
 
@@ -317,8 +322,6 @@ export default function DashboardPage() {
   const allVisits = [...visits, ...offlineVisits];
   const displayName = profile?.first_name || user?.email?.split('@')[0] || '';
   const upcoming  = allVisits.filter(v => v.visit_date >= today && (v.visit_status || 'prevue') !== 'annulee');
-  const monthVisits = allVisits.filter(v => v.visit_date >= firstOfMonth && v.visit_date <= today);
-  const nextVisit = upcoming[0];
 
   return (
     <>
@@ -358,50 +361,6 @@ export default function DashboardPage() {
           );
         })()}
 
-        {/* Petites victoires — discret, valorise l'usage régulier sans faire "gadget" */}
-        {(() => {
-          const VISIT_MILESTONES = [10, 25, 50, 100, 250, 500];
-          const VOLUME_MILESTONES = [100, 500, 1000, 2500, 5000, 10000];
-          const completedVisits = allVisits.filter(v => (v.total_volume || 0) > 0);
-          const totalVolumeSum = completedVisits.reduce((s, v) => s + (v.total_volume || 0), 0);
-          const visitMilestone = [...VISIT_MILESTONES].reverse().find(m => completedVisits.length >= m);
-          const volumeMilestone = [...VOLUME_MILESTONES].reverse().find(m => totalVolumeSum >= m);
-          if (!visitMilestone && !volumeMilestone) return null;
-          return (
-            <div className="achievement-row">
-              {visitMilestone && (
-                <div className="achievement-badge" style={{display:'inline-flex', alignItems:'center', gap:6}}>
-                  <Trophy size={15} strokeWidth={2} /> {visitMilestone} {isFr ? 'visites réalisées' : 'visits completed'}
-                </div>
-              )}
-              {volumeMilestone && (
-                <div className="achievement-badge" style={{display:'inline-flex', alignItems:'center', gap:6}}>
-                  <Package size={15} strokeWidth={2} /> {volumeMilestone} m³ {isFr ? 'cumulés' : 'total moved'}
-                </div>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Précision des estimations — argument commercial fort, calculé sur les
-            visites où le volume réel chargé a été renseigné après coup. */}
-        {(() => {
-          const withReal = allVisits.filter(v => (v.total_volume || 0) > 0 && (v.real_volume || 0) > 0);
-          if (withReal.length < 3) return null;
-          const avgAccuracy = withReal.reduce((sum, v) => {
-            const diff = Math.abs(v.total_volume - v.real_volume) / v.real_volume;
-            return sum + Math.max(0, 1 - diff);
-          }, 0) / withReal.length;
-          const pct = Math.round(avgAccuracy * 100);
-          return (
-            <div className="accuracy-banner" style={{display:'flex', alignItems:'center', gap:8}}>
-              <Sparkles size={16} strokeWidth={2} style={{flexShrink:0}} /> <span>{isFr
-                ? `Précision moyenne de vos estimations : ${pct}% (sur ${withReal.length} visites)`
-                : `Your estimates' average accuracy: ${pct}% (based on ${withReal.length} visits)`}</span>
-            </div>
-          );
-        })()}
-
         {/* CTA Nouvelle visite */}
         <button className="dashboard-cta" onClick={() => {
           const plan = profile?.plan || 'free';
@@ -413,6 +372,74 @@ export default function DashboardPage() {
         }} style={{display:'flex', alignItems:'center', justifyContent:'center', gap:9}}>
           <Pencil size={19} strokeWidth={2.5} /> {isFr ? 'Nouvelle visite' : 'New visit'}
         </button>
+
+        {/* Prochains rendez-vous — aperçu rapide cliquable des 3 prochains RDV */}
+        {!loading && !loadError && (() => {
+          const nextAppointments = [...upcoming].sort(sortByDateTime).slice(0, 3);
+          return (
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em',
+                textTransform: 'uppercase', color: 'var(--text3)', marginBottom: '10px',
+              }}>
+                {isFr ? 'Prochains rendez-vous' : 'Upcoming appointments'}
+              </div>
+
+              {nextAppointments.length === 0 ? (
+                <div className="empty-state" style={{ paddingTop: 16 }}>
+                  <div className="empty-title">{isFr ? 'Aucun rendez-vous à venir' : 'No upcoming appointment'}</div>
+                  <button
+                    style={{
+                      marginTop: '12px', padding: '10px 20px', borderRadius: '10px',
+                      border: 'none', background: 'var(--accent)', color: 'white',
+                      fontWeight: '700', fontSize: '14px', cursor: 'pointer',
+                    }}
+                    onClick={() => setShowNewVisit(true)}
+                  >
+                    <Pencil size={15} strokeWidth={2.5} style={{verticalAlign:'-2px', marginRight:6, display:'inline'}} />{isFr ? 'Créer une visite' : 'Create a visit'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {nextAppointments.map(v => {
+                    const vid = v._offlineId || v.id;
+                    return (
+                      <div
+                        key={vid}
+                        onClick={() => openVisit(vid)}
+                        role="button"
+                        tabIndex={0}
+                        style={{
+                          background: 'var(--surface)', border: '1px solid var(--border)',
+                          borderRadius: 'var(--radius-sm)', padding: '10px 12px', cursor: 'pointer',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: 'var(--text2)', marginBottom: '4px' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Calendar size={13} strokeWidth={2} /> {relativeDateLabel(v.visit_date, isFr)}
+                          </span>
+                          {v.visit_time && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <Clock size={13} strokeWidth={2} /> {v.visit_time.replace(':', 'h')}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontWeight: '700', fontSize: '14px', color: 'var(--text)' }}>
+                          {v.client_name || '—'}
+                        </div>
+                        {v.origin_data?.city && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
+                            <MapPin size={13} strokeWidth={2} /> {v.origin_data.city}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {loading ? (
           <div className="empty-state" style={{ paddingTop: 32 }}>
@@ -430,40 +457,6 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Stats */}
-            <div className="dashboard-stats" style={{ marginBottom: '20px' }}>
-              <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setViewMode('agenda')} role="button" tabIndex={0}>
-                <div className="stat-card-num">{monthVisits.length}</div>
-                <div className="stat-card-label">{isFr ? 'visites ce mois' : 'visits this month'}</div>
-              </div>
-              <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setViewMode('agenda')} role="button" tabIndex={0}>
-                <div className="stat-card-num">{upcoming.length}</div>
-                <div className="stat-card-label">{isFr ? 'à venir' : 'upcoming'}</div>
-              </div>
-              <div
-                className="stat-card"
-                style={{ cursor: nextVisit ? 'pointer' : 'default' }}
-                onClick={() => { if (nextVisit) openVisit(nextVisit.id); }}
-                role={nextVisit ? 'button' : undefined}
-                tabIndex={nextVisit ? 0 : undefined}
-              >
-                <div className="stat-card-num" style={{ fontSize: nextVisit ? '12px' : '20px' }}>
-                  {nextVisit ? (
-                    <>
-                      <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent)' }}>
-                        {nextVisit.client_name?.split(' ')[0] || '—'}
-                      </div>
-                      <div style={{ fontSize: '11px', fontWeight: '400', color: 'var(--text2)' }}>
-                        {formatDateShort(nextVisit.visit_date, isFr)}
-                        {nextVisit.visit_time ? ` ${nextVisit.visit_time.replace(':', 'h')}` : ''}
-                      </div>
-                    </>
-                  ) : '—'}
-                </div>
-                <div className="stat-card-label">{isFr ? 'prochaine visite' : 'next visit'}</div>
-              </div>
-            </div>
-
             {/* Toast sync */}
             {syncedVisitName && (
               <div style={{
@@ -477,12 +470,12 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Section Visites à venir */}
+            {/* Section détail des visites à venir */}
             <div style={{
               fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em',
               textTransform: 'uppercase', color: 'var(--text3)', marginBottom: '10px',
             }}>
-              <CalendarClock size={16} strokeWidth={2} style={{verticalAlign:'-3px', marginRight:6, display:'inline'}} />{isFr ? 'Visites à venir' : 'Upcoming visits'}
+              <CalendarClock size={16} strokeWidth={2} style={{verticalAlign:'-3px', marginRight:6, display:'inline'}} />{isFr ? 'Toutes les visites à venir' : 'All upcoming visits'}
             </div>
 
             {upcoming.length === 0 ? (
