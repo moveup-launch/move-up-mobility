@@ -1,4 +1,5 @@
 import { useApp } from '../context/AppContext';
+import { Building2, Home, Archive, Package, MapPin, Mail, ArrowUpFromLine, ArrowUpDown, ParkingSquare, Ruler, Construction, MessageSquare, StickyNote } from 'lucide-react';
 
 function YesNoCheck({ value, onChange, isFr }) {
   const opts = [
@@ -28,11 +29,11 @@ function isUpperFloor(floor) {
 }
 
 const HT_OPTIONS = [
-  { val: 'apartment', icon: '🏢' },
-  { val: 'house', icon: '🏠' },
-  { val: 'storage', icon: '🗄️' },
-  { val: 'office_pro', icon: '🏢' },
-  { val: 'other', icon: '📦' },
+  { val: 'apartment', icon: Building2 },
+  { val: 'house', icon: Home },
+  { val: 'storage', icon: Archive },
+  { val: 'office_pro', icon: Building2 },
+  { val: 'other', icon: Package },
 ];
 
 function AccessBlock({ prefix, label }) {
@@ -86,7 +87,7 @@ function AccessBlock({ prefix, label }) {
               style={{ padding: '6px 10px', flex: '1 1 80px', justifyContent: 'center' }}
               onClick={() => setHT(h.val)}
             >
-              <span className="radio-icon" style={{ fontSize: '16px' }}>{h.icon}</span>
+              <span className="radio-icon"><h.icon size={18} strokeWidth={2} /></span>
               <span className="radio-label" style={{ fontSize: '11px' }}>{t(h.val)}</span>
             </div>
           ))}
@@ -109,26 +110,26 @@ function AccessBlock({ prefix, label }) {
       {/* Adresse */}
       {!d.noFixedAddress && (
         <div className="field">
-          <label><span className="field-icon">📍</span>{t('originAddress')}</label>
+          <label><span className="field-icon"><MapPin size={16} strokeWidth={2} /></span>{t('originAddress')}</label>
           <input type="text" value={d.address} onChange={e => update('address', e.target.value)}
             placeholder={isFr ? 'Rue, numéro...' : 'Street, number...'} />
         </div>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: d.noFixedAddress ? '1fr' : '1fr 1fr', gap: '8px' }}>
         <div className="field">
-          <label><span className="field-icon">🏙️</span>{t('city')}</label>
+          <label><span className="field-icon"><Building2 size={16} strokeWidth={2} /></span>{t('city')}</label>
           <input type="text" value={d.city} onChange={e => update('city', e.target.value)} />
         </div>
         {!d.noFixedAddress && (
           <div className="field">
-            <label><span className="field-icon">📮</span>{t('postalCode')}</label>
+            <label><span className="field-icon"><Mail size={16} strokeWidth={2} /></span>{t('postalCode')}</label>
             <input type="text" value={d.postalCode} onChange={e => update('postalCode', e.target.value)} />
           </div>
         )}
       </div>
       {!d.noFixedAddress && (
         <div className="field">
-          <label><span className="field-icon">🔼</span>{t('floor')}</label>
+          <label><span className="field-icon"><ArrowUpFromLine size={16} strokeWidth={2} /></span>{t('floor')}</label>
           <input type="text" value={d.floor} onChange={e => update('floor', e.target.value)} placeholder="RDC / 2 / ..." />
         </div>
       )}
@@ -139,7 +140,7 @@ function AccessBlock({ prefix, label }) {
           {showElevator && (
             <>
               <div className="field">
-                <label><span className="field-icon">🛗</span>{t('elevator')}</label>
+                <label><span className="field-icon"><ArrowUpDown size={16} strokeWidth={2} /></span>{t('elevator')}</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {[{ val: 'yes', lbl: isFr ? 'Oui' : 'Yes' }, { val: 'no', lbl: isFr ? 'Non' : 'No' }].map(o => (
                     <div key={o.val} className={`radio-option ${d.elevator === o.val ? 'selected' : ''}`}
@@ -167,7 +168,7 @@ function AccessBlock({ prefix, label }) {
 
           {/* Stationnement */}
           <div className="field" style={{ marginTop: '6px' }}>
-            <label><span className="field-icon">🅿️</span>{t('parkingTruck')}</label>
+            <label><span className="field-icon"><ParkingSquare size={16} strokeWidth={2} /></span>{t('parkingTruck')}</label>
             <YesNoCheck value={d.parkingAvailable} onChange={v => update('parkingAvailable', v)} isFr={isFr} />
           </div>
           <div className="field">
@@ -175,7 +176,7 @@ function AccessBlock({ prefix, label }) {
             <YesNoCheck value={d.accessDifficult} onChange={v => update('accessDifficult', v)} isFr={isFr} />
           </div>
           <div className="field">
-            <label style={{ fontSize: '12px' }}><span className="field-icon">📏</span>{t('truckDistance')}</label>
+            <label style={{ fontSize: '12px' }}><span className="field-icon"><Ruler size={16} strokeWidth={2} /></span>{t('truckDistance')}</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {truckOpts.map(o => (
                 <div key={o.val} className={`radio-option ${d.truckDistance === o.val ? 'selected' : ''}`}
@@ -191,7 +192,7 @@ function AccessBlock({ prefix, label }) {
           {/* Monte-meubles — question séparée, visible pour tous les logements */}
           <div className="field" style={{ marginTop: '10px' }}>
             <label style={{ fontSize: '13px', fontWeight: '700' }}>
-              🏗️ {isFr ? 'Monte-meubles nécessaire ?' : 'Furniture lift needed?'}
+              <Construction size={16} strokeWidth={2} /> {isFr ? 'Monte-meubles nécessaire ?' : 'Furniture lift needed?'}
             </label>
             <YesNoCheck value={d.furnitureLiftNeeded} onChange={v => update('furnitureLiftNeeded', v)} isFr={isFr} />
           </div>
@@ -215,7 +216,7 @@ function AccessBlock({ prefix, label }) {
                 </div>
               </div>
               <div className="field">
-                <label style={{ fontSize: '12px' }}><span className="field-icon">💬</span>{isFr ? 'Commentaire monte-meubles' : 'Furniture lift comment'}</label>
+                <label style={{ fontSize: '12px' }}><span className="field-icon"><MessageSquare size={16} strokeWidth={2} /></span>{isFr ? 'Commentaire monte-meubles' : 'Furniture lift comment'}</label>
                 <input
                   type="text"
                   value={d.furnitureLiftComment || ''}
@@ -238,7 +239,7 @@ function AccessBlock({ prefix, label }) {
           )}
 
           <div className="field" style={{ marginTop: '8px' }}>
-            <label><span className="field-icon">📝</span>{t('accessNotes')}</label>
+            <label><span className="field-icon"><StickyNote size={16} strokeWidth={2} /></span>{t('accessNotes')}</label>
             <textarea value={d.accessNotes} onChange={e => update('accessNotes', e.target.value)}
               placeholder={isFr ? 'Remarques accès, digicode, gardien...' : 'Access notes, code, caretaker...'} />
           </div>

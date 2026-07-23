@@ -152,7 +152,7 @@ html, body {
 .field { margin-bottom: 16px; }
 .field:last-child { margin-bottom: 0; }
 label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 7px; }
-label .field-icon { font-size: 13px; opacity: 0.75; }
+label .field-icon { display: inline-flex; align-items: center; opacity: 0.75; }
 input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
   width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
   font-size: 16px; font-family: var(--font); color: var(--text); background: var(--surface2);
@@ -176,7 +176,7 @@ textarea { min-height: 80px; resize: vertical; }
 .radio-option.status-encours.selected  { border-color: #C8862A; background: #FBF0E0; color: #C8862A; }
 .radio-option.status-terminee.selected { border-color: var(--success); background: var(--success-light); color: var(--success); }
 .radio-option.status-annulee.selected  { border-color: var(--danger); background: var(--danger-light); color: var(--danger); }
-.radio-option .radio-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.radio-option .radio-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
 .radio-option .radio-label { font-size: 13px; font-weight: 500; }
 .radio-list { display: flex; flex-direction: column; gap: 8px; }
 .radio-list .radio-option { text-align: left; display: flex; align-items: center; gap: 10px; padding: 12px 14px; }

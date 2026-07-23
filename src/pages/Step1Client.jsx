@@ -1,4 +1,5 @@
 import { useApp } from '../context/AppContext';
+import { User, Smartphone, Mail, Calendar, Clock, Briefcase, Languages, Truck, StickyNote, MessageSquare } from 'lucide-react';
 
 const STATUS_OPTS_FR = [
   { val: 'prevue',   label: 'Prévue',   cls: 'status-prevue' },
@@ -28,15 +29,15 @@ export default function Step1Client() {
       <div className="card">
         <div className="card-title">{t('clientInfo')}</div>
         <div className="field">
-          <label><span className="field-icon">👤</span>{t('clientName')} *</label>
+          <label><span className="field-icon"><User size={16} strokeWidth={2} /></span>{t('clientName')} *</label>
           <input type="text" value={d.name} onChange={e => updateClient('name', e.target.value)} placeholder="Jean Dupont" />
         </div>
         <div className="field">
-          <label><span className="field-icon">📱</span>{t('clientPhone')}</label>
+          <label><span className="field-icon"><Smartphone size={16} strokeWidth={2} /></span>{t('clientPhone')}</label>
           <input type="tel" value={d.phone} onChange={e => updateClient('phone', e.target.value)} placeholder="+33 6 12 34 56 78" />
         </div>
         <div className="field">
-          <label><span className="field-icon">✉️</span>{t('clientEmail')}</label>
+          <label><span className="field-icon"><Mail size={16} strokeWidth={2} /></span>{t('clientEmail')}</label>
           <input type="email" value={d.email} onChange={e => updateClient('email', e.target.value)} placeholder="jean@email.com" />
         </div>
       </div>
@@ -45,11 +46,11 @@ export default function Step1Client() {
         <div className="card-title">{isFr ? 'Visite' : 'Visit'}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div className="field">
-            <label><span className="field-icon">📅</span>{t('visitDate')} *</label>
+            <label><span className="field-icon"><Calendar size={16} strokeWidth={2} /></span>{t('visitDate')} *</label>
             <input type="date" value={d.visitDate} onChange={e => updateClient('visitDate', e.target.value)} />
           </div>
           <div className="field">
-            <label><span className="field-icon">🕐</span>{t('visitTime')}</label>
+            <label><span className="field-icon"><Clock size={16} strokeWidth={2} /></span>{t('visitTime')}</label>
             <input type="time" value={d.visitTime || ''} onChange={e => updateClient('visitTime', e.target.value)} />
           </div>
         </div>
@@ -69,11 +70,11 @@ export default function Step1Client() {
           </div>
         </div>
         <div className="field">
-          <label><span className="field-icon">🧑‍💼</span>{t('surveyor')}</label>
+          <label><span className="field-icon"><Briefcase size={16} strokeWidth={2} /></span>{t('surveyor')}</label>
           <input type="text" value={d.surveyor} onChange={e => updateClient('surveyor', e.target.value)} placeholder={isFr ? 'Nom du commercial' : 'Sales rep name'} />
         </div>
         <div className="field">
-          <label><span className="field-icon">🗣️</span>{isFr ? 'Langue du client' : 'Client language'}</label>
+          <label><span className="field-icon"><Languages size={16} strokeWidth={2} /></span>{isFr ? 'Langue du client' : 'Client language'}</label>
           <div style={{ display: 'flex', gap: '6px' }}>
             {[{ v: 'fr', l: 'Français' }, { v: 'en', l: 'English' }].map(opt => (
               <div
@@ -88,11 +89,11 @@ export default function Step1Client() {
           </div>
         </div>
         <div className="field">
-          <label><span className="field-icon">🚚</span>{t('moveDate')}</label>
+          <label><span className="field-icon"><Truck size={16} strokeWidth={2} /></span>{t('moveDate')}</label>
           <input type="date" value={d.moveDate} onChange={e => updateClient('moveDate', e.target.value)} />
         </div>
         <div className="field">
-          <label><span className="field-icon">📝</span>{t('agendaNotes')}</label>
+          <label><span className="field-icon"><StickyNote size={16} strokeWidth={2} /></span>{t('agendaNotes')}</label>
           <textarea
             value={d.agendaNotes || ''}
             onChange={e => updateClient('agendaNotes', e.target.value)}
@@ -101,7 +102,7 @@ export default function Step1Client() {
           />
         </div>
         <div className="field">
-          <label><span className="field-icon">💬</span>{t('notes')}</label>
+          <label><span className="field-icon"><MessageSquare size={16} strokeWidth={2} /></span>{t('notes')}</label>
           <textarea value={d.notes} onChange={e => updateClient('notes', e.target.value)} placeholder={isFr ? 'Notes libres...' : 'Free notes...'} />
         </div>
       </div>
