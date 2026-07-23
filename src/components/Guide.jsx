@@ -164,7 +164,7 @@ export default function Guide({ onDone }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999, background: 'var(--bg, #F7F6F2)',
-      overflowY: 'auto', fontFamily: "'DM Sans', sans-serif",
+      overflowY: 'auto', fontFamily: 'var(--font)',
       paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)',
     }}>
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '20px 16px 40px' }}>

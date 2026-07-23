@@ -32,7 +32,7 @@ export default function ClientTrackingPage({ token }) {
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--bg, #F7F6F2)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: "'DM Sans', sans-serif",
+      alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'var(--font)',
     }}>
       <div style={{
         background: '#fff', borderRadius: '20px', padding: '32px 24px', maxWidth: '400px',

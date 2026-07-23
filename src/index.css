@@ -19,8 +19,8 @@
   --radius-sm: 10px;
   --shadow: 0 2px 16px rgba(0,0,0,0.08);
   --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
-  --font: 'DM Sans', sans-serif;
-  --font-display: 'DM Serif Display', serif;
+  --font: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -834,7 +834,7 @@ textarea { min-height: 80px; resize: vertical; }
   inset: 0;
   overflow-y: auto;
   background: #FFFFFF;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   color: #1A1917;
   z-index: 100;
 }
@@ -906,7 +906,7 @@ textarea { min-height: 80px; resize: vertical; }
 }
 
 .landing-h1 {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display);
   font-size: 44px;
   line-height: 1.15;
   letter-spacing: -1px;
@@ -915,7 +915,7 @@ textarea { min-height: 80px; resize: vertical; }
 }
 
 .landing-h2 {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display);
   font-size: 32px;
   line-height: 1.2;
   letter-spacing: -0.5px;

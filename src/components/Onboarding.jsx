@@ -64,7 +64,7 @@ export default function Onboarding({ onDone, asGuide = false }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999, background: 'var(--bg, #F7F6F2)',
-      display: 'flex', flexDirection: 'column', fontFamily: "'DM Sans', sans-serif",
+      display: 'flex', flexDirection: 'column', fontFamily: 'var(--font)',
     }}>
       {/* Bouton passer / fermer */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 20px', paddingTop: 'max(16px, env(safe-area-inset-top))' }}>

@@ -11,7 +11,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
         <div className="landing-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 36, height: 36, background: '#1A1917', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📦</div>
-            <span style={{ fontFamily: 'DM Serif Display, serif', fontSize: 20, color: '#1A1917', letterSpacing: -0.4 }}>Move Up</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: '#1A1917', letterSpacing: -0.4 }}>Move Up</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="landing-btn-ghost" onClick={onSignIn}>Se connecter</button>
@@ -213,7 +213,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 28, height: 28, background: '#3A3835', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>📦</div>
-              <span style={{ fontFamily: 'DM Serif Display, serif', fontSize: 16, color: 'white' }}>Move Up Mobility</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'white' }}>Move Up Mobility</span>
             </div>
             <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
               moveupapp.com · © 2026 Move Up Mobility
