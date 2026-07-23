@@ -636,7 +636,7 @@ textarea { min-height: 80px; resize: vertical; }
 }
 .mobile-nav-tab.active { color: var(--accent); }
 .mobile-nav-tab:active { opacity: 0.7; }
-.mobile-nav-icon { font-size: 22px; line-height: 1; }
+.mobile-nav-icon { display: flex; align-items: center; justify-content: center; line-height: 1; }
 .mobile-nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
 .mobile-bottom-nav-wizard {
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));

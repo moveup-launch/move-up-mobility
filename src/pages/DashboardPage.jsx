@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
 import BoxMascot from '../components/BoxMascot';
+import { FileText, Calendar, BarChart3, Trophy, Package, Sparkles, Pencil, CalendarClock } from 'lucide-react';
 import NewVisitModal from '../components/NewVisitModal';
 import VisitCard from '../components/VisitCard';
 import { getOfflineVisits, removeOfflineVisit } from '../lib/offlineQueue';
@@ -98,14 +99,14 @@ export function DashboardRightPanel() {
       <div style={PANEL_CARD}>
         <div style={SECTION_HDR}>{isFr ? 'Actions rapides' : 'Quick actions'}</div>
         <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <button style={QUICK_BTN} onClick={() => setViewMode('quote-editor')}>
-            📋 {isFr ? 'Nouveau devis' : 'New quote'}
+          <button style={{...QUICK_BTN, display:'flex', alignItems:'center', gap:8}} onClick={() => setViewMode('quote-editor')}>
+            <FileText size={17} strokeWidth={2} /> {isFr ? 'Nouveau devis' : 'New quote'}
           </button>
-          <button style={QUICK_BTN} onClick={() => setViewMode('agenda')}>
-            📅 {isFr ? "Voir l'agenda complet" : 'View full agenda'}
+          <button style={{...QUICK_BTN, display:'flex', alignItems:'center', gap:8}} onClick={() => setViewMode('agenda')}>
+            <Calendar size={17} strokeWidth={2} /> {isFr ? "Voir l'agenda complet" : 'View full agenda'}
           </button>
-          <button style={QUICK_BTN} onClick={() => setViewMode('history')}>
-            📊 {isFr ? 'Voir les statistiques' : 'View statistics'}
+          <button style={{...QUICK_BTN, display:'flex', alignItems:'center', gap:8}} onClick={() => setViewMode('history')}>
+            <BarChart3 size={17} strokeWidth={2} /> {isFr ? 'Voir les statistiques' : 'View statistics'}
           </button>
         </div>
       </div>
@@ -369,13 +370,13 @@ export default function DashboardPage() {
           return (
             <div className="achievement-row">
               {visitMilestone && (
-                <div className="achievement-badge">
-                  🏆 {visitMilestone} {isFr ? 'visites réalisées' : 'visits completed'}
+                <div className="achievement-badge" style={{display:'inline-flex', alignItems:'center', gap:6}}>
+                  <Trophy size={15} strokeWidth={2} /> {visitMilestone} {isFr ? 'visites réalisées' : 'visits completed'}
                 </div>
               )}
               {volumeMilestone && (
-                <div className="achievement-badge">
-                  📦 {volumeMilestone} m³ {isFr ? 'cumulés' : 'total moved'}
+                <div className="achievement-badge" style={{display:'inline-flex', alignItems:'center', gap:6}}>
+                  <Package size={15} strokeWidth={2} /> {volumeMilestone} m³ {isFr ? 'cumulés' : 'total moved'}
                 </div>
               )}
             </div>
@@ -393,10 +394,10 @@ export default function DashboardPage() {
           }, 0) / withReal.length;
           const pct = Math.round(avgAccuracy * 100);
           return (
-            <div className="accuracy-banner">
-              🎯 {isFr
+            <div className="accuracy-banner" style={{display:'flex', alignItems:'center', gap:8}}>
+              <Sparkles size={16} strokeWidth={2} style={{flexShrink:0}} /> <span>{isFr
                 ? `Précision moyenne de vos estimations : ${pct}% (sur ${withReal.length} visites)`
-                : `Your estimates' average accuracy: ${pct}% (based on ${withReal.length} visits)`}
+                : `Your estimates' average accuracy: ${pct}% (based on ${withReal.length} visits)`}</span>
             </div>
           );
         })()}
@@ -409,8 +410,8 @@ export default function DashboardPage() {
           } else {
             setShowNewVisit(true);
           }
-        }}>
-          ✏️ {isFr ? 'Nouvelle visite' : 'New visit'}
+        }} style={{display:'flex', alignItems:'center', justifyContent:'center', gap:9}}>
+          <Pencil size={19} strokeWidth={2.5} /> {isFr ? 'Nouvelle visite' : 'New visit'}
         </button>
 
         {loading ? (
@@ -481,7 +482,7 @@ export default function DashboardPage() {
               fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em',
               textTransform: 'uppercase', color: 'var(--text3)', marginBottom: '10px',
             }}>
-              📅 {isFr ? 'Visites à venir' : 'Upcoming visits'}
+              <CalendarClock size={16} strokeWidth={2} style={{verticalAlign:'-3px', marginRight:6, display:'inline'}} />{isFr ? 'Visites à venir' : 'Upcoming visits'}
             </div>
 
             {upcoming.length === 0 ? (
@@ -496,7 +497,7 @@ export default function DashboardPage() {
                   }}
                   onClick={() => setShowNewVisit(true)}
                 >
-                  ✏️ {isFr ? 'Créer une visite' : 'Create a visit'}
+                  <Pencil size={15} strokeWidth={2.5} style={{verticalAlign:'-2px', marginRight:6, display:'inline'}} />{isFr ? 'Créer une visite' : 'Create a visit'}
                 </button>
               </div>
             ) : (

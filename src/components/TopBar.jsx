@@ -1,5 +1,6 @@
 import { useApp } from '../context/AppContext';
 import { useIsDesktop } from '../hooks/useIsDesktop';
+import { Settings, LogOut, Shield, ChevronLeft, Package } from 'lucide-react';
 
 export default function TopBar() {
   const { lang, setLang, user, profile, signOut, viewMode, setViewMode, openPlanVisit } = useApp();
@@ -18,11 +19,11 @@ export default function TopBar() {
               color: 'var(--text)', fontWeight: 600, fontSize: 14, padding: '4px 0',
             }}
           >
-            ← {isFr ? 'Accueil' : 'Home'}
+            <ChevronLeft size={18} strokeWidth={2.5} /> {isFr ? 'Accueil' : 'Home'}
           </button>
         ) : (
           <>
-            <div className="topbar-logo">📦</div>
+            <div className="topbar-logo"><Package size={18} strokeWidth={2} color="#fff" /></div>
             <div className="topbar-brand-text">
               <span className="topbar-title">Move Up</span>
               <span className="topbar-title-suffix"> Mobility</span>
@@ -38,19 +39,20 @@ export default function TopBar() {
         {!isDesktop && user && (
           <button className="topbar-icon-btn" onClick={() => setViewMode('settings')}
             title={isFr ? 'Paramètres' : 'Settings'}
-            style={{ opacity: viewMode === 'settings' ? 1 : 0.7 }}>
-            ⚙️
+            style={{ opacity: viewMode === 'settings' ? 1 : 0.7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Settings size={20} strokeWidth={2} />
           </button>
         )}
         {!isDesktop && user && profile?.is_admin && (
           <button className="topbar-icon-btn" onClick={() => setViewMode('admin')}
-            title="Admin" style={{ opacity: viewMode === 'admin' ? 1 : 0.7 }}>
-            🛡️
+            title="Admin" style={{ opacity: viewMode === 'admin' ? 1 : 0.7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Shield size={20} strokeWidth={2} />
           </button>
         )}
         {!isDesktop && user && (
-          <button className="topbar-icon-btn" onClick={signOut} title={isFr ? 'Déconnexion' : 'Log out'}>
-            🚪
+          <button className="topbar-icon-btn" onClick={signOut} title={isFr ? 'Déconnexion' : 'Log out'}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LogOut size={20} strokeWidth={2} />
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { useApp } from '../context/AppContext';
+import { Home, Calendar, Plus, FileText, Clock } from 'lucide-react';
 
 export default function MobileNav() {
   const { lang, user, viewMode, setViewMode, openPlanVisit, currentStep, nextStep, prevStep, t, sheet, modal, state, selectRoom } = useApp();
@@ -57,21 +58,24 @@ export default function MobileNav() {
   }
 
   const tabs = [
-    { icon: '🏠', label: isFr ? 'Accueil' : 'Home',      action: () => setViewMode('dashboard'), active: viewMode === 'dashboard' },
-    { icon: '📅', label: 'Agenda',                         action: () => setViewMode('agenda'),    active: viewMode === 'agenda' },
-    { icon: '➕', label: isFr ? 'Nouveau' : 'New',         action: openPlanVisit,                  active: false },
-    { icon: '📋', label: isFr ? 'Devis' : 'Quotes',       action: () => setViewMode('quotes'),    active: viewMode === 'quotes' || viewMode === 'quote-editor' },
-    { icon: '🕓', label: isFr ? 'Historique' : 'History', action: () => setViewMode('history'),   active: viewMode === 'history' },
+    { icon: Home,     label: isFr ? 'Accueil' : 'Home',      action: () => setViewMode('dashboard'), active: viewMode === 'dashboard' },
+    { icon: Calendar, label: 'Agenda',                         action: () => setViewMode('agenda'),    active: viewMode === 'agenda' },
+    { icon: Plus,     label: isFr ? 'Nouveau' : 'New',         action: openPlanVisit,                  active: false },
+    { icon: FileText, label: isFr ? 'Devis' : 'Quotes',       action: () => setViewMode('quotes'),    active: viewMode === 'quotes' || viewMode === 'quote-editor' },
+    { icon: Clock,    label: isFr ? 'Historique' : 'History', action: () => setViewMode('history'),   active: viewMode === 'history' },
   ];
 
   return (
     <div className="mobile-bottom-nav">
-      {tabs.map((tab, i) => (
-        <button key={i} className={`mobile-nav-tab${tab.active ? ' active' : ''}`} onClick={tab.action}>
-          <span className="mobile-nav-icon">{tab.icon}</span>
-          <span className="mobile-nav-label">{tab.label}</span>
-        </button>
-      ))}
+      {tabs.map((tab, i) => {
+        const Icon = tab.icon;
+        return (
+          <button key={i} className={`mobile-nav-tab${tab.active ? ' active' : ''}`} onClick={tab.action}>
+            <span className="mobile-nav-icon"><Icon size={23} strokeWidth={2} /></span>
+            <span className="mobile-nav-label">{tab.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
