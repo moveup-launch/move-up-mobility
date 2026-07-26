@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { CreditCard } from 'lucide-react';
+import {
+  CreditCard, User, Building2, Smartphone, MapPin, Mail, Globe, Receipt, Palette,
+  FileText, Save, Wrench, Package, Ruler, Undo2, HelpCircle, BookOpen, ClipboardList,
+  Lock, ExternalLink, AlertTriangle, Trash2, X, Check, Settings, Image as ImageIcon,
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
@@ -81,23 +85,23 @@ function ProfileSection() {
   const set = (field, val) => setForm(f => ({ ...f, [field]: val }));
 
   return (
-    <Section title={`👤 ${t('settingsProfile')}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><User size={14} strokeWidth={2} /> {t('settingsProfile')}</span>}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
         <div className="field">
-          <label><span className="field-icon">👤</span>{t('firstName')}</label>
+          <label><span className="field-icon"><User size={16} strokeWidth={2} /></span>{t('firstName')}</label>
           <input type="text" value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="Jean" />
         </div>
         <div className="field">
-          <label><span className="field-icon">👤</span>{t('lastName')}</label>
+          <label><span className="field-icon"><User size={16} strokeWidth={2} /></span>{t('lastName')}</label>
           <input type="text" value={form.last_name} onChange={e => set('last_name', e.target.value)} placeholder="Dupont" />
         </div>
       </div>
       <div className="field">
-        <label><span className="field-icon">🏢</span>{t('companyName')}</label>
+        <label><span className="field-icon"><Building2 size={16} strokeWidth={2} /></span>{t('companyName')}</label>
         <input type="text" value={form.company_name} onChange={e => set('company_name', e.target.value)} placeholder="Move Up SAS" />
       </div>
       <div className="field">
-        <label><span className="field-icon">📱</span>{t('phone')}</label>
+        <label><span className="field-icon"><Smartphone size={16} strokeWidth={2} /></span>{t('phone')}</label>
         <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+33 6 12 34 56 78" />
       </div>
       <button
@@ -109,9 +113,10 @@ function ProfileSection() {
           cursor: status === 'saving' ? 'default' : 'pointer',
           background: status === 'saved' ? '#16A34A' : status === 'error' ? 'var(--danger)' : 'var(--accent)',
           color: 'white', opacity: status === 'saving' ? 0.7 : 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
         }}
       >
-        {status === 'saving' ? '⏳…' : status === 'saved' ? `✅ ${t('profileSaved')}` : status === 'error' ? '❌ Erreur' : `💾 ${t('saveProfile')}`}
+        {status === 'saving' ? '⏳…' : status === 'saved' ? `✅ ${t('profileSaved')}` : status === 'error' ? '❌ Erreur' : <><Save size={16} strokeWidth={2} /> {t('saveProfile')}</>}
       </button>
     </Section>
   );
@@ -247,7 +252,7 @@ function CompanySection() {
   const headerColor = form.company_color || '#2B6BE6';
 
   return (
-    <Section title={`🏢 ${isFr ? 'Mon entreprise' : 'My company'}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Building2 size={14} strokeWidth={2} /> {isFr ? 'Mon entreprise' : 'My company'}</span>}>
 
       {/* Logo */}
       <div className="field">
@@ -264,9 +269,9 @@ function CompanySection() {
               width: '72px', height: '48px', borderRadius: '6px',
               border: '2px dashed var(--border)', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
-              fontSize: '18px', color: 'var(--text3)', flexShrink: 0,
+              color: 'var(--text3)', flexShrink: 0,
             }}>
-              🖼️
+              <ImageIcon size={20} strokeWidth={2} />
             </div>
           )}
           <label style={{ cursor: uploadingLogo ? 'default' : 'pointer' }}>
@@ -289,10 +294,10 @@ function CompanySection() {
           {logoUrl && (
             <button
               onClick={handleRemoveLogo}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: '16px', lineHeight: 1 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', alignItems: 'center' }}
               title={isFr ? 'Supprimer le logo' : 'Remove logo'}
             >
-              ✕
+              <X size={16} strokeWidth={2} />
             </button>
           )}
         </div>
@@ -305,7 +310,7 @@ function CompanySection() {
 
       {/* Nom entreprise */}
       <div className="field">
-        <label><span className="field-icon">🏢</span>{isFr ? "Nom de l'entreprise" : 'Company name'}</label>
+        <label><span className="field-icon"><Building2 size={16} strokeWidth={2} /></span>{isFr ? "Nom de l'entreprise" : 'Company name'}</label>
         <input
           type="text"
           value={form.company_name}
@@ -316,7 +321,7 @@ function CompanySection() {
 
       {/* Adresse */}
       <div className="field">
-        <label><span className="field-icon">📍</span>{isFr ? 'Adresse entreprise' : 'Company address'}</label>
+        <label><span className="field-icon"><MapPin size={16} strokeWidth={2} /></span>{isFr ? 'Adresse entreprise' : 'Company address'}</label>
         <input
           type="text"
           value={form.company_address}
@@ -328,7 +333,7 @@ function CompanySection() {
       {/* Téléphone + Email */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <div className="field">
-          <label><span className="field-icon">📱</span>{isFr ? 'Téléphone' : 'Phone'}</label>
+          <label><span className="field-icon"><Smartphone size={16} strokeWidth={2} /></span>{isFr ? 'Téléphone' : 'Phone'}</label>
           <input
             type="tel"
             value={form.company_phone}
@@ -337,7 +342,7 @@ function CompanySection() {
           />
         </div>
         <div className="field">
-          <label><span className="field-icon">✉️</span>Email</label>
+          <label><span className="field-icon"><Mail size={16} strokeWidth={2} /></span>Email</label>
           <input
             type="email"
             value={form.company_email}
@@ -350,7 +355,7 @@ function CompanySection() {
       {/* Site web + SIRET */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <div className="field">
-          <label><span className="field-icon">🌐</span>{isFr ? 'Site web' : 'Website'}</label>
+          <label><span className="field-icon"><Globe size={16} strokeWidth={2} /></span>{isFr ? 'Site web' : 'Website'}</label>
           <input
             type="text"
             value={form.company_website}
@@ -359,7 +364,7 @@ function CompanySection() {
           />
         </div>
         <div className="field">
-          <label><span className="field-icon">🧾</span>{isFr ? 'SIRET (optionnel)' : 'SIRET (optional)'}</label>
+          <label><span className="field-icon"><Receipt size={16} strokeWidth={2} /></span>{isFr ? 'SIRET (optionnel)' : 'SIRET (optional)'}</label>
           <input
             type="text"
             value={form.company_siret}
@@ -371,7 +376,7 @@ function CompanySection() {
 
       {/* Couleur principale */}
       <div className="field">
-        <label><span className="field-icon">🎨</span>{isFr ? 'Couleur principale' : 'Brand color'}</label>
+        <label><span className="field-icon"><Palette size={16} strokeWidth={2} /></span>{isFr ? 'Couleur principale' : 'Brand color'}</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <input
             type="color"
@@ -422,7 +427,7 @@ function CompanySection() {
 
       {/* Phrase de renvoi CGV (pied de devis) */}
       <div className="field">
-        <label><span className="field-icon">📄</span>{isFr ? 'Mention conditions générales (devis)' : 'Terms note (quotes)'}</label>
+        <label><span className="field-icon"><FileText size={16} strokeWidth={2} /></span>{isFr ? 'Mention conditions générales (devis)' : 'Terms note (quotes)'}</label>
         <textarea
           rows={2}
           value={form.quote_terms}
@@ -492,12 +497,13 @@ function CompanySection() {
           cursor: status === 'saving' ? 'default' : 'pointer',
           background: status === 'saved' ? '#16A34A' : status === 'error' ? 'var(--danger)' : 'var(--accent)',
           color: 'white', opacity: status === 'saving' ? 0.7 : 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
         }}
       >
         {status === 'saving' ? '⏳…'
           : status === 'saved' ? (isFr ? '✅ Sauvegardé !' : '✅ Saved!')
           : status === 'error' ? '❌ Erreur'
-          : `💾 ${isFr ? 'Sauvegarder' : 'Save'}`}
+          : <><Save size={16} strokeWidth={2} /> {isFr ? 'Sauvegarder' : 'Save'}</>}
       </button>
     </Section>
   );
@@ -510,7 +516,7 @@ function SubscriptionSection() {
   const isPro = profile?.plan === 'pro';
 
   return (
-    <Section title={`💳 ${isFr ? 'Abonnement' : 'Subscription'}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><CreditCard size={14} strokeWidth={2} /> {isFr ? 'Abonnement' : 'Subscription'}</span>}>
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '14px 16px', background: 'var(--surface2)', borderRadius: '10px', marginBottom: '10px',
@@ -558,7 +564,7 @@ function SubscriptionSection() {
 function ExpertSection() {
   const { t, expertMode, setExpertMode } = useApp();
   return (
-    <Section title={`🔧 ${t('settingsExpert')}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Wrench size={14} strokeWidth={2} /> {t('settingsExpert')}</span>}>
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '14px 16px', background: 'var(--surface2)', borderRadius: '10px',
@@ -602,7 +608,7 @@ function CustomCatalogSection() {
   };
 
   return (
-    <Section title={`📦 ${t('settingsCustomCatalog')}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Package size={14} strokeWidth={2} /> {t('settingsCustomCatalog')}</span>}>
       {customCatalog.length === 0 && !showForm && (
         <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '10px', textAlign: 'center', padding: '12px' }}>
           {isFr ? 'Aucun objet personnalisé' : 'No custom items yet'}
@@ -630,9 +636,10 @@ function CustomCatalogSection() {
               background: 'var(--danger-light)', color: 'var(--danger)',
               border: '1px solid var(--danger)', borderRadius: '6px',
               padding: '4px 8px', cursor: 'pointer', fontSize: '13px',
+              display: 'flex', alignItems: 'center',
             }}
           >
-            🗑️
+            <Trash2 size={14} strokeWidth={2} />
           </button>
         </div>
       ))}
@@ -684,9 +691,10 @@ function CustomCatalogSection() {
                 background: 'var(--accent)', color: 'white', fontWeight: '700',
                 cursor: form.nameFr.trim() ? 'pointer' : 'default',
                 opacity: form.nameFr.trim() ? 1 : 0.5,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               }}
             >
-              ✅ {isFr ? 'Ajouter' : 'Add'}
+              <Check size={16} strokeWidth={2} /> {isFr ? 'Ajouter' : 'Add'}
             </button>
             <button
               onClick={() => setShowForm(false)}
@@ -738,7 +746,7 @@ function VolumeDefaultsSection() {
   });
 
   return (
-    <Section title={`📐 ${t('settingsVolumeDefaults')}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Ruler size={14} strokeWidth={2} /> {t('settingsVolumeDefaults')}</span>}>
       <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px' }}>
         {isFr
           ? "Modifiez le volume par défaut des objets du catalogue. Utilisé quand vous ajoutez un objet à l'inventaire."
@@ -775,10 +783,10 @@ function VolumeDefaultsSection() {
                 title={t('resetDefault')}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: '14px', color: 'var(--text3)', padding: '2px',
+                  color: 'var(--text3)', padding: '2px', display: 'flex', alignItems: 'center',
                 }}
               >
-                ↩
+                <Undo2 size={14} strokeWidth={2} />
               </button>
             )}
           </div>
@@ -792,7 +800,7 @@ function VolumeDefaultsSection() {
 function PrefsSection() {
   const { t, lang, setLang } = useApp();
   return (
-    <Section title={`🌐 ${t('settingsPrefs')}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Globe size={14} strokeWidth={2} /> {t('settingsPrefs')}</span>}>
       <div style={{ padding: '12px 14px', background: 'var(--surface2)', borderRadius: '10px' }}>
         <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>{t('settingsLanguage')}</div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -852,7 +860,7 @@ function DangerZoneSection() {
   };
 
   return (
-    <Section title={`⚠️ ${isFr ? 'Zone de danger' : 'Danger zone'}`}>
+    <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--danger)' }}><AlertTriangle size={14} strokeWidth={2} /> {isFr ? 'Zone de danger' : 'Danger zone'}</span>}>
       {!confirming ? (
         <div>
           <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: 12, lineHeight: 1.5 }}>
@@ -867,9 +875,10 @@ function DangerZoneSection() {
               border: '1px solid var(--danger)', background: 'var(--danger-light)',
               color: 'var(--danger)', fontSize: '13px', fontWeight: '600',
               cursor: 'pointer', width: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             }}
           >
-            🗑️ {isFr ? 'Supprimer mon compte' : 'Delete my account'}
+            <Trash2 size={16} strokeWidth={2} /> {isFr ? 'Supprimer mon compte' : 'Delete my account'}
           </button>
         </div>
       ) : (
@@ -925,7 +934,9 @@ export default function SettingsPage() {
   return (
     <div style={{ padding: '16px', maxWidth: '640px', margin: '0 auto' }}>
       <div className="section-header">
-        <div className="section-title">⚙️ {t('settings')}</div>
+        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Settings size={18} strokeWidth={2} /> {t('settings')}
+        </div>
         <div className="section-subtitle">{user?.email}</div>
       </div>
       <ProfileSection />
@@ -937,7 +948,7 @@ export default function SettingsPage() {
       <PrefsSection />
 
       {/* Guide d'utilisation */}
-      <Section title={`❓ ${isFr ? "Guide d'utilisation" : 'User guide'}`}>
+      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><HelpCircle size={14} strokeWidth={2} /> {isFr ? "Guide d'utilisation" : 'User guide'}</span>}>
         <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: 12, lineHeight: 1.5 }}>
           {isFr
             ? 'Revoyez les bases : créer une visite, faire un inventaire, générer un PDF, partager un lien de suivi.'
@@ -950,22 +961,23 @@ export default function SettingsPage() {
             border: '1px solid var(--accent)', background: 'var(--accent-light, #EEF3FD)',
             color: 'var(--accent)', fontSize: '13px', fontWeight: '600',
             cursor: 'pointer', width: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           }}
         >
-          📖 {isFr ? 'Revoir le guide' : 'Review the guide'}
+          <BookOpen size={16} strokeWidth={2} /> {isFr ? 'Revoir le guide' : 'Review the guide'}
         </button>
       </Section>
 
       {/* Liens légaux */}
-      <Section title={`📋 ${isFr ? 'Mentions légales' : 'Legal'}`}>
+      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><ClipboardList size={14} strokeWidth={2} /> {isFr ? 'Mentions légales' : 'Legal'}</span>}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <a href="/cgu" target="_blank" rel="noopener noreferrer"
             style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-            📄 {isFr ? "Conditions Générales d'Utilisation" : 'Terms of Service'} ↗
+            <FileText size={14} strokeWidth={2} /> {isFr ? "Conditions Générales d'Utilisation" : 'Terms of Service'} <ExternalLink size={12} strokeWidth={2} />
           </a>
           <a href="/confidentialite" target="_blank" rel="noopener noreferrer"
             style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-            🔒 {isFr ? 'Politique de confidentialité' : 'Privacy Policy'} ↗
+            <Lock size={14} strokeWidth={2} /> {isFr ? 'Politique de confidentialité' : 'Privacy Policy'} <ExternalLink size={12} strokeWidth={2} />
           </a>
         </div>
       </Section>

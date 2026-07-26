@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
+import {
+  ChevronLeft, ClipboardList, Link, User, Map, Wallet, Star, CheckCircle2, XCircle,
+  Receipt, StickyNote, Save, FileText, Mail, Paperclip, Ship, Plane, Truck, Package,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
@@ -706,10 +710,10 @@ export default function QuotePage() {
   };
 
   const MODES = [
-    { val: 'sea',     icon: '🚢', labelFr: 'Maritime',     labelEn: 'Sea' },
-    { val: 'air',     icon: '✈️',  labelFr: 'Aérien',       labelEn: 'Air' },
-    { val: 'road',    icon: '🚛', labelFr: 'Route',         labelEn: 'Road' },
-    { val: 'storage', icon: '📦', labelFr: 'Stockage',      labelEn: 'Storage' },
+    { val: 'sea',     Icon: Ship,   labelFr: 'Maritime',     labelEn: 'Sea' },
+    { val: 'air',     Icon: Plane,  labelFr: 'Aérien',       labelEn: 'Air' },
+    { val: 'road',    Icon: Truck,  labelFr: 'Route',         labelEn: 'Road' },
+    { val: 'storage', Icon: Package, labelFr: 'Stockage',      labelEn: 'Storage' },
   ];
 
   const STATUS_OPTS = [
@@ -741,12 +745,14 @@ export default function QuotePage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
           <button
             onClick={() => setViewMode('quotes')}
-            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', color: 'var(--text2)', fontSize: '13px', flexShrink: 0 }}
+            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', color: 'var(--text2)', fontSize: '13px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            ← {isFr ? 'Retour' : 'Back'}
+            <ChevronLeft size={16} strokeWidth={2} /> {isFr ? 'Retour' : 'Back'}
           </button>
           <div>
-            <div className="section-title">📋 {reference || (isFr ? 'Nouveau devis' : 'New quote')}</div>
+            <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ClipboardList size={18} strokeWidth={2} /> {reference || (isFr ? 'Nouveau devis' : 'New quote')}
+            </div>
             <div className="section-subtitle">{isFr ? 'Édition du devis' : 'Quote editor'}</div>
           </div>
         </div>
@@ -766,7 +772,7 @@ export default function QuotePage() {
             color: 'var(--text2)', cursor: 'pointer', marginBottom: '10px',
           }}
         >
-          🔗 {isFr ? 'Voir la visite associée' : 'View associated visit'}
+          <Link size={14} strokeWidth={2} /> {isFr ? 'Voir la visite associée' : 'View associated visit'}
         </button>
       )}
 
@@ -808,7 +814,9 @@ export default function QuotePage() {
 
       {/* A — Header */}
       <div className="card">
-        <div className="card-title">📋 {isFr ? 'En-tête' : 'Header'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ClipboardList size={14} strokeWidth={2} /> {isFr ? 'En-tête' : 'Header'}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div className="field">
             <label>{isFr ? 'Référence' : 'Reference'}</label>
@@ -823,7 +831,9 @@ export default function QuotePage() {
 
       {/* B — Client */}
       <div className="card">
-        <div className="card-title">👤 {isFr ? 'Client' : 'Client'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <User size={14} strokeWidth={2} /> {isFr ? 'Client' : 'Client'}
+        </div>
         <div className="field">
           <label>{isFr ? 'Nom complet' : 'Full name'}</label>
           <input style={inputStyle} value={clientName} onChange={e => setClientName(e.target.value)} />
@@ -842,7 +852,9 @@ export default function QuotePage() {
 
       {/* C — Shipment */}
       <div className="card">
-        <div className="card-title">🗺️ {isFr ? 'Expédition' : 'Shipment'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Map size={14} strokeWidth={2} /> {isFr ? 'Expédition' : 'Shipment'}
+        </div>
         <div className="field">
           <label>{isFr ? 'Origine' : 'Origin'}</label>
           <input style={inputStyle} value={origin} onChange={e => setOrigin(e.target.value)} />
@@ -884,7 +896,7 @@ export default function QuotePage() {
                   setCostLines(initCostLines(m.val));
                 }}
               >
-                <span className="radio-icon">{m.icon}</span>
+                <span className="radio-icon"><m.Icon size={20} strokeWidth={2} /></span>
                 <span className="radio-label" style={{ fontSize: '12px' }}>{isFr ? m.labelFr : m.labelEn}</span>
               </div>
             ))}
@@ -898,7 +910,9 @@ export default function QuotePage() {
 
       {/* D — Costs */}
       <div className="card">
-        <div className="card-title">💰 {isFr ? 'Détail des coûts' : 'Cost breakdown'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Wallet size={14} strokeWidth={2} /> {isFr ? 'Détail des coûts' : 'Cost breakdown'}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 28px', gap: '6px', marginBottom: '6px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600', textTransform: 'uppercase', paddingLeft: '2px' }}>
             {isFr ? 'Prestation' : 'Description'}
@@ -947,7 +961,9 @@ export default function QuotePage() {
 
       {/* E — Optional services */}
       <div className="card">
-        <div className="card-title">⭐ {isFr ? 'Services optionnels' : 'Optional services'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Star size={14} strokeWidth={2} /> {isFr ? 'Services optionnels' : 'Optional services'}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 48px 28px', gap: '6px', marginBottom: '6px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600', textTransform: 'uppercase' }}>{isFr ? 'Service' : 'Service'}</div>
           <div style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'right' }}>{isFr ? 'Montant' : 'Amount'}</div>
@@ -996,7 +1012,9 @@ export default function QuotePage() {
 
       {/* F — Services inclus */}
       <div className="card">
-        <div className="card-title">✅ {isFr ? 'Prestations incluses' : 'Included services'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <CheckCircle2 size={14} strokeWidth={2} /> {isFr ? 'Prestations incluses' : 'Included services'}
+        </div>
         {servicesIncluded.map(s => (
           <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 0', cursor: 'pointer', borderBottom: '1px solid var(--border)' }}>
             <input
@@ -1023,7 +1041,9 @@ export default function QuotePage() {
 
       {/* G — Exclusions */}
       <div className="card">
-        <div className="card-title">❌ {isFr ? 'Exclusions' : 'Exclusions'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <XCircle size={14} strokeWidth={2} /> {isFr ? 'Exclusions' : 'Exclusions'}
+        </div>
         {exclusions.map(e => (
           <label key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 0', cursor: 'pointer', borderBottom: '1px solid var(--border)' }}>
             <input
@@ -1050,7 +1070,9 @@ export default function QuotePage() {
 
       {/* G bis — TVA */}
       <div className="card">
-        <div className="card-title">🧾 {isFr ? 'TVA' : 'VAT'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Receipt size={14} strokeWidth={2} /> {isFr ? 'TVA' : 'VAT'}
+        </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: vatEnabled ? '12px' : '0' }}>
           <input
             type="checkbox"
@@ -1113,7 +1135,9 @@ export default function QuotePage() {
 
       {/* H — Notes */}
       <div className="card">
-        <div className="card-title">📝 {isFr ? 'Notes et conditions' : 'Notes & conditions'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <StickyNote size={14} strokeWidth={2} /> {isFr ? 'Notes et conditions' : 'Notes & conditions'}
+        </div>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
@@ -1137,14 +1161,14 @@ export default function QuotePage() {
               ? `✅ ${isFr ? 'Sauvegardé !' : 'Saved!'}`
               : saveStatus === 'error'
                 ? (isFr ? '❌ Erreur' : '❌ Error')
-                : `💾 ${isFr ? 'Sauvegarder le devis' : 'Save quote'}`}
+                : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Save size={16} strokeWidth={2} /> {isFr ? 'Sauvegarder le devis' : 'Save quote'}</span>}
         </button>
         <button
           className="pdf-btn"
           onClick={handlePDF}
-          style={{ width: '100%' }}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
         >
-          📄 {isFr ? 'Générer PDF du devis' : 'Generate PDF quote'}
+          <FileText size={16} strokeWidth={2} /> {isFr ? 'Générer PDF du devis' : 'Generate PDF quote'}
         </button>
         <button
           onClick={handleSendEmail}
@@ -1155,11 +1179,12 @@ export default function QuotePage() {
             color: 'var(--accent)', fontWeight: '700', fontSize: '14px',
             cursor: clientEmail ? 'pointer' : 'not-allowed',
             opacity: clientEmail ? 1 : 0.5,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           }}
         >
           {emailStatus === 'sent'
             ? `✅ ${isFr ? 'Client mail ouvert !' : 'Mail client opened!'}`
-            : `📧 ${isFr ? 'Envoyer par email' : 'Send by email'}`}
+            : <><Mail size={16} strokeWidth={2} /> {isFr ? 'Envoyer par email' : 'Send by email'}</>}
         </button>
         {emailStatus === 'sent' && (
           <div style={{
@@ -1168,7 +1193,7 @@ export default function QuotePage() {
             borderRadius: '8px', padding: '10px 12px', fontSize: '12px',
             color: '#92400E', lineHeight: 1.5,
           }}>
-            <span style={{ fontSize: 16, flexShrink: 0 }}>📎</span>
+            <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}><Paperclip size={16} strokeWidth={2} /></span>
             <span>
               {isFr
                 ? "N'oubliez pas de joindre le PDF téléchargé à votre email avant de l'envoyer."

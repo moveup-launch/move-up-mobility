@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';import { useApp } from '../context/AppContext';
+import { useState, useEffect } from 'react';
+import { Package, Truck, Ship, Plane, HelpCircle, Archive, ArrowRight, Smartphone, Mail, Link, Save, ClipboardList } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import { CATALOG } from '../data/catalog';
 import Step6PDF from './Step6PDF';
 import BoxMascot from '../components/BoxMascot';
@@ -286,7 +288,7 @@ export default function Step5Summary() {
         if (totalBoxCount === 0) return null;
         return (
           <div className="summary-stat">
-            <div className="stat-icon">📦</div>
+            <div className="stat-icon"><Package size={20} strokeWidth={2} /></div>
             <div className="stat-info">
               <div className="stat-label">{isFr ? 'Cartons à prévoir' : 'Boxes to prepare'}</div>
               <div className="stat-value">{totalBoxCount} {isFr ? 'cartons' : 'boxes'} — {totalBoxVol.toFixed(2)} m³</div>
@@ -314,10 +316,10 @@ export default function Step5Summary() {
         const definedModes = ORDERED_MODES.filter(m => modeMap[m]);
         if (definedModes.length === 0) return null;
         const modeInfo = {
-          road:    { fr: '🚛 Route',    en: '🚛 Road'    },
-          sea:     { fr: '🚢 Maritime', en: '🚢 Sea'     },
-          air:     { fr: '✈️ Aérien',  en: '✈️ Air'    },
-          storage: { fr: '📦 Stockage', en: '📦 Storage' },
+          road:    { Icon: Truck, fr: 'Route',    en: 'Road'    },
+          sea:     { Icon: Ship,  fr: 'Maritime', en: 'Sea'     },
+          air:     { Icon: Plane, fr: 'Aérien',   en: 'Air'     },
+          storage: { Icon: Package, fr: 'Stockage', en: 'Storage' },
         };
         return (
           <div className="card">
@@ -326,12 +328,13 @@ export default function Step5Summary() {
             </div>
             {definedModes.map((mode, idx) => {
               const g = modeMap[mode];
-              const label = modeInfo[mode][isFr ? 'fr' : 'en'];
+              const { Icon: ModeIcon, ...labels } = modeInfo[mode];
+              const label = labels[isFr ? 'fr' : 'en'];
               const containerReco = mode === 'sea' ? getSegmentSolution('sea', g.volume) : null;
               return (
                 <div key={mode} style={{ marginBottom: idx < definedModes.length - 1 ? '14px' : '6px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>
-                    <span>{label}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><ModeIcon size={16} strokeWidth={2} /> {label}</span>
                     <span>{g.volume.toFixed(2)} m³</span>
                   </div>
                   {containerReco && (
@@ -352,7 +355,7 @@ export default function Step5Summary() {
             })}
             {modeMap['undefined'] && (
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text3)' }}>
-                <span>❓ {isFr ? 'Non défini' : 'Undefined'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><HelpCircle size={14} strokeWidth={2} /> {isFr ? 'Non défini' : 'Undefined'}</span>
                 <span>{modeMap['undefined'].volume.toFixed(2)} m³ — {modeMap['undefined'].count} {isFr ? 'obj.' : 'item(s)'}</span>
               </div>
             )}
@@ -363,8 +366,8 @@ export default function Step5Summary() {
       {/* Caisse bois */}
       {crateItems.length > 0 && (
         <div className="card" style={{ borderLeft: '3px solid var(--warn)' }}>
-          <div className="card-title" style={{ color: 'var(--warn)' }}>
-            🗃️ {t('crateItems')} ({crateItems.length})
+          <div className="card-title" style={{ color: 'var(--warn)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Archive size={14} strokeWidth={2} /> {t('crateItems')} ({crateItems.length})
           </div>
           <ul className="item-list-summary">
             {crateItems.map((item, i) => (
@@ -435,7 +438,9 @@ export default function Step5Summary() {
 
         return (
           <div className="card">
-            <div className="card-title">📦 {t('boxesSummary')}</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Package size={14} strokeWidth={2} /> {t('boxesSummary')}
+            </div>
             {roomBoxData.map(({ room, boxItems }) => (
               <div key={room.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ fontWeight: '700', fontSize: '13px' }}>
@@ -466,8 +471,8 @@ export default function Step5Summary() {
                 ? (isFr ? 'Visite mise à jour !' : 'Visit updated!')
                 : (isFr ? 'Visite enregistrée !' : 'Visit saved!')
               }</span>
-              <button className="save-history-link" onClick={() => setViewMode('history')}>
-                {isFr ? "Voir l'historique →" : 'View history →'}
+              <button className="save-history-link" onClick={() => setViewMode('history')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                {isFr ? "Voir l'historique" : 'View history'} <ArrowRight size={14} strokeWidth={2} />
               </button>
             </div>
             {/* Boutons contact client */}
@@ -500,9 +505,10 @@ export default function Step5Summary() {
                       flex: 1, padding: '11px 10px', borderRadius: '10px',
                       border: '2px solid #16A34A', background: '#F0FDF4', color: '#16A34A',
                       fontWeight: '700', fontSize: '13px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                     }}
                   >
-                    📱 {isFr ? 'SMS client' : 'SMS client'}
+                    <Smartphone size={16} strokeWidth={2} /> {isFr ? 'SMS client' : 'SMS client'}
                   </button>
                 )}
                 {state.client.email && (
@@ -512,9 +518,10 @@ export default function Step5Summary() {
                       flex: 1, padding: '11px 10px', borderRadius: '10px',
                       border: '2px solid var(--accent)', background: 'var(--accent-light)', color: 'var(--accent)',
                       fontWeight: '700', fontSize: '13px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                     }}
                   >
-                    📧 {isFr ? 'Email client' : 'Email client'}
+                    <Mail size={16} strokeWidth={2} /> {isFr ? 'Email client' : 'Email client'}
                   </button>
                 )}
               </div>
@@ -531,9 +538,12 @@ export default function Step5Summary() {
                   width: '100%', marginTop: '8px', padding: '10px', borderRadius: '10px',
                   border: '1.5px dashed var(--border)', background: 'var(--surface2)', color: 'var(--text2)',
                   fontWeight: '600', fontSize: '12.5px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                 }}
               >
-                {linkCopied ? '✅ ' + (isFr ? 'Lien copié !' : 'Link copied!') : '🔗 ' + (isFr ? 'Copier le lien de suivi client' : "Copy client's tracking link")}
+                {linkCopied
+                  ? '✅ ' + (isFr ? 'Lien copié !' : 'Link copied!')
+                  : <><Link size={14} strokeWidth={2} /> {isFr ? 'Copier le lien de suivi client' : "Copy client's tracking link"}</>}
               </button>
             )}
           </div>
@@ -547,9 +557,12 @@ export default function Step5Summary() {
               ? (isFr ? 'Enregistrement…' : 'Saving…')
               : saveStatus === 'error'
                 ? (isFr ? 'Erreur — réessayer' : 'Error — retry')
-                : isEditing
-                  ? (isFr ? '💾 Mettre à jour' : '💾 Update visit')
-                  : (isFr ? '💾 Enregistrer la visite' : '💾 Save visit')}
+                : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Save size={16} strokeWidth={2} />
+                    {isEditing
+                      ? (isFr ? 'Mettre à jour' : 'Update visit')
+                      : (isFr ? 'Enregistrer la visite' : 'Save visit')}
+                  </span>}
           </button>
         )}
         <button
@@ -568,9 +581,10 @@ export default function Step5Summary() {
             width: '100%', marginTop: '8px', padding: '14px', borderRadius: '10px',
             border: '2px solid #7C3AED', background: '#F5F3FF',
             color: '#7C3AED', fontWeight: '700', fontSize: '14px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           }}
         >
-          📋 {isFr ? 'Générer un devis' : 'Generate a quote'}
+          <ClipboardList size={16} strokeWidth={2} /> {isFr ? 'Générer un devis' : 'Generate a quote'}
         </button>
       </div>
 

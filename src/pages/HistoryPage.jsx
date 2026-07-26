@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { X, ChevronUp, ChevronDown, Phone, Target, Camera, Pencil, ClipboardList, FileText, Copy, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { generateVisitPDF } from '../utils/pdfGenerator';
@@ -199,9 +200,9 @@ export default function HistoryPage() {
         {(filterStatus !== 'all' || filterDate || search) && (
           <button
             onClick={() => { setFilterStatus('all'); setFilterDate(''); setSearch(''); }}
-            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface2)', fontSize: '12px', cursor: 'pointer', color: 'var(--text3)' }}
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface2)', fontSize: '12px', cursor: 'pointer', color: 'var(--text3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            ✕ {isFr ? 'Effacer' : 'Clear'}
+            <X size={14} strokeWidth={2} /> {isFr ? 'Effacer' : 'Clear'}
           </button>
         )}
       </div>
@@ -258,7 +259,9 @@ export default function HistoryPage() {
                 </div>
                 <div className="history-card-right">
                   <div className="history-vol">{(v.total_volume || 0).toFixed(1)} m³</div>
-                  <div className="history-chevron">{expanded === v.id ? '▲' : '▼'}</div>
+                  <div className="history-chevron" style={{ display: 'flex', alignItems: 'center' }}>
+                    {expanded === v.id ? <ChevronUp size={16} strokeWidth={2} /> : <ChevronDown size={16} strokeWidth={2} />}
+                  </div>
                 </div>
               </button>
 
@@ -267,8 +270,8 @@ export default function HistoryPage() {
                   {phone && (
                     <div className="history-detail-row">
                       <span>{isFr ? 'Téléphone' : 'Phone'}</span>
-                      <a href={`tel:${phone}`} style={{ color: 'var(--accent)', fontWeight: '600', textDecoration: 'none' }}>
-                        📞 {phone}
+                      <a href={`tel:${phone}`} style={{ color: 'var(--accent)', fontWeight: '600', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Phone size={14} strokeWidth={2} /> {phone}
                       </a>
                     </div>
                   )}
@@ -311,7 +314,9 @@ export default function HistoryPage() {
 
                   {(v.total_volume || 0) > 0 && (
                     <div className="history-detail-row" style={{ alignItems: 'center' }}>
-                      <span>🎯 {isFr ? 'Volume réel chargé' : 'Actual loaded volume'}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Target size={14} strokeWidth={2} /> {isFr ? 'Volume réel chargé' : 'Actual loaded volume'}
+                      </span>
                       {v.real_volume ? (
                         <span style={{ fontWeight: 700 }}>{v.real_volume} m³</span>
                       ) : (
@@ -354,8 +359,8 @@ export default function HistoryPage() {
                     const roomsData = v.rooms_data || [];
                     return (
                       <div style={{ marginTop: '10px' }}>
-                        <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text3)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          📷 {t('photoSection')}
+                        <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text3)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Camera size={13} strokeWidth={2} /> {t('photoSection')}
                         </div>
                         {Object.entries(byRoom).map(([roomId, photos]) => {
                           const room = roomsData.find(r => r.id === roomId);
@@ -399,20 +404,21 @@ export default function HistoryPage() {
                   <div style={{ display: 'flex', gap: '6px', marginTop: '12px', flexWrap: 'wrap' }}>
                     <button
                       className="btn btn-primary"
-                      style={{ flex: 2, padding: '10px', fontSize: '13px', minWidth: '100px' }}
+                      style={{ flex: 2, padding: '10px', fontSize: '13px', minWidth: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                       onClick={() => handleEdit(v)}
                     >
-                      ✏️ {isFr ? 'Modifier' : 'Edit'}
+                      <Pencil size={16} strokeWidth={2} /> {isFr ? 'Modifier' : 'Edit'}
                     </button>
                     <button
                       style={{
                         flex: 1, padding: '10px', borderRadius: '8px', minWidth: '60px',
                         border: '1px solid #7C3AED', background: '#F5F3FF',
                         color: '#7C3AED', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                       }}
                       onClick={() => openNewQuote(v)}
                     >
-                      📋 {isFr ? 'Devis' : 'Quote'}
+                      <ClipboardList size={16} strokeWidth={2} /> {isFr ? 'Devis' : 'Quote'}
                     </button>
                     {phone && (
                       <a
@@ -424,7 +430,7 @@ export default function HistoryPage() {
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >
-                        📞
+                        <Phone size={16} strokeWidth={2} />
                       </a>
                     )}
                     <button
@@ -432,30 +438,32 @@ export default function HistoryPage() {
                         flex: 1, padding: '10px', borderRadius: '8px',
                         border: '1px solid var(--accent)', background: 'var(--accent-light)',
                         color: 'var(--accent)', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                       }}
                       onClick={() => handlePDF(v)}
                       disabled={pdfGenerating === v.id}
                     >
-                      {pdfGenerating === v.id ? '⏳' : '📄 PDF'}
+                      {pdfGenerating === v.id ? '⏳' : <><FileText size={16} strokeWidth={2} /> PDF</>}
                     </button>
                     <button
                       style={{
                         flex: 1, padding: '10px', borderRadius: '8px',
                         border: '1px solid var(--border)', background: 'var(--surface2)',
                         color: 'var(--text2)', fontSize: '13px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                       }}
                       onClick={() => handleDuplicate(v)}
                       disabled={duplicating === v.id}
                     >
-                      {duplicating === v.id ? '…' : `⎘ ${t('duplicate')}`}
+                      {duplicating === v.id ? '…' : <><Copy size={16} strokeWidth={2} /> {t('duplicate')}</>}
                     </button>
                     <button
                       className="history-delete-btn"
-                      style={{ flex: 1 }}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                       onClick={() => handleDelete(v.id)}
                       disabled={deleting === v.id}
                     >
-                      {deleting === v.id ? '…' : (isFr ? '🗑️ Supprimer' : '🗑️ Delete')}
+                      {deleting === v.id ? '…' : <><Trash2 size={16} strokeWidth={2} /> {isFr ? 'Supprimer' : 'Delete'}</>}
                     </button>
                   </div>
                 </div>
