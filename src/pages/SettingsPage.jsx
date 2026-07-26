@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { CreditCard } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
-import { openProCheckout } from '../lib/stripe';
+import { openProCheckout, openBillingPortal } from '../lib/stripe';
 import Onboarding from '../components/Onboarding';
 import Guide from '../components/Guide';
 
@@ -502,6 +503,57 @@ function CompanySection() {
   );
 }
 
+/* ─── Abonnement ───────────────────────────────────────── */
+function SubscriptionSection() {
+  const { lang, profile, user } = useApp();
+  const isFr = lang === 'fr';
+  const isPro = profile?.plan === 'pro';
+
+  return (
+    <Section title={`💳 ${isFr ? 'Abonnement' : 'Subscription'}`}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '14px 16px', background: 'var(--surface2)', borderRadius: '10px', marginBottom: '10px',
+      }}>
+        <div style={{ fontSize: '13px', color: 'var(--text2)' }}>
+          {isFr ? 'Plan actuel : ' : 'Current plan: '}
+          <strong>{isPro ? 'Pro' : (isFr ? 'Gratuit' : 'Free')}</strong>
+        </div>
+      </div>
+
+      {isPro ? (
+        <button
+          onClick={() => openBillingPortal(user.id)}
+          style={{
+            width: '100%', padding: '12px', borderRadius: '10px',
+            border: '1px solid var(--accent)', background: 'var(--surface)',
+            color: 'var(--accent)', fontWeight: '700', fontSize: '14px',
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: '8px',
+          }}
+        >
+          <CreditCard size={16} />
+          {isFr ? 'Gérer mon abonnement' : 'Manage subscription'}
+        </button>
+      ) : (
+        <button
+          onClick={() => openProCheckout(user?.email, user?.id)}
+          style={{
+            width: '100%', padding: '12px', borderRadius: '10px',
+            border: 'none', background: 'var(--accent)',
+            color: 'white', fontWeight: '700', fontSize: '14px',
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: '8px',
+          }}
+        >
+          <CreditCard size={16} />
+          {isFr ? "S'abonner au plan Pro" : 'Subscribe to Pro'}
+        </button>
+      )}
+    </Section>
+  );
+}
+
 /* ─── Mode Expert ─────────────────────────────────────── */
 function ExpertSection() {
   const { t, expertMode, setExpertMode } = useApp();
@@ -878,6 +930,7 @@ export default function SettingsPage() {
       </div>
       <ProfileSection />
       <CompanySection />
+      <SubscriptionSection />
       <ExpertSection />
       <CustomCatalogSection />
       <VolumeDefaultsSection />
@@ -914,12 +967,6 @@ export default function SettingsPage() {
             style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
             🔒 {isFr ? 'Politique de confidentialité' : 'Privacy Policy'} ↗
           </a>
-          <button
-            onClick={() => openProCheckout(user?.email, user?.id)}
-            style={{ textAlign: 'left', background: 'none', border: 'none', padding: 0, fontSize: '13px', color: 'var(--accent)', cursor: 'pointer' }}
-          >
-            ✨ {isFr ? "S'abonner au plan Pro →" : 'Subscribe to Pro →'}
-          </button>
         </div>
       </Section>
 

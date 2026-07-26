@@ -10,3 +10,42 @@ export function openProCheckout(userEmail, userId) {
   const url = qs ? `${PRO_PAYMENT_LINK}?${qs}` : PRO_PAYMENT_LINK;
   window.open(url, '_blank');
 }
+
+export async function openBillingPortal(userId) {
+  const isFr = typeof navigator === 'undefined' || navigator.language?.toLowerCase().startsWith('fr');
+  const noCustomerMsg = isFr
+    ? 'Aucun abonnement actif à gérer. Si vous venez de vous abonner, réessayez dans quelques instants.'
+    : 'No active subscription to manage. If you just subscribed, please try again in a few moments.';
+  const genericMsg = isFr
+    ? "Impossible d'ouvrir le portail de facturation. Réessayez plus tard."
+    : 'Unable to open the billing portal. Please try again later.';
+
+  try {
+    const res = await fetch('/api/create-portal-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.url) {
+      alert(data.error === 'no_customer' ? noCustomerMsg : genericMsg);
+      return;
+    }
+
+    // new URL() rejette toute chaîne vide/malformée avant qu'on touche à location.href
+    // (c'est ce qui provoquait "The string did not match the expected pattern").
+    let validUrl;
+    try {
+      validUrl = new URL(data.url).toString();
+    } catch {
+      alert(genericMsg);
+      return;
+    }
+
+    window.location.href = validUrl;
+  } catch (err) {
+    console.error('openBillingPortal error:', err);
+    alert(genericMsg);
+  }
+}
