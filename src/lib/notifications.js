@@ -24,7 +24,7 @@ export function scheduleVisitReminders(visits) {
 
 export function showSyncedNotification(clientName, isFr = true) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  new Notification('Move Up Mobility', {
+  new Notification('Move Up', {
     body: isFr
       ? `✅ Visite de ${clientName} synchronisée`
       : `✅ Visit for ${clientName} synced`,

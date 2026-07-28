@@ -482,7 +482,7 @@ function CompanySection() {
             </div>
           </div>
           <div style={{ padding: '4px 8px', background: 'var(--surface2)', textAlign: 'center', fontSize: '8px', color: 'var(--text3)' }}>
-            Rapport généré avec Move Up Mobility — moveupapp.com
+            Rapport généré avec Move Up App — moveupapp.com
           </div>
         </div>
       </div>

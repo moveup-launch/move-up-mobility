@@ -28,7 +28,7 @@ export default function DemoBanner() {
       lineHeight: 1.5,
       flexShrink: 0,
     }}>
-      <span>🎯 Mode démo — Vous explorez Move Up en tant que <strong>Jean Dupont</strong></span>
+      <span>🎯 Mode démo — Vous explorez Move Up App en tant que <strong>Jean Dupont</strong></span>
       <button
         onClick={handleCreateAccount}
         style={{

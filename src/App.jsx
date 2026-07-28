@@ -16,6 +16,7 @@ import Step2Housing from './pages/Step2Housing';
 import Step4Inventory from './pages/Step4Inventory';
 import Step5Summary from './pages/Step5Summary';
 import AuthPage from './pages/AuthPage';
+import DemoVisitPage from './pages/DemoVisitPage';
 import HistoryPage from './pages/HistoryPage';
 import DashboardPage, { DashboardRightPanel } from './pages/DashboardPage';
 import AgendaPage from './pages/AgendaPage';
@@ -174,6 +175,7 @@ function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [demoLoading, setDemoLoading] = useState(false);
+  const [showDemoVisit, setShowDemoVisit] = useState(false);
 
   const goSignIn = () => { setAuthMode('login'); setShowAuth(true); };
   const goSignUp = () => { setAuthMode('signup'); setShowAuth(true); };
@@ -208,9 +210,16 @@ function AppContent() {
       </div>
     );
   } else if (!user) {
-    content = showAuth
-      ? <AuthPage initialMode={authMode} onBack={() => setShowAuth(false)} />
-      : <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} onDemo={handleDemo} demoLoading={demoLoading} />;
+    content = showDemoVisit
+      ? (
+        <DemoVisitPage
+          onClose={() => setShowDemoVisit(false)}
+          onCreateAccount={() => { setShowDemoVisit(false); goSignUp(); }}
+        />
+      )
+      : showAuth
+        ? <AuthPage initialMode={authMode} onBack={() => setShowAuth(false)} onSeeDemo={() => setShowDemoVisit(true)} />
+        : <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} onDemo={handleDemo} demoLoading={demoLoading} />;
   } else {
     content = isDesktop ? <DesktopLayout /> : <MobileLayout />;
   }

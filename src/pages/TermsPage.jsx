@@ -11,7 +11,7 @@ function LegalHeader({ lang, setLang }) {
     }}>
       <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: '#1A1917' }}>
         <div style={{ width: 32, height: 32, background: '#1A1917', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📦</div>
-        <span style={{ fontWeight: 700, fontSize: 16, fontFamily: 'system-ui, sans-serif' }}>Move Up Mobility</span>
+        <span style={{ fontWeight: 700, fontSize: 16, fontFamily: 'system-ui, sans-serif' }}>Move Up</span>
       </a>
       <div style={{ display: 'flex', gap: 8 }}>
         {['fr', 'en'].map(l => (
@@ -67,15 +67,15 @@ export default function TermsPage() {
       <Section title={isFr ? '1. Objet' : '1. Purpose'}>
         {isFr ? (
           <>
-            <p>Les présentes Conditions Générales d'Utilisation (CGU) régissent l'utilisation de l'application Move Up Mobility, éditée par Thomas Hoste — Entreprise Individuelle — SIRET 943 782 490 00016, domicilié en France.</p>
+            <p>Les présentes Conditions Générales d'Utilisation (CGU) régissent l'utilisation de l'application Move Up App, éditée par Thomas Hoste — Entreprise Individuelle — SIRET 943 782 490 00016, domicilié en France.</p>
             <p style={{ marginTop: 8 }}>Contact : <a href="mailto:contact@moveupapp.com" style={{ color: '#2B6BE6' }}>contact@moveupapp.com</a></p>
-            <p style={{ marginTop: 8 }}>Move Up Mobility est un logiciel SaaS destiné aux professionnels du déménagement pour la gestion de visites commerciales, l'estimation de volumes, la génération de rapports et de devis.</p>
+            <p style={{ marginTop: 8 }}>Move Up App est un logiciel SaaS destiné aux professionnels du déménagement pour la gestion de visites commerciales, l'estimation de volumes, la génération de rapports et de devis.</p>
           </>
         ) : (
           <>
-            <p>These Terms of Service govern the use of the Move Up Mobility application, published by Thomas Hoste — Sole Trader (Entreprise Individuelle) — SIRET 943 782 490 00016, based in France.</p>
+            <p>These Terms of Service govern the use of the Move Up App, published by Thomas Hoste — Sole Trader (Entreprise Individuelle) — SIRET 943 782 490 00016, based in France.</p>
             <p style={{ marginTop: 8 }}>Contact: <a href="mailto:contact@moveupapp.com" style={{ color: '#2B6BE6' }}>contact@moveupapp.com</a></p>
-            <p style={{ marginTop: 8 }}>Move Up Mobility is a SaaS software for moving professionals for managing commercial surveys, estimating volumes, and generating reports and quotes.</p>
+            <p style={{ marginTop: 8 }}>Move Up App is a SaaS software for moving professionals for managing commercial surveys, estimating volumes, and generating reports and quotes.</p>
           </>
         )}
       </Section>
@@ -89,7 +89,7 @@ export default function TermsPage() {
       <Section title={isFr ? '3. Description du service' : '3. Service Description'}>
         {isFr ? (
           <>
-            <p>Move Up Mobility propose :</p>
+            <p>Move Up App propose :</p>
             <ul style={{ paddingLeft: 20, marginTop: 8 }}>
               <li>Un outil de gestion de visites de déménagement</li>
               <li>Un catalogue d'inventaire avec calcul de volume</li>
@@ -101,7 +101,7 @@ export default function TermsPage() {
           </>
         ) : (
           <>
-            <p>Move Up Mobility offers:</p>
+            <p>Move Up App offers:</p>
             <ul style={{ paddingLeft: 20, marginTop: 8 }}>
               <li>A moving survey management tool</li>
               <li>An inventory catalog with volume calculation</li>
@@ -122,19 +122,19 @@ export default function TermsPage() {
 
       <Section title={isFr ? '5. Abonnement et paiement' : '5. Subscription and Payment'}>
         {isFr
-          ? <p>Le plan gratuit est limité en nombre de visites. Le plan Pro est facturé 19,99 € TTC par mois, sans engagement, résiliable à tout moment. Le paiement est traité par notre prestataire Stripe. Aucune donnée bancaire n'est stockée par Move Up Mobility.</p>
-          : <p>The free plan is limited in the number of visits. The Pro plan is billed at 19.99 € incl. VAT per month, without commitment, cancellable at any time. Payments are processed by our provider Stripe. No banking data is stored by Move Up Mobility.</p>}
+          ? <p>Le plan gratuit est limité en nombre de visites. Le plan Pro est facturé 19,99 € TTC par mois, sans engagement, résiliable à tout moment. Le paiement est traité par notre prestataire Stripe. Aucune donnée bancaire n'est stockée par Move Up App.</p>
+          : <p>The free plan is limited in the number of visits. The Pro plan is billed at 19.99 € incl. VAT per month, without commitment, cancellable at any time. Payments are processed by our provider Stripe. No banking data is stored by Move Up App.</p>}
       </Section>
 
       <Section title={isFr ? '6. Données et contenus utilisateur' : '6. User Data and Content'}>
         {isFr ? (
           <>
-            <p>L'utilisateur reste propriétaire des données qu'il saisit (informations clients, photos, inventaires). Move Up Mobility s'engage à ne pas exploiter ces données à d'autres fins que la fourniture du service.</p>
+            <p>L'utilisateur reste propriétaire des données qu'il saisit (informations clients, photos, inventaires). Move Up s'engage à ne pas exploiter ces données à d'autres fins que la fourniture du service.</p>
             <p style={{ marginTop: 8 }}>L'utilisateur est seul responsable de la licéité des données personnelles de tiers (ses clients) qu'il saisit dans l'application, et s'engage à respecter le RGPD vis-à-vis de ses propres clients.</p>
           </>
         ) : (
           <>
-            <p>Users retain ownership of the data they enter (client information, photos, inventories). Move Up Mobility undertakes not to use this data for any purpose other than providing the service.</p>
+            <p>Users retain ownership of the data they enter (client information, photos, inventories). Move Up undertakes not to use this data for any purpose other than providing the service.</p>
             <p style={{ marginTop: 8 }}>Users are solely responsible for the lawfulness of third-party personal data (their clients) entered into the application, and agree to comply with GDPR with respect to their own clients.</p>
           </>
         )}
@@ -142,14 +142,14 @@ export default function TermsPage() {
 
       <Section title={isFr ? '7. Disponibilité du service' : '7. Service Availability'}>
         {isFr
-          ? <p>Move Up Mobility s'efforce d'assurer une disponibilité maximale du service mais ne garantit pas un fonctionnement ininterrompu. Des interruptions pour maintenance peuvent survenir.</p>
-          : <p>Move Up Mobility strives to ensure maximum service availability but does not guarantee uninterrupted operation. Maintenance interruptions may occur.</p>}
+          ? <p>Move Up s'efforce d'assurer une disponibilité maximale du service mais ne garantit pas un fonctionnement ininterrompu. Des interruptions pour maintenance peuvent survenir.</p>
+          : <p>Move Up strives to ensure maximum service availability but does not guarantee uninterrupted operation. Maintenance interruptions may occur.</p>}
       </Section>
 
       <Section title={isFr ? '8. Responsabilité' : '8. Liability'}>
         {isFr
-          ? <p>Move Up Mobility fournit un outil d'aide à l'estimation. Les volumes, recommandations et calculs générés sont indicatifs et ne sauraient engager la responsabilité de l'éditeur en cas d'écart avec la réalité. L'utilisateur reste seul responsable des devis et engagements commerciaux pris avec ses propres clients.</p>
-          : <p>Move Up Mobility provides an estimation assistance tool. Volumes, recommendations and calculations generated are indicative and cannot engage the publisher's liability in case of discrepancy with reality. Users remain solely responsible for quotes and commercial commitments made with their own clients.</p>}
+          ? <p>Move Up fournit un outil d'aide à l'estimation. Les volumes, recommandations et calculs générés sont indicatifs et ne sauraient engager la responsabilité de l'éditeur en cas d'écart avec la réalité. L'utilisateur reste seul responsable des devis et engagements commerciaux pris avec ses propres clients.</p>
+          : <p>Move Up provides an estimation assistance tool. Volumes, recommendations and calculations generated are indicative and cannot engage the publisher's liability in case of discrepancy with reality. Users remain solely responsible for quotes and commercial commitments made with their own clients.</p>}
       </Section>
 
       <Section title={isFr ? '9. Résiliation' : '9. Termination'}>
@@ -160,8 +160,8 @@ export default function TermsPage() {
 
       <Section title={isFr ? '10. Modification des CGU' : '10. Amendments'}>
         {isFr
-          ? <p>Move Up Mobility se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés des modifications substantielles.</p>
-          : <p>Move Up Mobility reserves the right to modify these Terms at any time. Users will be notified of substantial changes.</p>}
+          ? <p>Move Up se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés des modifications substantielles.</p>
+          : <p>Move Up reserves the right to modify these Terms at any time. Users will be notified of substantial changes.</p>}
       </Section>
 
       <Section title={isFr ? '11. Droit applicable' : '11. Governing Law'}>

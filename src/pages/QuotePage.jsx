@@ -25,7 +25,7 @@ const QT = {
     optional: 'OPTIONAL SERVICES',
     notes: 'TERMS & CONDITIONS',
     signCommercial: 'Commercial Signature', signClient: 'Client Signature',
-    footer: 'Generated with Move Up Mobility',
+    footer: 'Generated with Move Up App',
   },
   fr: {
     title: 'DEVIS',
@@ -43,7 +43,7 @@ const QT = {
     optional: 'SERVICES OPTIONNELS',
     notes: 'CONDITIONS PARTICULIÈRES',
     signCommercial: 'Signature commercial', signClient: 'Signature client',
-    footer: 'Généré avec Move Up Mobility',
+    footer: 'Généré avec Move Up App',
   },
 };
 
@@ -674,7 +674,7 @@ export default function QuotePage() {
       doc.setPage(p);
       doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
       doc.setTextColor(180, 178, 172);
-      doc.text('Generated with Move Up Mobility - moveupapp.com', W / 2, 294, { align: 'center' });
+      doc.text('Generated with Move Up App - moveupapp.com', W / 2, 294, { align: 'center' });
       doc.text(safe(`${p} / ${pageCount}`), W - MARGIN, 294, { align: 'right' });
     }
 
@@ -690,7 +690,7 @@ export default function QuotePage() {
   const handleSendEmail = () => {
     if (!clientEmail) return;
     const isFr = quoteLang === 'fr';
-    const compName = profile?.company_name || 'Move Up Mobility';
+    const compName = profile?.company_name || 'Move Up';
     const commercial = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || compName;
     const total = (totalCost + totalOptIncl).toFixed(2);
     const routeStr = [origin, destination].filter(Boolean).join(' → ');

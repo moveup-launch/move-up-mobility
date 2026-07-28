@@ -12,13 +12,13 @@ export async function sendConfirmationEmail({ to, clientName, visitDate, visitTi
   })() : '';
 
   const subject = isFr
-    ? 'Confirmation de visite – Move Up Mobility'
-    : 'Moving survey confirmation – Move Up Mobility';
+    ? 'Confirmation de visite – Move Up App'
+    : 'Moving survey confirmation – Move Up App';
 
   const html = isFr ? `
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#333">
   <div style="background:#0F0F0E;padding:20px 24px;border-radius:8px;margin-bottom:24px">
-    <h1 style="color:white;margin:0;font-size:20px">📦 Move Up Mobility</h1>
+    <h1 style="color:white;margin:0;font-size:20px">📦 Move Up App</h1>
     <p style="color:#aaa;margin:4px 0 0;font-size:13px">Spécialiste en déménagement international</p>
   </div>
   <p style="font-size:16px">Bonjour <strong>${clientName || ''}</strong>,</p>
@@ -29,13 +29,13 @@ export async function sendConfirmationEmail({ to, clientName, visitDate, visitTi
     ${commercialName ? `<p style="margin:6px 0 0;color:#555;font-size:14px">👤 Votre commercial : <strong>${commercialName}</strong></p>` : ''}
   </div>
   <p style="font-size:14px;color:#555">N'hésitez pas à nous contacter si vous avez des questions.</p>
-  <p style="font-size:14px;color:#555">À très bientôt,<br><strong>L'équipe Move Up Mobility</strong></p>
+  <p style="font-size:14px;color:#555">À très bientôt,<br><strong>L'équipe Move Up</strong></p>
   <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
   <p style="color:#aaa;font-size:11px">Message envoyé automatiquement. Merci de ne pas y répondre directement.</p>
 </div>` : `
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#333">
   <div style="background:#0F0F0E;padding:20px 24px;border-radius:8px;margin-bottom:24px">
-    <h1 style="color:white;margin:0;font-size:20px">📦 Move Up Mobility</h1>
+    <h1 style="color:white;margin:0;font-size:20px">📦 Move Up App</h1>
     <p style="color:#aaa;margin:4px 0 0;font-size:13px">International moving specialist</p>
   </div>
   <p style="font-size:16px">Hello <strong>${clientName || ''}</strong>,</p>
@@ -46,7 +46,7 @@ export async function sendConfirmationEmail({ to, clientName, visitDate, visitTi
     ${commercialName ? `<p style="margin:6px 0 0;color:#555;font-size:14px">👤 Your consultant: <strong>${commercialName}</strong></p>` : ''}
   </div>
   <p style="font-size:14px;color:#555">Please don't hesitate to contact us if you have any questions.</p>
-  <p style="font-size:14px;color:#555">See you soon,<br><strong>The Move Up Mobility team</strong></p>
+  <p style="font-size:14px;color:#555">See you soon,<br><strong>The Move Up team</strong></p>
   <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
   <p style="color:#aaa;font-size:11px">Automated message. Please do not reply directly.</p>
 </div>`;

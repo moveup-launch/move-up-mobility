@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
-export default function AuthPage({ initialMode = 'login', onBack }) {
+export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
   const { lang } = useApp();
   const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
@@ -78,7 +79,7 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
         <div className="auth-logo-wrap">
           <div className="auth-logo">📦</div>
         </div>
-        <div className="auth-brand">Move Up</div>
+        <div className="auth-brand">Move Up App</div>
         <div className="auth-tagline">
           {isFr ? 'Estimation de déménagement' : 'Moving Volume Estimator'}
         </div>
@@ -232,6 +233,22 @@ export default function AuthPage({ initialMode = 'login', onBack }) {
                 : (isFr ? 'Créer mon compte' : 'Create account')}
           </button>
         </form>
+        )}
+
+        {onSeeDemo && mode !== 'forgot' && (
+          <button
+            type="button"
+            onClick={onSeeDemo}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text3)', fontSize: 12, marginTop: 14,
+              width: '100%', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: 5, padding: 0,
+            }}
+          >
+            <Eye size={13} strokeWidth={2} />
+            {isFr ? "Découvrir une visite d'exemple" : 'See an example visit'}
+          </button>
         )}
       </div>
     </div>

@@ -16,7 +16,7 @@ export default function Onboarding({ onDone, asGuide = false }) {
     ? [
         {
           mascot: 'happy',
-          title: 'Bienvenue sur Move Up',
+          title: 'Bienvenue sur Move Up App',
           body: "Votre assistant de visite pour les déménagements. Estimez un volume en quelques minutes, sur le terrain.",
         },
         {
@@ -38,7 +38,7 @@ export default function Onboarding({ onDone, asGuide = false }) {
     : [
         {
           mascot: 'happy',
-          title: 'Welcome to Move Up',
+          title: 'Welcome to Move Up App',
           body: 'Your moving survey assistant. Estimate a volume in minutes, right on site.',
         },
         {

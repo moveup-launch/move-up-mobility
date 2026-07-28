@@ -80,8 +80,8 @@ export default function VisitCard({
 
   // Bloc signature — avec ou sans entreprise
   const smsSignature = companyName
-    ? `${commercialFullName}${commercialFullName ? ' — ' : ''}${companyName}${companyPhone ? '\n' + companyPhone : ''}\nPowered by Move Up Mobility`
-    : (commercialFullName || 'Move Up Mobility');
+    ? `${commercialFullName}${commercialFullName ? ' — ' : ''}${companyName}${companyPhone ? '\n' + companyPhone : ''}\nPowered by Move Up App`
+    : (commercialFullName || 'Move Up App');
 
   const smsBody = msgFr
     ? `Bonjour ${clientFirstName}, votre visite de déménagement est confirmée le ${dateStrMsg}${timeStr ? ' à ' + timeStr : ''}.\n\n${smsSignature}`
@@ -99,7 +99,7 @@ export default function VisitCard({
     companyPhone,
     companyEmail,
     companyWeb,
-    'Powered by Move Up Mobility',
+    'Powered by Move Up App',
   ].filter(Boolean).join('\n');
 
   const emailSubject = msgFr

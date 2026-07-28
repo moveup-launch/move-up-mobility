@@ -107,10 +107,10 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Move Up Mobility <no-reply@moveupapp.com>',
+          from: 'Move Up App <no-reply@moveupapp.com>',
           to: [invoice.customer_email],
-          subject: '⚠️ Problème de paiement — Move Up Mobility',
-          html: `<p>Bonjour,</p><p>Le paiement de votre abonnement Move Up Mobility a échoué. Veuillez mettre à jour vos informations de paiement pour continuer à accéder au Plan Pro.</p><p><a href="https://billing.stripe.com/p/login" style="background:#2B6BE6;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">Mettre à jour mon moyen de paiement</a></p><p>L'équipe Move Up Mobility</p>`,
+          subject: '⚠️ Problème de paiement — Move Up App',
+          html: `<p>Bonjour,</p><p>Le paiement de votre abonnement Move Up App a échoué. Veuillez mettre à jour vos informations de paiement pour continuer à accéder au Plan Pro.</p><p><a href="https://billing.stripe.com/p/login" style="background:#2B6BE6;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">Mettre à jour mon moyen de paiement</a></p><p>L'équipe Move Up</p>`,
         }),
       }).catch(err => console.error('Resend error on payment_failed:', err));
     }

@@ -105,8 +105,8 @@ export async function generateVisitPDF(visitState, profile, lang) {
   const LIGHT = [245, 244, 240];
 
   const FOOTER = isFr
-    ? 'Rapport genere avec Move Up Mobility - moveupapp.com'
-    : 'Report generated with Move Up Mobility - moveupapp.com';
+    ? 'Rapport genere avec Move Up App - moveupapp.com'
+    : 'Report generated with Move Up App - moveupapp.com';
 
   function addFooters() {
     const total = doc.internal.getNumberOfPages();
@@ -256,7 +256,7 @@ export async function generateVisitPDF(visitState, profile, lang) {
   doc.line(18, 275, W - 18, 275);
   doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(160, 160, 160);
   doc.text(safe([profile?.company_name, profile?.company_email].filter(Boolean).join(' - ')), 18, 281);
-  doc.text(safe(isFr ? 'Genere avec Move Up Mobility' : 'Generated with Move Up Mobility'), W - 18, 281, { align: 'right' });
+  doc.text(safe(isFr ? 'Genere avec Move Up App' : 'Generated with Move Up App'), W - 18, 281, { align: 'right' });
 
   doc.addPage();
   y = 20;

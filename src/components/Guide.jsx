@@ -182,8 +182,8 @@ export default function Guide({ onDone }) {
         </div>
         <p style={{ fontSize: 13, color: 'var(--text3, #9B9790)', margin: '0 0 20px' }}>
           {isFr
-            ? 'Tout ce qu\'il faut savoir pour utiliser Move Up au quotidien.'
-            : 'Everything you need to use Move Up day to day.'}
+            ? 'Tout ce qu\'il faut savoir pour utiliser Move Up App au quotidien.'
+            : 'Everything you need to use Move Up App day to day.'}
         </p>
 
         {/* Thèmes en accordéon */}

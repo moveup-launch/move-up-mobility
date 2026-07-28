@@ -25,7 +25,7 @@ export default function TopBar() {
           <>
             <div className="topbar-logo"><Package size={18} strokeWidth={2} color="#fff" /></div>
             <div className="topbar-brand-text">
-              <span className="topbar-title">Move Up</span>
+              <span className="topbar-title">Move Up App</span>
               <span className="topbar-title-suffix"> Mobility</span>
             </div>
           </>

@@ -1,6 +1,6 @@
 export const TRANSLATIONS = {
   fr: {
-    appName: "Move Up Mobility",
+    appName: "Move Up App",
     appTagline: "Estimation de déménagement",
     next: "Suivant",
     back: "Retour",
@@ -264,7 +264,7 @@ export const TRANSLATIONS = {
   },
 
   en: {
-    appName: "Move Up Mobility",
+    appName: "Move Up App",
     appTagline: "Moving Volume Estimator",
     next: "Next",
     back: "Back",

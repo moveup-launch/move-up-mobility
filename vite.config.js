@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Move Up Mobility',
+        name: 'Move Up App',
         short_name: 'Move Up',
         description: 'Assistant de visite déménagement',
         start_url: '/',

@@ -11,7 +11,7 @@ function LegalHeader({ lang, setLang }) {
     }}>
       <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: '#1A1917' }}>
         <div style={{ width: 32, height: 32, background: '#1A1917', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📦</div>
-        <span style={{ fontWeight: 700, fontSize: 16, fontFamily: 'system-ui, sans-serif' }}>Move Up Mobility</span>
+        <span style={{ fontWeight: 700, fontSize: 16, fontFamily: 'system-ui, sans-serif' }}>Move Up</span>
       </a>
       <div style={{ display: 'flex', gap: 8 }}>
         {['fr', 'en'].map(l => (
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
       <Section title={isFr ? '1. Responsable du traitement' : '1. Data Controller'}>
         {isFr ? (
           <>
-            <p>Thomas Hoste — Entreprise Individuelle — est responsable du traitement des données collectées via Move Up Mobility.</p>
+            <p>Thomas Hoste — Entreprise Individuelle — est responsable du traitement des données collectées via Move Up App.</p>
             <ul style={{ paddingLeft: 20, marginTop: 8, lineHeight: 1.8 }}>
               <li>SIRET : 943 782 490 00016</li>
               <li>Email : <a href="mailto:thomas@eur-relocation.com" style={{ color: '#2B6BE6' }}>thomas@eur-relocation.com</a></li>
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
           </>
         ) : (
           <>
-            <p>Thomas Hoste — Sole Trader (Entreprise Individuelle) — is the data controller for data collected via Move Up Mobility.</p>
+            <p>Thomas Hoste — Sole Trader (Entreprise Individuelle) — is the data controller for data collected via Move Up App.</p>
             <ul style={{ paddingLeft: 20, marginTop: 8, lineHeight: 1.8 }}>
               <li>SIRET: 943 782 490 00016</li>
               <li>Email: <a href="mailto:thomas@eur-relocation.com" style={{ color: '#2B6BE6' }}>thomas@eur-relocation.com</a></li>
@@ -226,8 +226,8 @@ export default function PrivacyPage() {
 
       <Section title={isFr ? '9. Cookies' : '9. Cookies'}>
         {isFr
-          ? <p>Move Up Mobility utilise uniquement des cookies techniques strictement nécessaires au fonctionnement du service (authentification). Aucun cookie publicitaire ou de tracking tiers n'est utilisé à ce jour.</p>
-          : <p>Move Up Mobility uses only technical cookies strictly necessary for the operation of the service (authentication). No advertising or third-party tracking cookies are used at this time.</p>}
+          ? <p>Move Up App utilise uniquement des cookies techniques strictement nécessaires au fonctionnement du service (authentification). Aucun cookie publicitaire ou de tracking tiers n'est utilisé à ce jour.</p>
+          : <p>Move Up App uses only technical cookies strictly necessary for the operation of the service (authentication). No advertising or third-party tracking cookies are used at this time.</p>}
       </Section>
 
       <Section title={isFr ? '10. Mineurs' : '10. Minors'}>
