@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS } from '../data/catalog';
+import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS, POPULAR_OVERRIDE_BY_ROOM } from '../data/catalog';
 import { AddRoomSheet } from './Step3Rooms';
 import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
 
@@ -319,7 +319,10 @@ function CatalogSection({ room }) {
     'exceptional',
   ]);
   const roomItems = ALL_CATALOG_ITEMS.filter(e => allowedSections.has(e.catKey));
-  const frequentItems = roomItems.filter(e => FREQUENT_ITEM_IDS.has(e.item.id));
+  const popularOverride = POPULAR_OVERRIDE_BY_ROOM[room.type];
+  const frequentItems = popularOverride
+    ? roomItems.filter(e => popularOverride.includes(e.item.id))
+    : roomItems.filter(e => FREQUENT_ITEM_IDS.has(e.item.id));
 
   const entries = query
     ? ALL_CATALOG_ITEMS.filter(e => {

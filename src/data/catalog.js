@@ -138,6 +138,28 @@ export const CATALOG = {
         { id: "lamp_table", label: { fr: "Lampe de table", en: "Table lamp" }, volume_m3: 0.05, fragile: true, heavy: false, requires_protection: true, requires_disassembly: false, possible_furniture_lift: false },
       ]
     },
+    {
+      id: "boxspring",
+      name: { fr: "Sommier", en: "Box spring / Bed base" },
+      icon: "🛏️",
+      keywords: ["sommier", "sommier a lattes", "sommier electrique", "base de lit", "box spring"],
+      variants: [
+        { id: "boxspring_single",   label: { fr: "Sommier à lattes 90cm",          en: "90cm slatted base" },          volume_m3: 0.35, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true,  possible_furniture_lift: false },
+        { id: "boxspring_double",   label: { fr: "Sommier à lattes 140cm",         en: "140cm slatted base" },         volume_m3: 0.45, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true,  possible_furniture_lift: false },
+        { id: "boxspring_queen",    label: { fr: "Sommier à lattes 160cm (queen)", en: "160cm (queen) slatted base" }, volume_m3: 0.55, fragile: false, heavy: true,  requires_protection: false, requires_disassembly: true,  possible_furniture_lift: false },
+        { id: "boxspring_electric", label: { fr: "Sommier électrique relevable",   en: "Electric adjustable base" },   volume_m3: 0.7,  fragile: false, heavy: true,  requires_protection: false, requires_disassembly: false, possible_furniture_lift: true  },
+      ]
+    },
+    {
+      id: "bunk_bed",
+      name: { fr: "Lit superposé / Mezzanine", en: "Bunk bed / Loft bed" },
+      icon: "🛏️",
+      keywords: ["lit superpose", "lit mezzanine", "bunk bed", "loft bed"],
+      variants: [
+        { id: "bunk_std", label: { fr: "Lit superposé (2 couchages)",           en: "Bunk bed (2 beds)" },            volume_m3: 2.0, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: false },
+        { id: "loft_std", label: { fr: "Lit mezzanine (avec bureau/rangement)", en: "Loft bed (with desk/storage)" }, volume_m3: 2.4, fragile: false, heavy: true, requires_protection: false, requires_disassembly: true, possible_furniture_lift: true  },
+      ]
+    },
   ],
 
   livingRoom: [
@@ -702,6 +724,10 @@ export const CATALOG = {
     { id: "high_chair",            name: { fr: "Chaise haute",         en: "High chair"          }, icon: "🪑", variants: [{ id: "hchair_std",  label: { fr: "Chaise haute",          en: "High chair"          }, volume_m3: 0.2,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
     { id: "baby_swing",            name: { fr: "Balancelle électrique",en: "Electric baby swing" }, icon: "👶", variants: [{ id: "swing_std",   label: { fr: "Balancelle électrique", en: "Electric baby swing" }, volume_m3: 0.3,  fragile: true,  heavy: false, requires_protection: true,  requires_disassembly: true,  possible_furniture_lift: false }] },
     { id: "baby_bath",             name: { fr: "Baignoire bébé",       en: "Baby bathtub"        }, icon: "🛁", variants: [{ id: "bbath_std",   label: { fr: "Baignoire bébé",        en: "Baby bathtub"        }, volume_m3: 0.1,  fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false }] },
+    { id: "baby_crib", name: { fr: "Lit bébé à barreaux / Berceau", en: "Baby crib / Cradle" }, icon: "🛏️", keywords: ["berceau", "lit a barreaux", "lit bebe", "cododo", "crib", "cradle"], variants: [
+      { id: "crib_cradle", label: { fr: "Berceau / Cododo",    en: "Cradle / Co-sleeper" }, volume_m3: 0.2, fragile: false, heavy: false, requires_protection: false, requires_disassembly: false, possible_furniture_lift: false },
+      { id: "crib_bars",   label: { fr: "Lit bébé à barreaux", en: "Baby crib (slatted)" }, volume_m3: 0.4, fragile: false, heavy: false, requires_protection: false, requires_disassembly: true,  possible_furniture_lift: false },
+    ]},
   ],
 
   // Objets communs à TOUTES les pièces (comme 'exceptional', toujours inclus).
@@ -999,9 +1025,9 @@ export const CRATE_ELIGIBLE_IDS = new Set(['tv', 'mirror', 'artwork', 'piano_upr
 // Objets affichés par défaut dans la vue simplifiée (1 par pièce = les plus courants)
 export const FREQUENT_ITEM_IDS = new Set([
   // Chambre
-  'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair', 'wall_shelf',
+  'bed', 'mattress', 'nightstand', 'dresser', 'wardrobe', 'desk', 'officechair', 'wall_shelf', 'boxspring', 'bunk_bed',
   // Salon (livingRoom section)
-  'sofa2', 'sofa3', 'sofa_corner', 'armchair', 'coffee_table', 'tv_unit', 'living_tv', 'rug',
+  'sofa2', 'sofa3', 'sofa_corner', 'armchair', 'coffee_table', 'tv_unit', 'tv', 'rug',
   // Salle à manger (diningRoom section – aussi visible dans les salons)
   'dining_table', 'dining_chair', 'dining_shelf',
   // Cuisine
@@ -1019,7 +1045,17 @@ export const FREQUENT_ITEM_IDS = new Set([
   // Entrée
   'entr_shoe_cabinet', 'entr_coat_rack', 'entr_console', 'entr_mirror', 'entr_bench',
   // Bébé (chambres enfant)
-  'baby_changing_dresser', 'stroller_single', 'high_chair',
+  'baby_changing_dresser', 'stroller_single', 'high_chair', 'baby_crib',
   // Cartons essentiels
   'box_standard', 'box_large', 'box_books',
 ]);
+
+// Objets "populaires" dédiés pour certains types de pièce, quand l'intersection
+// générique FREQUENT_ITEM_IDS ∩ roomCatalogMap propose des objets hors-sujet
+// (ex: lit/bureau dans un dressing, électroménager dans une salle à manger).
+// N'affecte que la vue "populaire" par défaut — les onglets et la recherche
+// restent basés sur roomCatalogMap et donnent toujours accès au reste.
+export const POPULAR_OVERRIDE_BY_ROOM = {
+  dressing: ['wardrobe', 'dresser', 'wall_shelf', 'mirror', 'box_standard', 'box_large', 'box_wardrobe'],
+  diningRoom: ['dining_table', 'dining_chair', 'china_cabinet', 'buffet', 'dining_shelf', 'box_standard', 'box_large', 'box_books'],
+};
