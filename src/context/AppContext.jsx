@@ -98,6 +98,7 @@ export function AppProvider({ children }) {
   const [editingQuoteId, setEditingQuoteId] = useState(null);
   const mainScrollRef = useRef(null);
   const lastSavedVisitIdRef = useRef(null);
+  const resyncOnReconnectRef = useRef(null);
 
   const [profile, setProfile] = useState(null);
   const [expertMode, setExpertModeState] = useState(
@@ -135,9 +136,7 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     const handleOnline = async () => {
-      if (lastSavedVisitIdRef.current) {
-        uploadPhotos(lastSavedVisitIdRef.current);
-      }
+      resyncOnReconnectRef.current?.();
       // Sync des sauvegardes d'inventaire en attente
       try {
         const pendingSaves = JSON.parse(localStorage.getItem('moveup_pending_saves') || '{}');
@@ -1007,10 +1006,11 @@ export function AppProvider({ children }) {
       const { error: upErr } = await supabase.storage
         .from('visit-photos').upload(path, blob, { contentType: blob.type });
       if (upErr) throw upErr;
-      await supabase.from('photos').insert({
+      const { error: insErr } = await supabase.from('photos').insert({
         visit_id: visitId, room_id: roomId,
         storage_path: path, comment: photo.comment, category: photo.category,
       });
+      if (insErr) throw insErr;
       updateRoomPhoto(roomId, photo.id, { uploadStatus: 'done', storagePath: path });
     } catch {
       updateRoomPhoto(roomId, photo.id, { uploadStatus: 'error' });
@@ -1067,6 +1067,15 @@ export function AppProvider({ children }) {
       for (const photo of pending) {
         await uploadOnePhoto(visitId, room.id, photo);
       }
+    }
+  };
+
+  // Toujours réassigné avec le state courant, pour que le listener 'online'
+  // (enregistré une seule fois au montage) reprenne les photos en attente
+  // de la visite réellement ouverte, pas celle du tout premier rendu.
+  resyncOnReconnectRef.current = () => {
+    if (lastSavedVisitIdRef.current) {
+      uploadPhotos(lastSavedVisitIdRef.current, state.rooms);
     }
   };
 
