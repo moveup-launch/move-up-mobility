@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { generateVisitPDF } from '../utils/pdfGenerator';
 
+const PHOTO_SIGNED_URL_TTL = 86400; // 24h — bucket 'visit-photos' privé
+
 function getStatusInfo(status, isFr) {
   const map = {
     prevue:   { label: isFr ? 'Prévue' : 'Planned',     color: '#2B6BE6', bg: '#EEF4FF' },
@@ -49,7 +51,7 @@ export default function HistoryPage() {
     }
     const withUrls = await Promise.all(data.map(async p => {
       const { data: signed } = await supabase.storage
-        .from('visit-photos').createSignedUrl(p.storage_path, 3600);
+        .from('visit-photos').createSignedUrl(p.storage_path, PHOTO_SIGNED_URL_TTL);
       return { ...p, url: signed?.signedUrl || null };
     }));
     setVisitPhotos(prev => ({ ...prev, [visitId]: withUrls }));

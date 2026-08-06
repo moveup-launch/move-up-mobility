@@ -7,6 +7,7 @@ import { openProCheckout } from '../lib/stripe';
 const AppContext = createContext();
 
 const FREE_VISIT_LIMIT = 3;
+const PHOTO_SIGNED_URL_TTL = 86400; // 24h — bucket 'visit-photos' privé
 
 function UpgradePlanModal({ lang, onClose, onUpgrade }) {
   const isFr = lang === 'fr';
@@ -965,20 +966,24 @@ export function AppProvider({ children }) {
         .select('*')
         .eq('visit_id', visitData.id);
       if (photosData && photosData.length > 0) {
-        const photosByRoom = {};
-        for (const p of photosData) {
-          if (!photosByRoom[p.room_id]) photosByRoom[p.room_id] = [];
-          const { data: urlData } = supabase.storage
+        const withUrls = await Promise.all(photosData.map(async p => {
+          const { data: signed } = await supabase.storage
             .from('visit-photos')
-            .getPublicUrl(p.storage_path);
-          photosByRoom[p.room_id].push({
+            .createSignedUrl(p.storage_path, PHOTO_SIGNED_URL_TTL);
+          return {
+            roomId: p.room_id,
             id: p.id,
-            dataURL: urlData.publicUrl,
+            dataURL: signed?.signedUrl || null,
             comment: p.comment || '',
             category: p.category || '',
             storagePath: p.storage_path,
             uploadStatus: 'done',
-          });
+          };
+        }));
+        const photosByRoom = {};
+        for (const { roomId, ...photo } of withUrls) {
+          if (!photosByRoom[roomId]) photosByRoom[roomId] = [];
+          photosByRoom[roomId].push(photo);
         }
         setState(s => ({
           ...s,
