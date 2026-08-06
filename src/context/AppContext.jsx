@@ -884,7 +884,7 @@ export function AppProvider({ children }) {
         }
         const roomsSnapshot = state.rooms;
         lastSavedVisitIdRef.current = editId;
-        setState(s => ({ ...s, editingVisitId: null, shareToken: token }));
+        setState(s => ({ ...s, editingVisitId: editId, shareToken: token }));
         uploadPhotos(editId, roomsSnapshot);
       }
       return { data, error };
@@ -897,7 +897,7 @@ export function AppProvider({ children }) {
     }).select().single();
     if (!error && data) {
       lastSavedVisitIdRef.current = data.id;
-      setState(s => ({ ...s, shareToken: data.share_token }));
+      setState(s => ({ ...s, editingVisitId: data.id, shareToken: data.share_token }));
       uploadPhotos(data.id, state.rooms);
     }
     return { data, error };
@@ -955,6 +955,7 @@ export function AppProvider({ children }) {
       transportOverride: cd.transportOverride || null,
       editingVisitId: visitData.id,
     });
+    lastSavedVisitIdRef.current = visitData.id;
     setCurrentStepState(0);
     setViewMode('wizard');
 
@@ -991,25 +992,45 @@ export function AppProvider({ children }) {
   };
 
   // ── Photos ──────────────────────────────────────────────────────
+  const uploadOnePhoto = async (visitId, roomId, photo) => {
+    updateRoomPhoto(roomId, photo.id, { uploadStatus: 'uploading' });
+    try {
+      const ext = photo.dataURL.startsWith('data:image/png') ? 'png' : 'jpg';
+      const path = `${user.id}/${visitId}/${roomId}/photo-${Date.now()}.${ext}`;
+      const res = await fetch(photo.dataURL);
+      const blob = await res.blob();
+      const { error: upErr } = await supabase.storage
+        .from('visit-photos').upload(path, blob, { contentType: blob.type });
+      if (upErr) throw upErr;
+      await supabase.from('photos').insert({
+        visit_id: visitId, room_id: roomId,
+        storage_path: path, comment: photo.comment, category: photo.category,
+      });
+      updateRoomPhoto(roomId, photo.id, { uploadStatus: 'done', storagePath: path });
+    } catch {
+      updateRoomPhoto(roomId, photo.id, { uploadStatus: 'error' });
+    }
+  };
+
   const addRoomPhoto = (roomId, dataURL, category = 'Autre') => {
     const photoId = `photo_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const photo = { id: photoId, dataURL, comment: '', category, storagePath: null, uploadStatus: 'pending' };
     setState(s => ({
       ...s,
       rooms: s.rooms.map(r => {
         if (r.id !== roomId) return r;
-        return {
-          ...r,
-          photos: [...(r.photos || []), {
-            id: photoId, dataURL, comment: '', category,
-            storagePath: null, uploadStatus: 'pending',
-          }],
-        };
+        return { ...r, photos: [...(r.photos || []), photo] };
       }),
     }));
+    if (state.editingVisitId && navigator.onLine) {
+      uploadOnePhoto(state.editingVisitId, roomId, photo);
+    }
     return photoId;
   };
 
   const deleteRoomPhoto = (roomId, photoId) => {
+    const room = state.rooms.find(r => r.id === roomId);
+    const photo = room?.photos?.find(p => p.id === photoId);
     setState(s => ({
       ...s,
       rooms: s.rooms.map(r => {
@@ -1017,6 +1038,11 @@ export function AppProvider({ children }) {
         return { ...r, photos: (r.photos || []).filter(p => p.id !== photoId) };
       }),
     }));
+    if (photo?.storagePath) {
+      supabase.storage.from('visit-photos').remove([photo.storagePath])
+        .then(() => supabase.from('photos').delete().eq('storage_path', photo.storagePath))
+        .catch(() => {});
+    }
   };
 
   const updateRoomPhoto = (roomId, photoId, updates) => {
@@ -1034,23 +1060,7 @@ export function AppProvider({ children }) {
     for (const room of rooms) {
       const pending = (room.photos || []).filter(p => p.uploadStatus === 'pending' && p.dataURL);
       for (const photo of pending) {
-        updateRoomPhoto(room.id, photo.id, { uploadStatus: 'uploading' });
-        try {
-          const ext = photo.dataURL.startsWith('data:image/png') ? 'png' : 'jpg';
-          const path = `${user.id}/${visitId}/${room.id}/photo-${Date.now()}.${ext}`;
-          const res = await fetch(photo.dataURL);
-          const blob = await res.blob();
-          const { error: upErr } = await supabase.storage
-            .from('visit-photos').upload(path, blob, { contentType: blob.type });
-          if (upErr) throw upErr;
-          await supabase.from('photos').insert({
-            visit_id: visitId, room_id: room.id,
-            storage_path: path, comment: photo.comment, category: photo.category,
-          });
-          updateRoomPhoto(room.id, photo.id, { uploadStatus: 'done', storagePath: path });
-        } catch {
-          updateRoomPhoto(room.id, photo.id, { uploadStatus: 'error' });
-        }
+        await uploadOnePhoto(visitId, room.id, photo);
       }
     }
   };
