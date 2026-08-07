@@ -2,7 +2,6 @@ import { openProCheckout } from '../lib/stripe';
 
 export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading }) {
   const ACCENT = '#2B6BE6';
-  const GOLD = '#D4A017';
 
   return (
     <div id="landing">
@@ -110,7 +109,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
                 Gagnez du temps sur vos visites terrain. Produisez des devis professionnels immédiatement après chaque visite, sans ressaisie.
               </p>
               <ul className="landing-check-list">
-                {['Catalogue objets professionnel', 'Rapports PDF avec logo', 'Historique toutes vos visites', 'Multi-utilisateurs (plan Entreprise)'].map(i => (
+                {['Catalogue objets professionnel', 'Rapports PDF avec logo', 'Historique toutes vos visites', 'Devis générés automatiquement'].map(i => (
                   <li key={i}><span style={{ color: ACCENT }}>✓</span> {i}</li>
                 ))}
               </ul>
@@ -136,7 +135,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
         <div className="landing-container">
           <h2 className="landing-h2" style={{ color: 'white' }}>Tarifs simples et transparents</h2>
           <p className="landing-section-sub" style={{ color: 'rgba(255,255,255,0.6)' }}>Commencez gratuitement, évoluez selon vos besoins</p>
-          <div className="landing-grid-3" style={{ marginTop: 40 }}>
+          <div className="landing-grid-2" style={{ marginTop: 40, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
             {/* Essai gratuit */}
             <div className="landing-plan-card">
               <div className="landing-plan-name">Essai gratuit</div>
@@ -173,25 +172,13 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
                 S'abonner au plan Pro →
               </button>
             </div>
-
-            {/* Entreprise */}
-            <div className="landing-plan-card">
-              <div className="landing-plan-name">Entreprise</div>
-              <div className="landing-plan-price" style={{ color: GOLD }}>79 €<span>/mois</span></div>
-              <p className="landing-plan-desc">Pour les équipes et agences</p>
-              <ul className="landing-plan-features">
-                <li>✓ Tout le plan Pro</li>
-                <li>✓ Multi-utilisateurs</li>
-                <li>✓ Marque blanche PDF</li>
-                <li>✓ Support prioritaire</li>
-                <li>✓ Onboarding personnalisé</li>
-                <li>✓ Facturation annuelle dispo.</li>
-              </ul>
-              <button className="landing-plan-btn landing-plan-btn-gold" onClick={onSignUp}>
-                Contacter l'équipe
-              </button>
-            </div>
           </div>
+          <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
+            Besoin de plusieurs utilisateurs ou d'une offre sur-mesure pour votre équipe ?{' '}
+            <a href="mailto:contact@moveupapp.com?subject=Demande%20offre%20Entreprise" style={{ color: 'white', textDecoration: 'underline' }}>
+              Contactez-nous
+            </a>
+          </p>
         </div>
       </section>
 
