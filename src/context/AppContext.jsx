@@ -560,8 +560,31 @@ export function AppProvider({ children }) {
   const getTotalVolume = () =>
     state.rooms.reduce((sum, r) => sum + getRoomVolume(r), 0);
 
+  // Segments de dispatch effectifs : priorité aux lignes ajoutées à la main
+  // (moveSegments), sinon on dérive automatiquement des tags "mode de
+  // transport" posés sur chaque meuble pendant l'inventaire (Step4). Sans ça,
+  // un meuble marqué "Stockage"/"Maritime"/"Aérien" reste invisible pour le
+  // calcul du camion : il gonflait le volume total comme s'il partait par
+  // la route avec le reste, sans jamais être vraiment "dispatché".
+  const getDispatchSegments = () => {
+    const manual = state.moveSegments || [];
+    if (manual.length > 0) return manual;
+    const modeMap = getItemsByTransportMode();
+    const segments = ['road', 'sea', 'air', 'storage']
+      .filter(m => modeMap[m]?.volume > 0)
+      .map(m => ({ type: m, volume: modeMap[m].volume }));
+    // Les objets non taggés partent par défaut avec le camion principal (route)
+    const untagged = modeMap.undefined?.volume || 0;
+    if (untagged > 0) {
+      const road = segments.find(s => s.type === 'road');
+      if (road) road.volume += untagged;
+      else segments.push({ type: 'road', volume: untagged });
+    }
+    return segments;
+  };
+
   const getRecommendedTruck = (vol) => {
-    const segments = state.moveSegments || [];
+    const segments = getDispatchSegments();
     if (segments.length > 0) {
       const primary = segments.reduce((a, b) => ((b.volume || 0) > (a.volume || 0) ? b : a));
       return getSegmentSolution(primary.type, primary.volume || vol);
@@ -1153,7 +1176,7 @@ export function AppProvider({ children }) {
       updateClient, updateOrigin, updateDestination,
       setHousingType, setHousingTypeOrigin, setHousingTypeDestination,
       setMoveType, setHouseholdPersons, setTransportOverride,
-      addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution,
+      addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution, getDispatchSegments,
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
       updateItemComment, updateItemVolume, updateItemCrate, updateItemTransportMode, updateItemFlags,

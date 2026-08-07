@@ -263,8 +263,8 @@ export default function Step5Summary() {
             {segments.length === 0 && (
               <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '10px' }}>
                 {isFr
-                  ? 'Ajoutez une ligne pour détailler la répartition (maritime, aérien, stockage...)'
-                  : 'Add a line to detail the breakdown (sea, air, storage...)'}
+                  ? 'Répartition calculée automatiquement à partir des modes de transport tagués sur les meubles (voir ci-dessous). Ajoutez une ligne seulement pour un besoin particulier non couvert par ces tags.'
+                  : 'Breakdown calculated automatically from the transport modes tagged on furniture (see below). Add a line only for a specific need not covered by those tags.'}
               </div>
             )}
             {segments.map(seg => <MoveSegmentRow key={seg.id} seg={seg} />)}
@@ -330,7 +330,9 @@ export default function Step5Summary() {
               const g = modeMap[mode];
               const { Icon: ModeIcon, ...labels } = modeInfo[mode];
               const label = labels[isFr ? 'fr' : 'en'];
-              const containerReco = mode === 'sea' ? getSegmentSolution('sea', g.volume) : null;
+              // "road" a déjà son libellé propre (Route) ; getSegmentSolution('road', ...)
+              // renverrait toujours "Route internationale", trompeur pour un trajet local.
+              const containerReco = mode !== 'road' ? getSegmentSolution(mode, g.volume) : null;
               return (
                 <div key={mode} style={{ marginBottom: idx < definedModes.length - 1 ? '14px' : '6px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>

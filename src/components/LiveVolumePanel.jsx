@@ -70,7 +70,7 @@ export default function LiveVolumePanel() {
           {definedModes.map(mode => {
             const g = modeMap[mode];
             const label = modeInfo[mode][isFr ? 'fr' : 'en'];
-            const containerReco = mode === 'sea' ? getSegmentSolution('sea', g.volume) : null;
+            const containerReco = mode !== 'road' ? getSegmentSolution(mode, g.volume) : null;
             return (
               <div key={mode} style={{
                 fontSize: '12px', padding: '5px 8px', marginBottom: '4px',

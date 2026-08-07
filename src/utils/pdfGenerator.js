@@ -424,7 +424,9 @@ export async function generateVisitPDF(visitState, profile, lang) {
     pdfDefinedModes.forEach(mode => {
       const modeItems = pdfModeGroups[mode] || [];
       const modeVol = modeItems.reduce((s, i) => s + (i.volume_m3 || 0) * i.qty, 0);
-      const containerReco = mode === 'sea' ? getSegmentSolution('sea', modeVol, isFr) : null;
+      // "road" a déjà son propre libellé (national/international) dans modeHeaders ;
+      // getSegmentSolution('road', ...) renverrait toujours "internationale", trompeur ici.
+      const containerReco = mode !== 'road' ? getSegmentSolution(mode, modeVol, isFr) : null;
       const header = `${modeHeaders[mode]}${containerReco ? '  -  ' + containerReco : ''}  (${modeVol.toFixed(2)} m3)`;
       checkY(12);
       doc.setFillColor(...BLACK);
