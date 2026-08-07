@@ -701,7 +701,7 @@ function InventoryList({ room }) {
 const FREE_PHOTO_LIMIT = 5;
 
 function RoomPhotosSection({ room }) {
-  const { lang, t, profile, hasFullAccess, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, retryPhotoUploads, setViewMode } = useApp();
+  const { lang, t, profile, hasFullAccess, isTrialExpired, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, retryPhotoUploads, setViewMode } = useApp();
   const isFr = lang === 'fr';
   const cats = isFr ? PHOTO_CATEGORIES_FR : PHOTO_CATEGORIES_EN;
   const [lightbox, setLightbox] = useState(null);
@@ -787,7 +787,9 @@ function RoomPhotosSection({ room }) {
           <span style={{ fontSize: 14 }}>🔒</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#2B6BE6' }}>
-              {isFr ? `Limite de ${FREE_PHOTO_LIMIT} photos (plan gratuit)` : `${FREE_PHOTO_LIMIT} photos limit (free plan)`}
+              {isTrialExpired()
+                ? (isFr ? `Limite de ${FREE_PHOTO_LIMIT} photos (essai terminé)` : `${FREE_PHOTO_LIMIT} photos limit (trial ended)`)
+                : (isFr ? `Limite de ${FREE_PHOTO_LIMIT} photos (plan gratuit)` : `${FREE_PHOTO_LIMIT} photos limit (free plan)`)}
             </div>
             <div style={{ fontSize: 11, color: '#2B6BE6', opacity: 0.8 }}>
               {isFr ? 'Passer au Pro pour des photos illimitées →' : 'Upgrade to Pro for unlimited photos →'}

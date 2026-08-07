@@ -23,7 +23,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
       {/* ── Hero ───────────────────────────────────────── */}
       <section className="landing-hero">
         <div className="landing-container" style={{ textAlign: 'center' }}>
-          <div className="landing-badge">🚀 Plan Pro à 19,99€/mois · Visites illimitées</div>
+          <div className="landing-badge">🚀 30 jours d'essai gratuit · Puis 19,99€/mois</div>
           <h1 className="landing-h1">
             L'assistant de visite pour les<br />
             <span style={{ color: ACCENT }}>professionnels du déménagement</span>
@@ -40,7 +40,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
               {demoLoading ? 'Connexion…' : 'Voir une démo'}
             </button>
           </div>
-          <p style={{ fontSize: 12, color: '#9E9C94', marginTop: 14 }}>3 visites gratuites · Sans carte bancaire</p>
+          <p style={{ fontSize: 12, color: '#9E9C94', marginTop: 14 }}>30 jours d'essai gratuit · Sans carte bancaire</p>
         </div>
 
         {/* App preview */}
@@ -122,7 +122,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
                 Estimez votre volume avant de demander des devis. Comparez les offres sur une base objective et évitez les mauvaises surprises.
               </p>
               <ul className="landing-check-list">
-                {['3 visites gratuites', 'Calcul volume automatique', 'PDF récapitulatif', 'Aucune inscription requise pour tester'].map(i => (
+                {["30 jours d'essai gratuit", 'Calcul volume automatique', 'PDF récapitulatif', 'Sans carte bancaire'].map(i => (
                   <li key={i}><span style={{ color: '#2A9D5C' }}>✓</span> {i}</li>
                 ))}
               </ul>
@@ -137,21 +137,21 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
           <h2 className="landing-h2" style={{ color: 'white' }}>Tarifs simples et transparents</h2>
           <p className="landing-section-sub" style={{ color: 'rgba(255,255,255,0.6)' }}>Commencez gratuitement, évoluez selon vos besoins</p>
           <div className="landing-grid-3" style={{ marginTop: 40 }}>
-            {/* Gratuit */}
+            {/* Essai gratuit */}
             <div className="landing-plan-card">
-              <div className="landing-plan-name">Gratuit</div>
-              <div className="landing-plan-price">0 €<span>/mois</span></div>
-              <p className="landing-plan-desc">Pour découvrir l'outil</p>
+              <div className="landing-plan-name">Essai gratuit</div>
+              <div className="landing-plan-price">0 €<span>/ 30 jours</span></div>
+              <p className="landing-plan-desc">Pour découvrir l'outil, sans carte bancaire</p>
               <ul className="landing-plan-features">
-                <li>✓ 3 visites par mois</li>
-                <li>✓ PDF basique</li>
-                <li>✓ 5 photos par visite</li>
+                <li>✓ Visites illimitées pendant 30 jours</li>
+                <li>✓ Photos illimitées pendant 30 jours</li>
+                <li>✓ PDF complet avec photos</li>
                 <li>✓ Inventaire complet</li>
-                <li style={{ color: '#9E9C94' }}>✗ Historique illimité</li>
+                <li style={{ color: '#9E9C94' }}>✗ Création de visites après 30 jours</li>
                 <li style={{ color: '#9E9C94' }}>✗ Multi-utilisateurs</li>
               </ul>
               <button className="landing-plan-btn landing-plan-btn-ghost" onClick={onSignUp}>
-                Commencer gratuitement
+                Démarrer l'essai gratuit
               </button>
             </div>
 

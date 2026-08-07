@@ -122,8 +122,8 @@ export default function TermsPage() {
 
       <Section title={isFr ? '5. Abonnement et paiement' : '5. Subscription and Payment'}>
         {isFr
-          ? <p>Le plan gratuit est limité en nombre de visites. Le plan Pro est facturé 19,99 € TTC par mois, sans engagement, résiliable à tout moment. Le paiement est traité par notre prestataire Stripe. Aucune donnée bancaire n'est stockée par Move Up App.</p>
-          : <p>The free plan is limited in the number of visits. The Pro plan is billed at 19.99 € incl. VAT per month, without commitment, cancellable at any time. Payments are processed by our provider Stripe. No banking data is stored by Move Up App.</p>}
+          ? <p>Un essai gratuit de 30 jours est proposé à la création du compte, sans carte bancaire, avec un accès complet aux fonctionnalités. À l'issue de cette période, la création de nouvelles visites nécessite un abonnement au plan Pro. Le plan Pro est facturé 19,99 € TTC par mois, sans engagement, résiliable à tout moment. Le paiement est traité par notre prestataire Stripe. Aucune donnée bancaire n'est stockée par Move Up App.</p>
+          : <p>A 30-day free trial is offered when the account is created, with no credit card required and full access to the app's features. After this period, creating new visits requires a Pro subscription. The Pro plan is billed at 19.99 € incl. VAT per month, without commitment, cancellable at any time. Payments are processed by our provider Stripe. No banking data is stored by Move Up App.</p>}
       </Section>
 
       <Section title={isFr ? '6. Données et contenus utilisateur' : '6. User Data and Content'}>
