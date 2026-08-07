@@ -701,14 +701,16 @@ function InventoryList({ room }) {
 const FREE_PHOTO_LIMIT = 5;
 
 function RoomPhotosSection({ room }) {
-  const { lang, t, profile, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, retryPhotoUploads, setViewMode } = useApp();
+  const { lang, t, profile, hasFullAccess, addRoomPhoto, deleteRoomPhoto, updateRoomPhoto, retryPhotoUploads, setViewMode } = useApp();
   const isFr = lang === 'fr';
   const cats = isFr ? PHOTO_CATEGORIES_FR : PHOTO_CATEGORIES_EN;
   const [lightbox, setLightbox] = useState(null);
   const photos = room.photos || [];
   const hasErrors = photos.some(p => p.uploadStatus === 'error');
+  // Photos illimitées pour le Pro et pendant l'essai de 30 jours ; seul
+  // l'ancien plan gratuit permanent (comptes sans essai) reste plafonné.
   const plan = profile?.plan || 'free';
-  const photoLimit = plan === 'free' ? FREE_PHOTO_LIMIT : Infinity;
+  const photoLimit = hasFullAccess() ? Infinity : FREE_PHOTO_LIMIT;
   const atLimit = photos.length >= photoLimit;
 
   const handleFiles = async (files) => {

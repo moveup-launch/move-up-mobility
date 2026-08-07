@@ -126,6 +126,20 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan text DEFAULT 'free';
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_status text DEFAULT 'inactive';
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT now();
+
+-- ============================================================
+-- 4bis. ESSAI GRATUIT DE 30 JOURS (remplace le "gratuit permanent")
+-- ============================================================
+-- `trial_ends_at` est posé automatiquement à l'inscription (défaut = 30
+-- jours après la création de la ligne). Les comptes qui existaient déjà
+-- avant cette migration gardent trial_ends_at = NULL : ils ne sont PAS
+-- rétroactivement mis en essai (pas de mauvaise surprise), et continuent
+-- sur l'ancien modèle "gratuit permanent plafonné à 3 visites" tant qu'ils
+-- ne sont pas passés en Pro. Voir src/context/AppContext.jsx (isOnTrial,
+-- isTrialExpired, hasFullAccess).
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS trial_ends_at timestamptz;
+ALTER TABLE profiles ALTER COLUMN trial_ends_at SET DEFAULT (now() + interval '30 days');
 
 -- ============================================================
 -- ADMIN : vue + fonctions (exécuter dans Supabase SQL Editor)

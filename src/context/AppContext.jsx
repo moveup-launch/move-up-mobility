@@ -9,18 +9,28 @@ const AppContext = createContext();
 const FREE_VISIT_LIMIT = 3;
 const PHOTO_SIGNED_URL_TTL = 86400; // 24h — bucket 'visit-photos' privé
 
-function UpgradePlanModal({ lang, onClose, onUpgrade }) {
+// reason: 'trial_expired' (essai de 30 jours écoulé) ou 'visit_limit'
+// (ancien plan gratuit permanent, plafonné à FREE_VISIT_LIMIT visites —
+// ne concerne que les comptes créés avant la mise en place de l'essai).
+export function UpgradePlanModal({ lang, onClose, onUpgrade, reason = 'visit_limit' }) {
   const isFr = lang === 'fr';
+  const isTrialReason = reason === 'trial_expired';
   return (
     <div style={{ padding: '24px', textAlign: 'center' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
       <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 8, color: 'var(--text)' }}>
-        {isFr ? 'Limite du plan gratuit atteinte' : 'Free plan limit reached'}
+        {isTrialReason
+          ? (isFr ? 'Votre essai gratuit est terminé' : 'Your free trial has ended')
+          : (isFr ? 'Limite du plan gratuit atteinte' : 'Free plan limit reached')}
       </div>
       <div style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 24, lineHeight: 1.6 }}>
-        {isFr
-          ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées.`
-          : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits.`}
+        {isTrialReason
+          ? (isFr
+              ? "Vos 30 jours d'essai gratuit sont écoulés. Vos visites précédentes restent consultables (historique, PDF), mais il faut passer au Plan Pro à 19,99€/mois pour en créer de nouvelles."
+              : 'Your 30-day free trial is over. Your past visits stay available (history, PDF), but you need to upgrade to Pro at 19.99€/month to create new ones.')
+          : (isFr
+              ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées.`
+              : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits.`)}
       </div>
       <button
         className="btn btn-primary"
@@ -251,9 +261,37 @@ export function AppProvider({ children }) {
     setViewMode('wizard');
   };
 
+  // ── Accès / essai gratuit de 30 jours ──────────────────────────
+  // `trial_ends_at` est posé en base à la création du profil (colonne avec
+  // valeur par défaut now() + 30 jours). Les comptes créés avant la mise en
+  // place de l'essai n'ont pas cette colonne renseignée : ils restent sur
+  // l'ancien modèle "gratuit permanent plafonné à FREE_VISIT_LIMIT visites",
+  // pour ne pas couper l'accès à des utilisateurs existants sans prévenir.
+  const isProUser = () => (profile?.plan || 'free') === 'pro';
+  const isOnTrial = () => !!profile?.trial_ends_at;
+  const isTrialExpired = () => isOnTrial() && new Date(profile.trial_ends_at) < new Date();
+  const hasFullAccess = () => isProUser() || (isOnTrial() && !isTrialExpired());
+  const getTrialDaysLeft = () => {
+    if (!isOnTrial()) return null;
+    const ms = new Date(profile.trial_ends_at) - new Date();
+    return Math.max(0, Math.ceil(ms / 86400000));
+  };
+
   const [planVisitSignal, setPlanVisitSignal] = useState(0);
   const openPlanVisit = async () => {
-    if ((profile?.plan || 'free') === 'free') {
+    if (!hasFullAccess()) {
+      if (isTrialExpired()) {
+        openModal(
+          <UpgradePlanModal
+            lang={lang}
+            reason="trial_expired"
+            onClose={closeModal}
+            onUpgrade={() => { closeModal(); openProCheckout(user?.email, user?.id); }}
+          />
+        );
+        return;
+      }
+      // Compte legacy (pas d'essai) : ancien plafond de FREE_VISIT_LIMIT visites
       const { count } = await supabase
         .from('visits')
         .select('*', { count: 'exact', head: true });
@@ -261,6 +299,7 @@ export function AppProvider({ children }) {
         openModal(
           <UpgradePlanModal
             lang={lang}
+            reason="visit_limit"
             onClose={closeModal}
             onUpgrade={() => { closeModal(); openProCheckout(user?.email, user?.id); }}
           />
@@ -1173,6 +1212,7 @@ export function AppProvider({ children }) {
       currentStep, goToStep, nextStep, prevStep, clearJustFinishedInventory,
       state,
       t, tCat,
+      isProUser, isOnTrial, isTrialExpired, hasFullAccess, getTrialDaysLeft,
       updateClient, updateOrigin, updateDestination,
       setHousingType, setHousingTypeOrigin, setHousingTypeDestination,
       setMoveType, setHouseholdPersons, setTransportOverride,

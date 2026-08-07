@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useApp } from '../context/AppContext';
+import { useApp, UpgradePlanModal } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
 import BoxMascot from '../components/BoxMascot';
 import { FileText, Calendar, Clock, MapPin, BarChart3, Pencil, CalendarClock } from 'lucide-react';
@@ -207,7 +207,10 @@ const PLAN_BADGE = {
 const FREE_VISIT_LIMIT = 3;
 
 export default function DashboardPage() {
-  const { t, lang, user, profile, loadVisit, goToStep, setViewMode, openNewQuote } = useApp();
+  const {
+    t, lang, user, profile, loadVisit, goToStep, setViewMode, openNewQuote,
+    hasFullAccess, isTrialExpired, isOnTrial, getTrialDaysLeft,
+  } = useApp();
   const isFr = lang === 'fr';
 
   const [visits, setVisits] = useState([]);
@@ -344,6 +347,7 @@ export default function DashboardPage() {
         {(() => {
           const plan = profile?.plan || 'free';
           const b = PLAN_BADGE[plan] || PLAN_BADGE.free;
+          const trialDays = getTrialDaysLeft();
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <span
@@ -352,7 +356,14 @@ export default function DashboardPage() {
               >
                 {b.label}
               </span>
-              {plan === 'free' && (
+              {plan !== 'pro' && trialDays !== null && (
+                <span style={{ fontSize: 11, color: isTrialExpired() ? 'var(--danger)' : 'var(--text3)', fontWeight: isTrialExpired() ? 700 : 400 }}>
+                  {isTrialExpired()
+                    ? (isFr ? 'Essai terminé' : 'Trial ended')
+                    : (isFr ? `Essai : ${trialDays} j restants` : `Trial: ${trialDays} d left`)}
+                </span>
+              )}
+              {plan === 'free' && trialDays === null && (
                 <span style={{ fontSize: 11, color: 'var(--text3)' }}>
                   {allVisits.length}/{FREE_VISIT_LIMIT} {isFr ? 'visites' : 'visits'}
                 </span>
@@ -363,11 +374,10 @@ export default function DashboardPage() {
 
         {/* CTA Nouvelle visite */}
         <button className="dashboard-cta" onClick={() => {
-          const plan = profile?.plan || 'free';
-          if (plan === 'free' && allVisits.length >= FREE_VISIT_LIMIT) {
-            setShowUpgradeModal(true);
-          } else {
+          if (hasFullAccess() || (isOnTrial() === false && allVisits.length < FREE_VISIT_LIMIT)) {
             setShowNewVisit(true);
+          } else {
+            setShowUpgradeModal(true);
           }
         }} style={{display:'flex', alignItems:'center', justifyContent:'center', gap:9}}>
           <Pencil size={19} strokeWidth={2.5} /> {isFr ? 'Nouvelle visite' : 'New visit'}
@@ -536,7 +546,7 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Modal limite plan gratuit */}
+      {/* Modal limite plan gratuit / essai terminé */}
       {showUpgradeModal && (
         <div
           onClick={() => setShowUpgradeModal(false)}
@@ -544,31 +554,14 @@ export default function DashboardPage() {
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ background: 'white', borderRadius: '20px 20px 0 0', padding: '28px 24px 40px', width: '100%', maxWidth: 480 }}
+            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480 }}
           >
-            <div style={{ fontSize: 36, textAlign: 'center', marginBottom: 12 }}>🚀</div>
-            <div style={{ fontWeight: 800, fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
-              {isFr ? 'Limite du plan gratuit atteinte' : 'Free plan limit reached'}
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
-              {isFr
-                ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées, des photos et un PDF complet.`
-                : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits, photos and full PDF.`}
-            </div>
-            <button
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
-              onClick={() => { setShowUpgradeModal(false); openProCheckout(user?.email, user?.id); }}
-            >
-              {isFr ? "S'abonner au Plan Pro à 19,99€/mois →" : 'Subscribe to Pro at 19.99€/month →'}
-            </button>
-            <button
-              className="btn btn-secondary"
-              style={{ width: '100%', padding: '12px', fontSize: 14 }}
-              onClick={() => setShowUpgradeModal(false)}
-            >
-              {isFr ? 'Plus tard' : 'Later'}
-            </button>
+            <UpgradePlanModal
+              lang={lang}
+              reason={isTrialExpired() ? 'trial_expired' : 'visit_limit'}
+              onClose={() => setShowUpgradeModal(false)}
+              onUpgrade={() => { setShowUpgradeModal(false); openProCheckout(user?.email, user?.id); }}
+            />
           </div>
         </div>
       )}
