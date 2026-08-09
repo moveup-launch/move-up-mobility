@@ -3,6 +3,7 @@ import { X, ChevronUp, ChevronDown, Phone, Target, Camera, Pencil, ClipboardList
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { generateVisitPDF } from '../utils/pdfGenerator';
+import DecimalInput from '../components/DecimalInput';
 
 const PHOTO_SIGNED_URL_TTL = 86400; // 24h — bucket 'visit-photos' privé
 
@@ -334,10 +335,8 @@ export default function HistoryPage() {
                         <span style={{ fontWeight: 700 }}>{v.real_volume} m³</span>
                       ) : (
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0"
+                          <DecimalInput
+                            min={0}
                             placeholder="m³"
                             value={realVolumeDraft[v.id] ?? ''}
                             onChange={e => setRealVolumeDraft(d => ({ ...d, [v.id]: e.target.value }))}

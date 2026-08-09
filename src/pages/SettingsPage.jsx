@@ -5,6 +5,7 @@ import {
   Lock, ExternalLink, AlertTriangle, Trash2, X, Check, Settings, Image as ImageIcon, Search,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import DecimalInput from '../components/DecimalInput';
 import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
 import { openProCheckout, openBillingPortal } from '../lib/stripe';
@@ -405,12 +406,9 @@ function CompanySection() {
       <div className="field">
         <label><span className="field-icon">%</span>{isFr ? 'Taux de TVA par défaut (devis)' : 'Default VAT rate (quotes)'}</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="number"
-            inputMode="decimal"
-            min="0"
-            max="100"
-            step="0.1"
+          <DecimalInput
+            min={0}
+            max={100}
             value={form.default_vat_rate}
             onChange={e => set('default_vat_rate', e.target.value)}
             placeholder={isFr ? 'ex. 20' : 'e.g. 20'}
@@ -663,7 +661,7 @@ function CustomCatalogSection() {
             </div>
             <div className="field">
               <label>{t('customItemVolume')}</label>
-              <input type="number" step="0.01" min="0.001" value={form.volume_m3} onChange={e => set('volume_m3', e.target.value)} />
+              <DecimalInput min={0.001} value={form.volume_m3} onChange={e => set('volume_m3', e.target.value)} />
             </div>
             <div className="field">
               <label>{t('customItemCategory')}</label>
@@ -833,10 +831,8 @@ function VolumeDefaultsSection() {
               <div style={{ fontWeight: '600' }}>{item.name}</div>
               <div style={{ color: 'var(--text3)' }}>{item.variant}</div>
             </div>
-            <input
-              type="number"
-              step="0.01"
-              min="0.001"
+            <DecimalInput
+              min={0.001}
               value={item.overrideVol ?? item.defaultVol}
               onChange={e => setVolumeOverride(item.uid, e.target.value)}
               style={{

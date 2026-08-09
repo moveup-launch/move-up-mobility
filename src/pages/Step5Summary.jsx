@@ -6,6 +6,7 @@ import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import Step6PDF from './Step6PDF';
 import BoxMascot from '../components/BoxMascot';
 import SaveStatusBadge from '../components/SaveStatusBadge';
+import DecimalInput from '../components/DecimalInput';
 
 const MOVE_TYPE_OPTIONS_FR = [
   { val: 'local', label: 'Local / National' },
@@ -43,8 +44,8 @@ function MoveSegmentRow({ seg }) {
           {opts.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
         </select>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <input
-            type="number" min="0" step="0.5"
+          <DecimalInput
+            min={0}
             value={seg.volume || ''}
             onChange={e => updateMoveSegment(seg.id, 'volume', parseFloat(e.target.value) || 0)}
             placeholder="m³"

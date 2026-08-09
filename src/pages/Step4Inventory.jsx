@@ -4,6 +4,7 @@ import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS, POPULAR_OVERRIDE_BY_ROO
 import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import { AddRoomSheet } from './Step3Rooms';
 import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
+import DecimalInput from '../components/DecimalInput';
 import SaveStatusBadge from '../components/SaveStatusBadge';
 
 // Bug terrain : sur mobile, un scroll rapide qui démarre sur un bouton de
@@ -204,8 +205,8 @@ function CustomItemSheet({ roomId, roomType }) {
       </div>
       <div className="field" style={{ padding: '0 16px 12px' }}>
         <label>{isFr ? 'Volume en m³' : 'Volume in m³'}</label>
-        <input
-          type="number" step="0.01" min="0.01" inputMode="decimal"
+        <DecimalInput
+          min={0.01}
           value={volumeStr}
           onChange={e => setVolumeStr(e.target.value)}
           style={{ fontSize: '16px', fontWeight: '600' }}
@@ -659,8 +660,8 @@ function InventoryList({ room }) {
             {/* Volume edit */}
             {editingItemId === item.itemId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                <input
-                  type="number" step="0.01" min="0.001" inputMode="decimal"
+                <DecimalInput
+                  min={0.001}
                   value={editVolume}
                   onChange={e => setEditVolume(e.target.value)}
                   onBlur={() => commitEdit(item.itemId)}

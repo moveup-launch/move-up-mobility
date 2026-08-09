@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
+import DecimalInput from '../components/DecimalInput';
 
 // PDF translation strings
 const QT = {
@@ -882,7 +883,7 @@ export default function QuotePage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div className="field">
             <label>Volume CBM</label>
-            <input type="number" step="0.1" style={inputStyle} value={volumeCBM} onChange={e => setVolumeCBM(e.target.value)} />
+            <DecimalInput style={inputStyle} value={volumeCBM} onChange={e => setVolumeCBM(e.target.value)} />
           </div>
           <div className="field">
             <label>{isFr ? 'Transit estimé' : 'Transit time'}</label>
@@ -936,8 +937,8 @@ export default function QuotePage() {
               placeholder={isFr ? 'Description…' : 'Description…'}
               style={inputStyle}
             />
-            <input
-              type="number" step="0.01" min="0"
+            <DecimalInput
+              min={0}
               value={line.amount}
               onChange={e => setCostLines(ls => ls.map(l => l.id === line.id ? { ...l, amount: e.target.value } : l))}
               placeholder="0.00"
@@ -984,8 +985,8 @@ export default function QuotePage() {
               placeholder={isFr ? 'Service…' : 'Service…'}
               style={{ ...inputStyle, fontSize: '12px' }}
             />
-            <input
-              type="number" step="0.01" min="0"
+            <DecimalInput
+              min={0}
               value={s.amount}
               onChange={e => setOptionalServices(arr => arr.map(x => x.id === s.id ? { ...x, amount: e.target.value } : x))}
               placeholder="0.00"
@@ -1096,8 +1097,8 @@ export default function QuotePage() {
             <div className="field" style={{ marginBottom: '10px' }}>
               <label>{isFr ? 'Taux de TVA' : 'VAT rate'}</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="number" inputMode="decimal" min="0" max="100" step="0.1"
+                <DecimalInput
+                  min={0} max={100}
                   value={vatRate}
                   onChange={e => setVatRate(e.target.value)}
                   placeholder={isFr ? 'ex. 20' : 'e.g. 20'}
