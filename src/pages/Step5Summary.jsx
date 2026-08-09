@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Package, Truck, Ship, Plane, HelpCircle, Archive, ArrowRight, Smartphone, Mail, Link, Save, ClipboardList } from 'lucide-react';
+import { Package, Truck, Ship, Plane, Warehouse, Boxes, MapPin, Archive, ArrowRight, Smartphone, Mail, Link, Save, ClipboardList } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { CATALOG } from '../data/catalog';
+import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import Step6PDF from './Step6PDF';
 import BoxMascot from '../components/BoxMascot';
 
@@ -120,7 +121,7 @@ export default function Step5Summary() {
     getTotalVolume, getRecommendedTruck,
     getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems,
     getRoomVolume, getRoomIcon,
-    getSegmentSolution, getItemsByTransportMode,
+    getSegmentSolution, getItemsByDestination,
     saveVisit, setViewMode, addMoveSegment, openNewQuote, clearJustFinishedInventory,
   } = useApp();
 
@@ -252,19 +253,19 @@ export default function Step5Summary() {
         </ul>
       </div>
 
-      {/* Répartition du déménagement — uniquement si plusieurs modes sur les objets */}
+      {/* Répartition du déménagement — uniquement si un vrai dispatch existe sur les objets */}
       {(() => {
-        const modeMap = getItemsByTransportMode();
-        const definedCount = ['road', 'sea', 'air', 'storage'].filter(m => modeMap[m]).length;
-        if (definedCount < 2 && segments.length === 0) return null;
+        const destGroups = getItemsByDestination();
+        const hasSplit = Object.keys(destGroups).some(k => k !== 'main');
+        if (!hasSplit && segments.length === 0) return null;
         return (
           <div className="card">
             <div className="card-title">{t('moveBreakdown')}</div>
             {segments.length === 0 && (
               <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '10px' }}>
                 {isFr
-                  ? 'Répartition calculée automatiquement à partir des modes de transport tagués sur les meubles (voir ci-dessous). Ajoutez une ligne seulement pour un besoin particulier non couvert par ces tags.'
-                  : 'Breakdown calculated automatically from the transport modes tagged on furniture (see below). Add a line only for a specific need not covered by those tags.'}
+                  ? 'Répartition calculée automatiquement à partir des destinations taguées sur les meubles (voir ci-dessous). Ajoutez une ligne seulement pour un besoin particulier non couvert par ces tags.'
+                  : 'Breakdown calculated automatically from the destinations tagged on furniture (see below). Add a line only for a specific need not covered by those tags.'}
               </div>
             )}
             {segments.map(seg => <MoveSegmentRow key={seg.id} seg={seg} />)}
@@ -309,34 +310,40 @@ export default function Step5Summary() {
         </ul>
       </div>
 
-      {/* Répartition par mode transport */}
+      {/* Répartition par destination */}
       {(() => {
-        const modeMap = getItemsByTransportMode();
-        const ORDERED_MODES = ['road', 'sea', 'air', 'storage'];
-        const definedModes = ORDERED_MODES.filter(m => modeMap[m]);
-        if (definedModes.length === 0) return null;
-        const modeInfo = {
-          road:    { Icon: Truck, fr: 'Route',    en: 'Road'    },
-          sea:     { Icon: Ship,  fr: 'Maritime', en: 'Sea'     },
-          air:     { Icon: Plane, fr: 'Aérien',   en: 'Air'     },
-          storage: { Icon: Package, fr: 'Stockage', en: 'Storage' },
+        const destGroups = getItemsByDestination();
+        const orderedKeys = [
+          ...(destGroups.main ? ['main'] : []),
+          ...DESTINATION_PRESETS.map(p => `preset:${p.key}`).filter(k => destGroups[k]),
+          ...Object.keys(destGroups).filter(k => k.startsWith('custom:')),
+        ];
+        if (orderedKeys.length === 0) return null;
+        const presetIcons = { sea: Ship, air: Plane, storage: Warehouse, groupage: Boxes, road: Truck };
+        const destMeta = (key) => {
+          const g = destGroups[key];
+          if (g.kind === 'main') return { Icon: MapPin, label: isFr ? 'Destination principale' : 'Main destination' };
+          if (g.kind === 'preset') {
+            const p = DESTINATION_PRESETS.find(p => p.key === g.key);
+            return { Icon: presetIcons[g.key] || MapPin, label: p ? (isFr ? p.fr : p.en) : g.key };
+          }
+          return { Icon: MapPin, label: g.label };
         };
         return (
           <div className="card">
             <div className="card-title">
-              {isFr ? 'Répartition par mode de transport' : 'Breakdown by transport mode'}
+              {isFr ? 'Répartition par destination' : 'Breakdown by destination'}
             </div>
-            {definedModes.map((mode, idx) => {
-              const g = modeMap[mode];
-              const { Icon: ModeIcon, ...labels } = modeInfo[mode];
-              const label = labels[isFr ? 'fr' : 'en'];
-              // "road" a déjà son libellé propre (Route) ; getSegmentSolution('road', ...)
-              // renverrait toujours "Route internationale", trompeur pour un trajet local.
-              const containerReco = mode !== 'road' ? getSegmentSolution(mode, g.volume) : null;
+            {orderedKeys.map((key, idx) => {
+              const g = destGroups[key];
+              const { Icon: DestIcon, label } = destMeta(key);
+              // Une solution logistique suggérée n'a de sens que pour Maritime/Aérien.
+              const containerReco = (g.kind === 'preset' && (g.key === 'sea' || g.key === 'air'))
+                ? getSegmentSolution(g.key, g.volume) : null;
               return (
-                <div key={mode} style={{ marginBottom: idx < definedModes.length - 1 ? '14px' : '6px' }}>
+                <div key={key} style={{ marginBottom: idx < orderedKeys.length - 1 ? '14px' : '6px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><ModeIcon size={16} strokeWidth={2} /> {label}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><DestIcon size={16} strokeWidth={2} /> {label}</span>
                     <span>{g.volume.toFixed(2)} m³</span>
                   </div>
                   {containerReco && (
@@ -355,12 +362,6 @@ export default function Step5Summary() {
                 </div>
               );
             })}
-            {modeMap['undefined'] && (
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text3)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><HelpCircle size={14} strokeWidth={2} /> {isFr ? 'Non défini' : 'Undefined'}</span>
-                <span>{modeMap['undefined'].volume.toFixed(2)} m³ — {modeMap['undefined'].count} {isFr ? 'obj.' : 'item(s)'}</span>
-              </div>
-            )}
           </div>
         );
       })()}

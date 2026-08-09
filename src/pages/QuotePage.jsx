@@ -274,10 +274,16 @@ export default function QuotePage() {
       if (segs.length > 0) {
         mode = segs.reduce((a, b) => ((b.volume || 0) > (a.volume || 0) ? b : a)).type || 'sea';
       } else {
+        // Lit le nouveau système de destinations (presets Maritime/Aérien/
+        // Stockage/Terrestre uniquement — Groupage et les destinations custom
+        // n'ont pas d'équivalent dans ce mode de devis) avec repli sur l'ancien
+        // champ transportMode pour les visites jamais repassées par la migration.
         const mc = {};
         (visit.rooms_data || []).forEach(r =>
-          (r.items || []).filter(i => i.transportMode).forEach(i => {
-            mc[i.transportMode] = (mc[i.transportMode] || 0) + (i.qty || 1);
+          (r.items || []).forEach(i => {
+            const preset = i.destination?.kind === 'preset' ? i.destination.key : null;
+            const m = preset || i.transportMode;
+            if (m) mc[m] = (mc[m] || 0) + (i.qty || 1);
           })
         );
         if (Object.keys(mc).length > 0) {

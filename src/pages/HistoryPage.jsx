@@ -108,6 +108,7 @@ export default function HistoryPage() {
       housingTypeDestination: cd.housingTypeDestination || cd.housingType || '',
       moveType: cd.moveType || 'local',
       moveSegments: cd.moveSegments || [],
+      destinations: cd.destinations || [],
       origin: visit.origin_data || {},
       destination: visit.destination_data || {},
       rooms: visit.rooms_data || [],

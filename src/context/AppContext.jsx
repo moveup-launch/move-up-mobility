@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { TRANSLATIONS } from '../data/translations';
 import { CATALOG } from '../data/catalog';
+import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import { supabase } from '../lib/supabase';
 import { openProCheckout } from '../lib/stripe';
 
@@ -84,6 +85,7 @@ const initialState = {
   origin: { ...emptyAccess },
   destination: { ...emptyAccess },
   rooms: [],
+  destinations: [],
   currentRoomId: null,
   boxesDone: {},
   boxesRemaining: {},
@@ -392,6 +394,7 @@ export function AppProvider({ children }) {
       return isFr ? 'Groupage aerien' : 'Air groupage';
     }
     if (type === 'storage') return isFr ? 'Garde-meuble / box' : 'Storage / warehouse';
+    if (type === 'groupage') return isFr ? 'Groupage (mer ou air selon volume)' : 'Groupage (sea or air depending on volume)';
     if (type === 'road') return isFr ? 'Route internationale' : 'International road';
     return isFr ? 'Route / National' : 'Road / National';
   };
@@ -548,7 +551,8 @@ export function AppProvider({ children }) {
       }),
     }));
 
-  const updateItemTransportMode = (roomId, itemId, mode) =>
+  // destination: null (destination principale) | { kind: 'preset', key } | { kind: 'custom', id }
+  const updateItemDestination = (roomId, itemId, destination) =>
     setState(s => ({
       ...s,
       rooms: s.rooms.map(r => {
@@ -556,10 +560,48 @@ export function AppProvider({ children }) {
         return {
           ...r,
           items: r.items.map(i =>
-            i.itemId === itemId ? { ...i, transportMode: mode || null } : i
+            i.itemId === itemId ? { ...i, destination } : i
           ),
         };
       }),
+    }));
+
+  // Ajoute (ou réutilise) une destination et renvoie l'objet à assigner
+  // directement à un item. Protège contre les entrées vides, les doublons
+  // exacts d'un preset existant (Maritime/Aérien/...) et les doublons d'un
+  // nom custom déjà créé sur cette visite (comparaison insensible à la casse
+  // et aux espaces superflus).
+  const addDestination = (label) => {
+    const trimmed = (label || '').trim();
+    if (!trimmed) return null;
+    const norm = trimmed.toLowerCase();
+    const presetMatch = DESTINATION_PRESETS.find(
+      p => p.fr.toLowerCase() === norm || p.en.toLowerCase() === norm
+    );
+    if (presetMatch) return { kind: 'preset', key: presetMatch.key };
+    const existing = (state.destinations || []).find(d => d.label.trim().toLowerCase() === norm);
+    if (existing) return { kind: 'custom', id: existing.id };
+    const id = `dest_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    setState(s => ({ ...s, destinations: [...(s.destinations || []), { id, label: trimmed }] }));
+    return { kind: 'custom', id };
+  };
+
+  // Retire une destination custom du registre et fait retomber les objets
+  // qui y étaient encore rattachés sur la destination principale (null),
+  // dans la même mise à jour d'état pour ne jamais laisser de référence
+  // cassée, même un court instant.
+  const removeDestination = (id) =>
+    setState(s => ({
+      ...s,
+      destinations: (s.destinations || []).filter(d => d.id !== id),
+      rooms: s.rooms.map(r => ({
+        ...r,
+        items: r.items.map(i =>
+          (i.destination?.kind === 'custom' && i.destination.id === id)
+            ? { ...i, destination: null }
+            : i
+        ),
+      })),
     }));
 
   const updateItemFlags = (roomId, itemId, flags) =>
@@ -600,24 +642,31 @@ export function AppProvider({ children }) {
     state.rooms.reduce((sum, r) => sum + getRoomVolume(r), 0);
 
   // Segments de dispatch effectifs : priorité aux lignes ajoutées à la main
-  // (moveSegments), sinon on dérive automatiquement des tags "mode de
-  // transport" posés sur chaque meuble pendant l'inventaire (Step4). Sans ça,
-  // un meuble marqué "Stockage"/"Maritime"/"Aérien" reste invisible pour le
-  // calcul du camion : il gonflait le volume total comme s'il partait par
-  // la route avec le reste, sans jamais être vraiment "dispatché".
+  // (moveSegments), sinon on dérive automatiquement des destinations posées
+  // sur chaque meuble pendant l'inventaire (Step4). Sans ça, un meuble
+  // marqué "Stockage"/"Maritime"/"Aérien" reste invisible pour le calcul du
+  // camion : il gonflait le volume total comme s'il partait par la route
+  // avec le reste, sans jamais être vraiment "dispatché".
+  // getSegmentSolution ne connaît que les 5 presets — la destination
+  // principale et les destinations custom sont assimilées à "route" pour ce
+  // calcul (seul le cubage par destination, lui, les distingue vraiment).
   const getDispatchSegments = () => {
     const manual = state.moveSegments || [];
     if (manual.length > 0) return manual;
-    const modeMap = getItemsByTransportMode();
-    const segments = ['road', 'sea', 'air', 'storage']
-      .filter(m => modeMap[m]?.volume > 0)
-      .map(m => ({ type: m, volume: modeMap[m].volume }));
-    // Les objets non taggés partent par défaut avec le camion principal (route)
-    const untagged = modeMap.undefined?.volume || 0;
-    if (untagged > 0) {
+    const groups = getItemsByDestination();
+    const segments = [];
+    DESTINATION_PRESETS.forEach(p => {
+      const g = groups[`preset:${p.key}`];
+      if (g?.volume > 0) segments.push({ type: p.key, volume: g.volume });
+    });
+    let roadVolume = groups.main?.volume || 0;
+    Object.keys(groups).forEach(k => {
+      if (k.startsWith('custom:')) roadVolume += groups[k].volume;
+    });
+    if (roadVolume > 0) {
       const road = segments.find(s => s.type === 'road');
-      if (road) road.volume += untagged;
-      else segments.push({ type: 'road', volume: untagged });
+      if (road) road.volume += roadVolume;
+      else segments.push({ type: 'road', volume: roadVolume });
     }
     return segments;
   };
@@ -798,18 +847,39 @@ export function AppProvider({ children }) {
     return items;
   };
 
-  const getItemsByTransportMode = () => {
-    const modes = {};
+  // Regroupe les objets par destination. Clés retournées : 'main' (destination
+  // principale), 'preset:<key>' (Maritime/Aérien/Stockage/Groupage/Terrestre),
+  // 'custom:<id>' (destination libre créée sur cette visite). Chaque groupe
+  // porte ses métadonnées (kind, key ou id+label déjà résolu) pour un rendu
+  // direct sans relookup côté consommateur.
+  const getItemsByDestination = () => {
+    const groups = {};
+    const ensure = (groupKey, meta) => {
+      if (!groups[groupKey]) groups[groupKey] = { ...meta, count: 0, volume: 0, items: [] };
+      return groups[groupKey];
+    };
     state.rooms.forEach(r => {
       (r.items || []).filter(i => i.qty > 0).forEach(i => {
-        const m = i.transportMode || 'undefined';
-        if (!modes[m]) modes[m] = { count: 0, volume: 0, items: [] };
-        modes[m].count += i.qty;
-        modes[m].volume += (i.volume_m3 || 0) * i.qty;
-        modes[m].items.push({ name: i.name, icon: i.icon || '📦', qty: i.qty, roomName: r.name });
+        const d = i.destination;
+        let groupKey, meta;
+        if (!d) {
+          groupKey = 'main';
+          meta = { kind: 'main' };
+        } else if (d.kind === 'preset') {
+          groupKey = `preset:${d.key}`;
+          meta = { kind: 'preset', key: d.key };
+        } else {
+          groupKey = `custom:${d.id}`;
+          const dest = (state.destinations || []).find(x => x.id === d.id);
+          meta = { kind: 'custom', id: d.id, label: dest?.label || (lang === 'fr' ? 'Destination supprimée' : 'Deleted destination') };
+        }
+        const g = ensure(groupKey, meta);
+        g.count += i.qty;
+        g.volume += (i.volume_m3 || 0) * i.qty;
+        g.items.push({ name: i.name, icon: i.icon || '📦', qty: i.qty, roomName: r.name });
       });
     });
-    return modes;
+    return groups;
   };
 
   const getAllFragile = () => {
@@ -889,7 +959,7 @@ export function AppProvider({ children }) {
         commercial_name: state.client.surveyor || null,
         total_volume: vol,
         recommended_truck: getRecommendedTruck(vol),
-        client_data: { ...state.client, housingType: state.housingType, housingTypeOrigin: state.housingTypeOrigin, housingTypeDestination: state.housingTypeDestination, moveType: state.moveType, moveSegments: state.moveSegments || [], householdPersons: state.householdPersons, transportOverride: state.transportOverride || null },
+        client_data: { ...state.client, housingType: state.housingType, housingTypeOrigin: state.housingTypeOrigin, housingTypeDestination: state.housingTypeDestination, moveType: state.moveType, moveSegments: state.moveSegments || [], destinations: state.destinations || [], householdPersons: state.householdPersons, transportOverride: state.transportOverride || null },
         origin_data: state.origin,
         destination_data: state.destination,
         rooms_data: state.rooms.map(r => { const { photos, ...rest } = r; return rest; }),
@@ -924,6 +994,7 @@ export function AppProvider({ children }) {
         housingTypeDestination: state.housingTypeDestination,
         moveType: state.moveType,
         moveSegments: state.moveSegments || [],
+        destinations: state.destinations || [],
         householdPersons: state.householdPersons,
         transportOverride: state.transportOverride || null,
       },
@@ -986,6 +1057,29 @@ export function AppProvider({ children }) {
       furnitureLiftComment: raw?.furnitureLiftComment || '',
     });
 
+    // Migration legacy : les anciennes visites ont item.transportMode
+    // ('road'|'sea'|'air'|'storage'|null/absent), le nouveau système utilise
+    // item.destination (null | {kind:'preset',key} | {kind:'custom',id}).
+    // - Si `destination` est déjà présent (même null) → visite déjà migrée,
+    //   on ne touche à rien (idempotent).
+    // - sea/air/storage → preset équivalent, aucune perte d'info.
+    // - 'road' ou absent → destination principale (null) : c'était déjà le
+    //   comportement effectif de getDispatchSegments, qui fusionnait 'road'
+    //   et les objets non taggés dans le même total.
+    // `transportMode` n'est volontairement PAS supprimé : champ inerte,
+    // gardé par précaution (aucun code ne le lit plus après cette migration).
+    const migrateItemDestination = (item) => {
+      if (item.destination !== undefined) return item;
+      if (['sea', 'air', 'storage'].includes(item.transportMode)) {
+        return { ...item, destination: { kind: 'preset', key: item.transportMode } };
+      }
+      return { ...item, destination: null };
+    };
+    const migratedRooms = (visitData.rooms_data || []).map(r => ({
+      ...r,
+      items: (r.items || []).map(migrateItemDestination),
+    }));
+
     setState({
       ...initialState,
       client: {
@@ -1006,9 +1100,10 @@ export function AppProvider({ children }) {
       housingTypeDestination: cd.housingTypeDestination || cd.housingType || '',
       moveType: cd.moveType || (cd.isInternational ? 'sea' : 'local'),
       moveSegments: cd.moveSegments || [],
+      destinations: cd.destinations || [],
       origin: migrateAccess(visitData.origin_data),
       destination: migrateAccess(visitData.destination_data),
-      rooms: visitData.rooms_data || [],
+      rooms: migratedRooms,
       currentRoomId: visitData.rooms_data?.[0]?.id || null,
       boxesDone: visitData.boxes_done || {},
       boxesRemaining: visitData.boxes_remaining || {},
@@ -1166,6 +1261,7 @@ export function AppProvider({ children }) {
         housingTypeDestination: state.housingTypeDestination,
         moveType: state.moveType,
         moveSegments: state.moveSegments || [],
+        destinations: state.destinations || [],
         householdPersons: state.householdPersons,
         transportOverride: state.transportOverride || null,
       },
@@ -1219,11 +1315,12 @@ export function AppProvider({ children }) {
       addMoveSegment, updateMoveSegment, removeMoveSegment, getSegmentSolution, getDispatchSegments,
       addRoom, deleteRoom, renameRoom, selectRoom,
       setRoomTab, addItemToRoom, addCustomItemToRoom, changeQty,
-      updateItemComment, updateItemVolume, updateItemCrate, updateItemTransportMode, updateItemFlags,
+      updateItemComment, updateItemVolume, updateItemCrate, updateItemDestination, updateItemFlags,
+      addDestination, removeDestination,
       getRoomVolume, getTotalVolume,
       getRecommendedTruck, getRecommendedTeam,
       getEquipment, getMattressCovers, getCheckPoints,
-      getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getItemsByTransportMode,
+      getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems, getItemsByDestination,
       getRoomIcon,
       sheet, openSheet, closeSheet,
       modal, openModal, closeModal,

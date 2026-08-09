@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS, POPULAR_OVERRIDE_BY_ROOM } from '../data/catalog';
+import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import { AddRoomSheet } from './Step3Rooms';
 import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
 
@@ -473,16 +474,123 @@ function CatalogSection({ room }) {
   );
 }
 
-const TRANSPORT_MODES = [
-  { val: 'road',    labelFr: 'Route',      labelEn: 'Road'    },
-  { val: 'sea',     labelFr: 'Maritime',   labelEn: 'Sea'     },
-  { val: 'air',     labelFr: 'Aérien',     labelEn: 'Air'     },
-  { val: 'storage', labelFr: 'Stockage',   labelEn: 'Storage' },
-  { val: null,      labelFr: 'Non défini', labelEn: 'Undef.'  },
-];
+function destinationLabel(destination, destinations, isFr) {
+  if (!destination) return isFr ? '📍 Destination principale' : '📍 Main destination';
+  if (destination.kind === 'preset') {
+    const p = DESTINATION_PRESETS.find(p => p.key === destination.key);
+    if (!p) return destination.key;
+    return `${p.emoji} ${isFr ? p.fr : p.en}`;
+  }
+  const dest = (destinations || []).find(d => d.id === destination.id);
+  return `📍 ${dest?.label || (isFr ? 'Destination supprimée' : 'Deleted destination')}`;
+}
+
+function DestinationPicker({ room, item }) {
+  const { lang, state, updateItemDestination, addDestination, removeDestination } = useApp();
+  const [open, setOpen] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const isFr = lang === 'fr';
+  const destinations = state.destinations || [];
+
+  const choose = (destination) => {
+    updateItemDestination(room.id, item.itemId, destination);
+    setOpen(false);
+    setNewLabel('');
+  };
+
+  const submitNew = () => {
+    const created = addDestination(newLabel);
+    if (created) choose(created);
+    else setNewLabel('');
+  };
+
+  const btnStyle = (active) => ({
+    padding: '3px 9px', borderRadius: '12px', fontSize: '11px', cursor: 'pointer',
+    border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+    background: active ? 'var(--accent)' : 'var(--surface2)',
+    color: active ? 'white' : 'var(--text3)',
+    fontWeight: active ? '700' : '400',
+  });
+
+  return (
+    <div style={{ marginTop: '4px' }}>
+      <button onClick={() => setOpen(o => !o)} style={btnStyle(false)}>
+        {destinationLabel(item.destination, destinations, isFr)} {open ? '▲' : '▾'}
+      </button>
+      {open && (
+        <div style={{
+          marginTop: '6px', padding: '8px', borderRadius: '8px',
+          background: 'var(--surface2)', border: '1px solid var(--border)',
+        }}>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px' }}>
+            <button onClick={() => choose(null)} style={btnStyle(!item.destination)}>
+              {isFr ? '📍 Destination principale' : '📍 Main destination'}
+            </button>
+            {DESTINATION_PRESETS.map(p => (
+              <button
+                key={p.key}
+                onClick={() => choose({ kind: 'preset', key: p.key })}
+                style={btnStyle(item.destination?.kind === 'preset' && item.destination.key === p.key)}
+              >
+                {p.emoji} {isFr ? p.fr : p.en}
+              </button>
+            ))}
+          </div>
+
+          {destinations.length > 0 && (
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px', borderTop: '1px dashed var(--border)', paddingTop: '6px' }}>
+              {destinations.map(dest => (
+                <div key={dest.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                  <button
+                    onClick={() => choose({ kind: 'custom', id: dest.id })}
+                    style={btnStyle(item.destination?.kind === 'custom' && item.destination.id === dest.id)}
+                  >
+                    📍 {dest.label}
+                  </button>
+                  <button
+                    onClick={() => removeDestination(dest.id)}
+                    title={isFr ? 'Supprimer cette destination' : 'Delete this destination'}
+                    style={{
+                      border: 'none', background: 'transparent', color: 'var(--text3)',
+                      cursor: 'pointer', fontSize: '11px', padding: '2px 4px',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '4px', borderTop: '1px dashed var(--border)', paddingTop: '6px' }}>
+            <input
+              type="text"
+              value={newLabel}
+              onChange={e => setNewLabel(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && submitNew()}
+              placeholder={isFr ? '+ Nouvelle destination...' : '+ New destination...'}
+              style={{ flex: 1, padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg)' }}
+            />
+            <button
+              onClick={submitNew}
+              disabled={!newLabel.trim()}
+              style={{
+                padding: '4px 10px', fontSize: '11px', borderRadius: '6px', border: 'none',
+                background: newLabel.trim() ? 'var(--accent)' : 'var(--border)',
+                color: 'white', cursor: newLabel.trim() ? 'pointer' : 'default', fontWeight: '700',
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function InventoryList({ room }) {
-  const { t, lang, changeQty, updateItemVolume, updateItemCrate, updateItemTransportMode, updateItemComment, updateItemFlags } = useApp();
+  const { t, lang, changeQty, updateItemVolume, updateItemCrate, updateItemComment, updateItemFlags } = useApp();
   const [editingItemId, setEditingItemId] = useState(null);
   const [editVolume, setEditVolume] = useState('');
   const [crateEditId, setCrateEditId] = useState(null);
@@ -574,24 +682,8 @@ function InventoryList({ room }) {
               </div>
             )}
 
-            {/* Transport mode selector */}
-            <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
-              {TRANSPORT_MODES.map(m => (
-                <button
-                  key={String(m.val)}
-                  onClick={() => updateItemTransportMode(room.id, item.itemId, m.val)}
-                  style={{
-                    padding: '3px 9px', borderRadius: '12px', fontSize: '11px', cursor: 'pointer',
-                    border: `1px solid ${item.transportMode === m.val ? 'var(--accent)' : 'var(--border)'}`,
-                    background: item.transportMode === m.val ? 'var(--accent)' : 'var(--surface2)',
-                    color: item.transportMode === m.val ? 'white' : 'var(--text3)',
-                    fontWeight: item.transportMode === m.val ? '700' : '400',
-                  }}
-                >
-                  {isFr ? m.labelFr : m.labelEn}
-                </button>
-              ))}
-            </div>
+            {/* Destination */}
+            <DestinationPicker room={room} item={item} />
 
             {/* Bouton caisse — toujours visible */}
             <div style={{ marginTop: '6px' }}>

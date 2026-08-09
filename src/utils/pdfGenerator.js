@@ -1,6 +1,21 @@
 import { jsPDF } from 'jspdf';
 import { CATALOG } from '../data/catalog';
 import { TRANSLATIONS } from '../data/translations';
+import { DESTINATION_PRESETS } from '../data/destinationPresets';
+
+// Résout la destination d'un objet en gérant les deux formats :
+// - nouveau : item.destination (null | {kind:'preset',key} | {kind:'custom',id})
+// - legacy  : item.transportMode ('road'|'sea'|'air'|'storage'|null), pour les
+//   visites dont rooms_data n'a jamais été repassé par la migration de
+//   loadVisit (ex: PDF généré depuis HistoryPage, qui lit rooms_data brut
+//   directement depuis Supabase sans passer par AppContext).
+function resolveItemDestination(item) {
+  if (item.destination !== undefined) return item.destination;
+  if (['sea', 'air', 'storage'].includes(item.transportMode)) {
+    return { kind: 'preset', key: item.transportMode };
+  }
+  return null;
+}
 
 function getRoomDisplayName(room, lang) {
   if (!room) return '';
@@ -61,6 +76,7 @@ function getSegmentSolution(type, volume, isFr) {
     return isFr ? 'Groupage aerien' : 'Air groupage';
   }
   if (type === 'storage') return isFr ? 'Garde-meuble / box' : 'Storage / warehouse';
+  if (type === 'groupage') return isFr ? 'Groupage (mer ou air selon volume)' : 'Groupage (sea or air depending on volume)';
   if (type === 'road')    return isFr ? 'Route internationale' : 'International road';
   return isFr ? 'Route / National' : 'Road / National';
 }
@@ -356,17 +372,29 @@ export async function generateVisitPDF(visitState, profile, lang) {
   if (visitState.housingTypeDestination) row(isFr ? 'Type logement arrivee' : 'Destination housing type', t(visitState.housingTypeDestination));
   divider();
 
-  // ── Groupes transport ────────────────────────────────────────
-  const pdfModeGroups = {};
+  // ── Groupes destination ───────────────────────────────────────
+  const pdfDestGroups = {};
   (visitState.rooms || []).forEach(room => {
     (room.items || []).filter(i => i.qty > 0).forEach(item => {
-      const m = item.transportMode || 'none';
-      if (!pdfModeGroups[m]) pdfModeGroups[m] = [];
-      pdfModeGroups[m].push({ ...item, roomName: getRoomDisplayName(room, lang) });
+      const d = resolveItemDestination(item);
+      let groupKey, meta;
+      if (!d) {
+        groupKey = 'main';
+        meta = { kind: 'main' };
+      } else if (d.kind === 'preset') {
+        groupKey = `preset:${d.key}`;
+        meta = { kind: 'preset', key: d.key };
+      } else {
+        groupKey = `custom:${d.id}`;
+        const dest = (visitState.destinations || []).find(x => x.id === d.id);
+        meta = { kind: 'custom', id: d.id, label: dest?.label || (isFr ? 'Destination supprimee' : 'Deleted destination') };
+      }
+      if (!pdfDestGroups[groupKey]) pdfDestGroups[groupKey] = { ...meta, items: [] };
+      pdfDestGroups[groupKey].items.push({ ...item, roomName: getRoomDisplayName(room, lang) });
     });
   });
-  const pdfDefinedModes = ['road', 'sea', 'air', 'storage'].filter(m => pdfModeGroups[m]?.length > 0);
-  if (pdfDefinedModes.length >= 2) {
+  const hasDestSplit = Object.keys(pdfDestGroups).some(k => k !== 'main');
+  if (hasDestSplit) {
     sectionTitle(isFr ? 'Repartition du demenagement' : 'Move breakdown');
     row(t('moveType'), moveLabels[primaryMoveType] || '');
     divider();
@@ -408,134 +436,150 @@ export async function generateVisitPDF(visitState, profile, lang) {
     });
   }
 
-  if (pdfDefinedModes.length >= 2) {
-    // Bug connu : le mode "route" affichait toujours "Route / National" même
-    // pour un déménagement international par la route. On distingue maintenant
-    // selon le type de déménagement déclaré pour cette visite.
+  // ── Inventaire par pièce — toujours affiché ───────────────────
+  sectionTitle(isFr ? 'Inventaire par piece' : 'Inventory by room');
+  (visitState.rooms || []).forEach(room => {
+    checkY(12);
+    doc.setFillColor(...BLACK);
+    doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text(safe(`${getRoomDisplayName(room, lang)}  -  ${getRoomVolume(room).toFixed(2)} m3`), 16, y + 4.8);
+    y += 10;
+
+    const items = (room.items || []).filter(i => i.qty > 0);
+    if (items.length === 0) {
+      doc.setTextColor(...GRAY); doc.setFontSize(8); doc.setFont('helvetica', 'italic');
+      doc.text(t('noItems'), 20, y); y += 5;
+    } else {
+      items.forEach(item => {
+        checkY(6);
+        doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+        doc.text(safe(`  ${getItemName(item, lang)} - ${getVariantLabel(item, lang)}`), 16, y);
+        doc.setFont('helvetica', 'bold');
+        doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
+        const tags = [];
+        if (item.fragile) tags.push('Fragile');
+        if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
+        if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
+        if (item.possible_furniture_lift) tags.push(isFr ? 'Monte-meubles' : 'Lift required');
+        // Petit repère de destination dans la vue par pièce — la destination
+        // principale (majoritaire) n'est volontairement pas taguée ici pour
+        // ne pas alourdir la liste ; le détail complet est dans la section
+        // "Cubage par destination" plus bas si un vrai dispatch existe.
+        const dest = resolveItemDestination(item);
+        if (dest?.kind === 'preset') {
+          const p = DESTINATION_PRESETS.find(p => p.key === dest.key);
+          if (p) tags.push(p.emoji);
+        } else if (dest?.kind === 'custom') {
+          const destEntry = (visitState.destinations || []).find(x => x.id === dest.id);
+          tags.push(`📍${destEntry?.label || (isFr ? 'destination supprimee' : 'deleted destination')}`);
+        }
+        if (item.crate) tags.push(`${isFr ? 'Caisse' : 'Crate'} ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
+        if (tags.length) {
+          doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
+          doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
+          y += 9;
+        } else { y += 6; }
+        if (item.comment) {
+          checkY(4);
+          doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
+          doc.text(safe(`    > ${item.comment}`), 16, y); y += 4;
+        }
+      });
+    }
+
+    // Photos de la pièce (dataURL uniquement — absentes depuis l'historique)
+    const roomPhotos = (room.photos || []).filter(p => p.dataURL);
+    if (roomPhotos.length > 0) {
+      const displayPhotos = roomPhotos.slice(0, 4);
+      const PHOTO_W = 87, PHOTO_H = 65, PHOTO_GAP = 8, TEXT_H = 14;
+      const photoRows = Math.ceil(displayPhotos.length / 2);
+      checkY(12);
+      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+      doc.text(safe(isFr ? 'Photos :' : 'Photos:'), 18, y); y += 6;
+      for (let pr = 0; pr < photoRows; pr++) {
+        checkY(PHOTO_H + TEXT_H + 4);
+        const rowY = y;
+        for (let col = 0; col < 2; col++) {
+          const idx = pr * 2 + col;
+          if (idx >= displayPhotos.length) break;
+          const photo = displayPhotos[idx];
+          const x = 12 + col * (PHOTO_W + PHOTO_GAP);
+          try { doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H); } catch { /* skip */ }
+          doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+          doc.text(safe(photo.category || ''), x, rowY + PHOTO_H + 4);
+          if (photo.comment) {
+            doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
+            const lines = doc.splitTextToSize(safe(photo.comment), PHOTO_W);
+            doc.text(lines[0] || '', x, rowY + PHOTO_H + 9);
+          }
+        }
+        y = rowY + PHOTO_H + TEXT_H + 4;
+      }
+    }
+
+    // Cartons de cette pièce
+    const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
+    const roomBoxItems = (room.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId));
+    if (roomBoxItems.length > 0) {
+      checkY(5);
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+      doc.text(safe(isFr ? 'Cartons :' : 'Boxes:'), 18, y); y += 4.5;
+      roomBoxItems.forEach(item => {
+        checkY(4);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+        doc.text(safe(`  - ${item.qty} ${getItemName(item, lang)}`), 22, y); y += 4;
+      });
+    }
+    y += 3;
+  });
+  divider();
+
+  // ── Cubage par destination — uniquement si un vrai dispatch existe ────
+  if (hasDestSplit) {
+    sectionTitle(isFr ? 'Cubage par destination' : 'Volume by destination');
+    // Bug connu (préexistant) : "Terrestre" affichait toujours "Route /
+    // National" même pour un déménagement international par la route. On
+    // distingue selon le type de déménagement déclaré pour cette visite.
     const isRoadInternational = primaryMoveType !== 'local';
-    const modeHeaders = {
-      road:    isRoadInternational
-        ? (isFr ? 'ROUTIER INTERNATIONAL' : 'INTERNATIONAL ROAD')
-        : (isFr ? 'ROUTE / NATIONAL' : 'ROAD / NATIONAL'),
-      sea:     isFr ? 'MARITIME' : 'SEA',
-      air:     isFr ? 'AERIEN' : 'AIR',
-      storage: isFr ? 'STOCKAGE' : 'STORAGE',
-    };
-    pdfDefinedModes.forEach(mode => {
-      const modeItems = pdfModeGroups[mode] || [];
-      const modeVol = modeItems.reduce((s, i) => s + (i.volume_m3 || 0) * i.qty, 0);
-      // "road" a déjà son propre libellé (national/international) dans modeHeaders ;
-      // getSegmentSolution('road', ...) renverrait toujours "internationale", trompeur ici.
-      const containerReco = mode !== 'road' ? getSegmentSolution(mode, modeVol, isFr) : null;
-      const header = `${modeHeaders[mode]}${containerReco ? '  -  ' + containerReco : ''}  (${modeVol.toFixed(2)} m3)`;
+    const orderedDestKeys = [
+      ...(pdfDestGroups.main ? ['main'] : []),
+      ...DESTINATION_PRESETS.map(p => `preset:${p.key}`).filter(k => pdfDestGroups[k]),
+      ...Object.keys(pdfDestGroups).filter(k => k.startsWith('custom:')),
+    ];
+    orderedDestKeys.forEach(key => {
+      const group = pdfDestGroups[key];
+      const groupVol = group.items.reduce((s, i) => s + (i.volume_m3 || 0) * i.qty, 0);
+      let headerLabel;
+      let containerReco = null;
+      if (group.kind === 'main') {
+        headerLabel = isFr ? 'DESTINATION PRINCIPALE' : 'MAIN DESTINATION';
+      } else if (group.kind === 'preset') {
+        const p = DESTINATION_PRESETS.find(p => p.key === group.key);
+        if (group.key === 'road') {
+          headerLabel = isRoadInternational
+            ? (isFr ? 'TERRESTRE INTERNATIONAL' : 'INTERNATIONAL ROAD')
+            : (isFr ? 'TERRESTRE / NATIONAL' : 'ROAD / NATIONAL');
+        } else {
+          headerLabel = p ? (isFr ? p.fr.toUpperCase() : p.en.toUpperCase()) : group.key.toUpperCase();
+        }
+        // Une solution logistique suggérée n'a de sens que pour Maritime/Aérien.
+        if (group.key === 'sea' || group.key === 'air') containerReco = getSegmentSolution(group.key, groupVol, isFr);
+      } else {
+        headerLabel = safe(group.label).toUpperCase();
+      }
+      const header = `${headerLabel}${containerReco ? '  -  ' + containerReco : ''}  (${groupVol.toFixed(2)} m3)`;
       checkY(12);
       doc.setFillColor(...BLACK);
       doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
       doc.setTextColor(255, 255, 255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
       doc.text(safe(header), 16, y + 4.8);
       y += 10;
-      renderItemList(modeItems);
+      renderItemList(group.items);
       y += 3;
     });
-    if (pdfModeGroups['none']?.length > 0) {
-      checkY(12);
-      doc.setFillColor(...GRAY);
-      doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
-      doc.setTextColor(255, 255, 255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-      doc.text(safe(isFr ? 'MODE NON DEFINI' : 'UNDEFINED MODE'), 16, y + 4.8);
-      y += 10;
-      renderItemList(pdfModeGroups['none']);
-      y += 3;
-    }
-  } else {
-    sectionTitle(isFr ? 'Inventaire par piece' : 'Inventory by room');
-    (visitState.rooms || []).forEach(room => {
-      checkY(12);
-      doc.setFillColor(...BLACK);
-      doc.roundedRect(12, y, W - 24, 7, 1, 1, 'F');
-      doc.setTextColor(255, 255, 255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-      doc.text(safe(`${getRoomDisplayName(room, lang)}  -  ${getRoomVolume(room).toFixed(2)} m3`), 16, y + 4.8);
-      y += 10;
-
-      const items = (room.items || []).filter(i => i.qty > 0);
-      if (items.length === 0) {
-        doc.setTextColor(...GRAY); doc.setFontSize(8); doc.setFont('helvetica', 'italic');
-        doc.text(t('noItems'), 20, y); y += 5;
-      } else {
-        items.forEach(item => {
-          checkY(6);
-          doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-          doc.text(safe(`  ${getItemName(item, lang)} - ${getVariantLabel(item, lang)}`), 16, y);
-          doc.setFont('helvetica', 'bold');
-          doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
-          const tags = [];
-          if (item.fragile) tags.push('Fragile');
-          if (item.heavy) tags.push(isFr ? 'Lourd' : 'Heavy');
-          if (item.requires_disassembly) tags.push(isFr ? 'Demontage' : 'Disassembly');
-          if (item.possible_furniture_lift) tags.push(isFr ? 'Monte-meubles' : 'Lift required');
-          const modeIcons = { road: '🚛', sea: '🚢', air: '✈', storage: '📦' };
-          if (item.transportMode && modeIcons[item.transportMode]) tags.push(modeIcons[item.transportMode]);
-          if (item.crate) tags.push(`${isFr ? 'Caisse' : 'Crate'} ${item.crate.l}x${item.crate.w}x${item.crate.h}cm`);
-          if (tags.length) {
-            doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
-            doc.text(safe(`    [${tags.join(', ')}]`), 16, y + 4);
-            y += 9;
-          } else { y += 6; }
-          if (item.comment) {
-            checkY(4);
-            doc.setFont('helvetica', 'italic'); doc.setTextColor(...GRAY); doc.setFontSize(7);
-            doc.text(safe(`    > ${item.comment}`), 16, y); y += 4;
-          }
-        });
-      }
-
-      // Photos de la pièce (dataURL uniquement — absentes depuis l'historique)
-      const roomPhotos = (room.photos || []).filter(p => p.dataURL);
-      if (roomPhotos.length > 0) {
-        const displayPhotos = roomPhotos.slice(0, 4);
-        const PHOTO_W = 87, PHOTO_H = 65, PHOTO_GAP = 8, TEXT_H = 14;
-        const photoRows = Math.ceil(displayPhotos.length / 2);
-        checkY(12);
-        doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
-        doc.text(safe(isFr ? 'Photos :' : 'Photos:'), 18, y); y += 6;
-        for (let pr = 0; pr < photoRows; pr++) {
-          checkY(PHOTO_H + TEXT_H + 4);
-          const rowY = y;
-          for (let col = 0; col < 2; col++) {
-            const idx = pr * 2 + col;
-            if (idx >= displayPhotos.length) break;
-            const photo = displayPhotos[idx];
-            const x = 12 + col * (PHOTO_W + PHOTO_GAP);
-            try { doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H); } catch { /* skip */ }
-            doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
-            doc.text(safe(photo.category || ''), x, rowY + PHOTO_H + 4);
-            if (photo.comment) {
-              doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLACK);
-              const lines = doc.splitTextToSize(safe(photo.comment), PHOTO_W);
-              doc.text(lines[0] || '', x, rowY + PHOTO_H + 9);
-            }
-          }
-          y = rowY + PHOTO_H + TEXT_H + 4;
-        }
-      }
-
-      // Cartons de cette pièce
-      const boxCatIds = new Set(CATALOG.boxes.map(b => b.id));
-      const roomBoxItems = (room.items || []).filter(i => i.qty > 0 && boxCatIds.has(i.catalogId));
-      if (roomBoxItems.length > 0) {
-        checkY(5);
-        doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
-        doc.text(safe(isFr ? 'Cartons :' : 'Boxes:'), 18, y); y += 4.5;
-        roomBoxItems.forEach(item => {
-          checkY(4);
-          doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-          doc.text(safe(`  - ${item.qty} ${getItemName(item, lang)}`), 22, y); y += 4;
-        });
-      }
-      y += 3;
-    });
+    divider();
   }
-  divider();
 
   // ── Récap cartons ────────────────────────────────────────────
   {

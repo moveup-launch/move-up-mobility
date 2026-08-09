@@ -1,11 +1,12 @@
 import { useApp } from '../context/AppContext';
 import { CATALOG } from '../data/catalog';
+import { DESTINATION_PRESETS } from '../data/destinationPresets';
 
 export default function LiveVolumePanel() {
   const {
     lang, t,
     getTotalVolume, getSegmentSolution,
-    getRoomVolume, getRoomIcon, getItemsByTransportMode, state,
+    getRoomVolume, getRoomIcon, getItemsByDestination, state,
   } = useApp();
 
   const vol = getTotalVolume();
@@ -20,14 +21,32 @@ export default function LiveVolumePanel() {
     sum + (r.items || []).filter(i => i.fragile && i.qty > 0).reduce((s, i) => s + i.qty, 0), 0);
   const heavyCount = state.rooms.reduce((sum, r) =>
     sum + (r.items || []).filter(i => i.heavy && i.qty > 0).reduce((s, i) => s + i.qty, 0), 0);
-  const modeMap = getItemsByTransportMode();
-  const ORDERED_MODES = ['road', 'sea', 'air', 'storage'];
-  const definedModes = ORDERED_MODES.filter(m => modeMap[m]);
-  const modeInfo = {
-    road:    { fr: '🚛 Route',    en: '🚛 Road'    },
-    sea:     { fr: '🚢 Maritime', en: '🚢 Sea'     },
-    air:     { fr: '✈️ Aérien',  en: '✈️ Air'    },
-    storage: { fr: '📦 Stockage', en: '📦 Storage' },
+  const destGroups = getItemsByDestination();
+  // N'affiche le récap que s'il y a un vrai dispatch (au moins une
+  // destination autre que la principale) — sinon le panneau reste sobre.
+  const hasDestinationSplit = Object.keys(destGroups).some(k => k !== 'main');
+  const orderedDestKeys = hasDestinationSplit ? [
+    ...(destGroups.main ? ['main'] : []),
+    ...DESTINATION_PRESETS.map(p => `preset:${p.key}`).filter(k => destGroups[k]),
+    ...Object.keys(destGroups).filter(k => k.startsWith('custom:')),
+  ] : [];
+  const destLabel = (key) => {
+    const g = destGroups[key];
+    if (g.kind === 'main') return isFr ? '📍 Destination principale' : '📍 Main destination';
+    if (g.kind === 'preset') {
+      const p = DESTINATION_PRESETS.find(p => p.key === g.key);
+      return `${p.emoji} ${isFr ? p.fr : p.en}`;
+    }
+    return `📍 ${g.label}`;
+  };
+  // Une "solution logistique" suggérée n'a de sens que pour Maritime/Aérien
+  // (getSegmentSolution n'a pas de recommandation dédiée pour la destination
+  // principale, Stockage, Groupage ou une destination custom).
+  const destContainerReco = (key) => {
+    const g = destGroups[key];
+    return (g.kind === 'preset' && (g.key === 'sea' || g.key === 'air'))
+      ? getSegmentSolution(g.key, g.volume)
+      : null;
   };
 
   const Stat = ({ label, value, color }) => (
@@ -61,23 +80,22 @@ export default function LiveVolumePanel() {
         <Stat label={t('liveHeavy')} value={heavyCount} color={heavyCount > 0 ? 'var(--warn)' : undefined} />
       </div>
 
-      {/* Récap modes de transport — uniquement si modes assignés */}
-      {definedModes.length > 0 && (
+      {/* Récap par destination — uniquement si dispatch réel */}
+      {orderedDestKeys.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
           <div className="live-rooms-title" style={{ marginBottom: '6px' }}>
-            {isFr ? 'Modes de transport' : 'Transport modes'}
+            {isFr ? 'Destinations' : 'Destinations'}
           </div>
-          {definedModes.map(mode => {
-            const g = modeMap[mode];
-            const label = modeInfo[mode][isFr ? 'fr' : 'en'];
-            const containerReco = mode !== 'road' ? getSegmentSolution(mode, g.volume) : null;
+          {orderedDestKeys.map(key => {
+            const g = destGroups[key];
+            const containerReco = destContainerReco(key);
             return (
-              <div key={mode} style={{
+              <div key={key} style={{
                 fontSize: '12px', padding: '5px 8px', marginBottom: '4px',
                 background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)',
                 color: 'var(--accent)', fontWeight: '600',
               }}>
-                {label} — {g.volume.toFixed(2)} m³
+                {destLabel(key)} — {g.volume.toFixed(2)} m³
                 {containerReco && (
                   <span style={{ fontWeight: '400', opacity: 0.85 }}> ({containerReco})</span>
                 )}
