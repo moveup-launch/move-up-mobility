@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { generateVisitPDF } from '../utils/pdfGenerator';
 
-export default function Step6PDF() {
+export default function Step6PDF({ variant }) {
   const { t, lang, state, profile } = useApp();
   const [pdfSuccess, setPdfSuccess] = useState(false);
 
@@ -13,7 +13,11 @@ export default function Step6PDF() {
 
   return (
     <>
-      <button className="pdf-btn" onClick={handleGenerate}>
+      <button
+        className={variant === 'secondary' ? 'btn btn-secondary' : 'pdf-btn'}
+        style={variant === 'secondary' ? { width: '100%' } : undefined}
+        onClick={handleGenerate}
+      >
         📄 {t('generatePDF')}
       </button>
       {pdfSuccess && (

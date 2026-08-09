@@ -4,6 +4,7 @@ import { CATALOG, CRATE_ELIGIBLE_IDS, FREQUENT_ITEM_IDS, POPULAR_OVERRIDE_BY_ROO
 import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import { AddRoomSheet } from './Step3Rooms';
 import { CATALOG_ICON_BY_ID } from '../components/icons/FurnitureIcons';
+import SaveStatusBadge from '../components/SaveStatusBadge';
 
 // Bug terrain : sur mobile, un scroll rapide qui démarre sur un bouton de
 // sélection de pièce pouvait être interprété comme un tap ("clic fantôme
@@ -1200,6 +1201,7 @@ export default function Step4Inventory() {
           {lang === 'fr' ? 'Volume total estimé' : 'Total estimated volume'}<br />
           {lang === 'fr' ? 'Pièce :' : 'Room:'} <strong>{getRoomVolume(room).toFixed(2)} m³</strong>
         </div>
+        <SaveStatusBadge />
       </div>
 
       {/* Sélecteur de pièce + bouton ajouter pièce + menu contextuel */}

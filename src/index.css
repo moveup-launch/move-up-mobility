@@ -517,15 +517,6 @@ textarea { min-height: 80px; resize: vertical; }
 .save-visit-btn:active { transform: scale(0.98); }
 .save-visit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .save-visit-btn.error { background: var(--danger); }
-.save-success-banner {
-  background: var(--success-light); border: 1.5px solid #a8dfc0; border-radius: var(--radius);
-  padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
-  font-size: 14px; font-weight: 600; color: var(--success);
-}
-.save-history-link {
-  background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600;
-  cursor: pointer; font-family: var(--font); padding: 0; text-decoration: underline;
-}
 
 /* ── Dashboard ── */
 .dashboard { max-width: 720px; }

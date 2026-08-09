@@ -1115,6 +1115,7 @@ export function AppProvider({ children }) {
       householdPersons: cd.householdPersons || 0,
       transportOverride: cd.transportOverride || null,
       editingVisitId: visitData.id,
+      shareToken: visitData.share_token || null,
     });
     lastSavedVisitIdRef.current = visitData.id;
     setCurrentStepState(0);
@@ -1286,8 +1287,22 @@ export function AppProvider({ children }) {
       setTimeout(() => setSaveStatus(s => s === 'offline' ? 'idle' : s), 3000);
       return;
     }
-    const { error } = await supabase.from('visits').update(payload).eq('id', state.editingVisitId);
+    const { data, error } = await supabase
+      .from('visits').update(payload).eq('id', state.editingVisitId)
+      .select('share_token').single();
     if (!error) {
+      // Vérité toujours lue en base, jamais déduite de l'état local : un
+      // token déjà présent (posé par un save précédent, cette session ou
+      // une autre) n'est jamais régénéré, pour ne pas casser un lien de
+      // suivi déjà envoyé au client.
+      let token = data?.share_token;
+      if (!token) {
+        token = crypto.randomUUID();
+        await supabase.from('visits').update({ share_token: token }).eq('id', state.editingVisitId);
+      }
+      if (token && token !== state.shareToken) {
+        setState(s => ({ ...s, shareToken: token }));
+      }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus(s => s === 'saved' ? 'idle' : s), 3000);
     } else {

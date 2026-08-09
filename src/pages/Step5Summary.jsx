@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Package, Truck, Ship, Plane, Warehouse, Boxes, MapPin, Archive, ArrowRight, Smartphone, Mail, Link, Save, ClipboardList } from 'lucide-react';
+import { Package, Truck, Ship, Plane, Warehouse, Boxes, MapPin, Archive, Smartphone, Mail, Link, Save, ClipboardList } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { CATALOG } from '../data/catalog';
 import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import Step6PDF from './Step6PDF';
 import BoxMascot from '../components/BoxMascot';
+import SaveStatusBadge from '../components/SaveStatusBadge';
 
 const MOVE_TYPE_OPTIONS_FR = [
   { val: 'local', label: 'Local / National' },
@@ -122,7 +123,7 @@ export default function Step5Summary() {
     getAllFragile, getAllHeavy, getAllDisassembly, getAllCrateItems,
     getRoomVolume, getRoomIcon,
     getSegmentSolution, getItemsByDestination,
-    saveVisit, setViewMode, addMoveSegment, openNewQuote, clearJustFinishedInventory,
+    saveVisit, addMoveSegment, openNewQuote, clearJustFinishedInventory,
   } = useApp();
 
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -466,133 +467,123 @@ export default function Step5Summary() {
         );
       })()}
 
-      <div style={{ marginTop: 8, marginBottom: 8 }}>
-        {saveStatus === 'saved' ? (
-          <div>
-            <div className="save-success-banner">
-              <span>✅ {isEditing
-                ? (isFr ? 'Visite mise à jour !' : 'Visit updated!')
-                : (isFr ? 'Visite enregistrée !' : 'Visit saved!')
-              }</span>
-              <button className="save-history-link" onClick={() => setViewMode('history')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                {isFr ? "Voir l'historique" : 'View history'} <ArrowRight size={14} strokeWidth={2} />
-              </button>
+      <div style={{ marginTop: 8, marginBottom: 8, display: 'flex', justifyContent: 'flex-end' }}>
+        <SaveStatusBadge />
+      </div>
+
+      {/* Contact client — visible dès qu'un lien de suivi existe (autosave ou
+          save manuel, cette session ou une précédente), pas seulement juste
+          après un clic : la Synthèse est un écran de consultation. */}
+      {state.shareToken && (state.client.phone || state.client.email) && (
+        <div className="card" style={{ marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', fontSize: '12px', color: 'var(--text3)' }}>
+            <span>{isFr ? 'Langue du message :' : 'Message language:'}</span>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              {['fr', 'en'].map(lg => (
+                <button
+                  key={lg}
+                  onClick={() => setMsgLang(lg)}
+                  style={{
+                    padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
+                    cursor: 'pointer', border: '1px solid ' + (msgLang === lg ? 'var(--accent)' : 'var(--border)'),
+                    background: msgLang === lg ? 'var(--accent-light)' : 'var(--surface2)',
+                    color: msgLang === lg ? 'var(--accent)' : 'var(--text3)',
+                  }}
+                >
+                  {lg === 'fr' ? 'FR' : 'EN'}
+                </button>
+              ))}
             </div>
-            {/* Boutons contact client */}
-            {(state.client.phone || state.client.email) && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '12px', color: 'var(--text3)' }}>
-                  <span>{isFr ? 'Langue du message :' : 'Message language:'}</span>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {['fr', 'en'].map(lg => (
-                      <button
-                        key={lg}
-                        onClick={() => setMsgLang(lg)}
-                        style={{
-                          padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
-                          cursor: 'pointer', border: '1px solid ' + (msgLang === lg ? 'var(--accent)' : 'var(--border)'),
-                          background: msgLang === lg ? 'var(--accent-light)' : 'var(--surface2)',
-                          color: msgLang === lg ? 'var(--accent)' : 'var(--text3)',
-                        }}
-                      >
-                        {lg === 'fr' ? 'FR' : 'EN'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                {state.client.phone && (
-                  <button
-                    onClick={handleSendSMS}
-                    style={{
-                      flex: 1, padding: '11px 10px', borderRadius: '10px',
-                      border: '2px solid #16A34A', background: '#F0FDF4', color: '#16A34A',
-                      fontWeight: '700', fontSize: '13px', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    }}
-                  >
-                    <Smartphone size={16} strokeWidth={2} /> {isFr ? 'SMS client' : 'SMS client'}
-                  </button>
-                )}
-                {state.client.email && (
-                  <button
-                    onClick={handleSendEmail}
-                    style={{
-                      flex: 1, padding: '11px 10px', borderRadius: '10px',
-                      border: '2px solid var(--accent)', background: 'var(--accent-light)', color: 'var(--accent)',
-                      fontWeight: '700', fontSize: '13px', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    }}
-                  >
-                    <Mail size={16} strokeWidth={2} /> {isFr ? 'Email client' : 'Email client'}
-                  </button>
-                )}
-              </div>
-              </>
-            )}
-            {trackingUrl && (
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {state.client.phone && (
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(trackingUrl);
-                  setLinkCopied(true);
-                  setTimeout(() => setLinkCopied(false), 2000);
-                }}
+                onClick={handleSendSMS}
                 style={{
-                  width: '100%', marginTop: '8px', padding: '10px', borderRadius: '10px',
-                  border: '1.5px dashed var(--border)', background: 'var(--surface2)', color: 'var(--text2)',
-                  fontWeight: '600', fontSize: '12.5px', cursor: 'pointer',
+                  flex: 1, padding: '11px 10px', borderRadius: '10px',
+                  border: '2px solid #16A34A', background: '#F0FDF4', color: '#16A34A',
+                  fontWeight: '700', fontSize: '13px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                 }}
               >
-                {linkCopied
-                  ? '✅ ' + (isFr ? 'Lien copié !' : 'Link copied!')
-                  : <><Link size={14} strokeWidth={2} /> {isFr ? 'Copier le lien de suivi client' : "Copy client's tracking link"}</>}
+                <Smartphone size={16} strokeWidth={2} /> {isFr ? 'SMS client' : 'SMS client'}
+              </button>
+            )}
+            {state.client.email && (
+              <button
+                onClick={handleSendEmail}
+                style={{
+                  flex: 1, padding: '11px 10px', borderRadius: '10px',
+                  border: '2px solid var(--accent)', background: 'var(--accent-light)', color: 'var(--accent)',
+                  fontWeight: '700', fontSize: '13px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                }}
+              >
+                <Mail size={16} strokeWidth={2} /> {isFr ? 'Email client' : 'Email client'}
               </button>
             )}
           </div>
-        ) : (
+          {trackingUrl && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(trackingUrl);
+                setLinkCopied(true);
+                setTimeout(() => setLinkCopied(false), 2000);
+              }}
+              style={{
+                width: '100%', marginTop: '8px', padding: '10px', borderRadius: '10px',
+                border: '1.5px dashed var(--border)', background: 'var(--surface2)', color: 'var(--text2)',
+                fontWeight: '600', fontSize: '12.5px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              }}
+            >
+              {linkCopied
+                ? '✅ ' + (isFr ? 'Lien copié !' : 'Link copied!')
+                : <><Link size={14} strokeWidth={2} /> {isFr ? 'Copier le lien de suivi client' : "Copy client's tracking link"}</>}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Actions secondaires — généralement faites au bureau, pas l'action
+          principale de cet écran (la sauvegarde est déjà automatique). */}
+      <div style={{ marginTop: '16px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: '8px' }}>
+          {isFr ? 'Actions (généralement au bureau)' : 'Actions (usually at the office)'}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button
-            className={`save-visit-btn ${saveStatus === 'error' ? 'error' : ''}`}
+            className="btn btn-secondary"
+            style={{ width: '100%', ...(saveStatus === 'error' ? { borderColor: 'var(--danger)', color: 'var(--danger)' } : {}) }}
             onClick={handleSave}
             disabled={saveStatus === 'saving'}
           >
+            <Save size={16} strokeWidth={2} />
             {saveStatus === 'saving'
               ? (isFr ? 'Enregistrement…' : 'Saving…')
               : saveStatus === 'error'
                 ? (isFr ? 'Erreur — réessayer' : 'Error — retry')
-                : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <Save size={16} strokeWidth={2} />
-                    {isEditing
-                      ? (isFr ? 'Mettre à jour' : 'Update visit')
-                      : (isFr ? 'Enregistrer la visite' : 'Save visit')}
-                  </span>}
+                : (isFr ? 'Forcer une sauvegarde' : 'Force a save')}
           </button>
-        )}
-        <button
-          onClick={() => openNewQuote({
-            id: state.editingVisitId || null,
-            client_name: state.client.name || '',
-            client_email: state.client.email || '',
-            client_phone: state.client.phone || '',
-            client_data: state.client,
-            origin_data: state.origin,
-            destination_data: state.destination,
-            total_volume: vol,
-            rooms_data: state.rooms,
-          })}
-          style={{
-            width: '100%', marginTop: '8px', padding: '14px', borderRadius: '10px',
-            border: '2px solid #7C3AED', background: '#F5F3FF',
-            color: '#7C3AED', fontWeight: '700', fontSize: '14px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-          }}
-        >
-          <ClipboardList size={16} strokeWidth={2} /> {isFr ? 'Générer un devis' : 'Generate a quote'}
-        </button>
-      </div>
-
-      <div style={{ marginTop: '16px' }}>
-        <Step6PDF />
+          <button
+            className="btn btn-secondary"
+            style={{ width: '100%' }}
+            onClick={() => openNewQuote({
+              id: state.editingVisitId || null,
+              client_name: state.client.name || '',
+              client_email: state.client.email || '',
+              client_phone: state.client.phone || '',
+              client_data: state.client,
+              origin_data: state.origin,
+              destination_data: state.destination,
+              total_volume: vol,
+              rooms_data: state.rooms,
+            })}
+          >
+            <ClipboardList size={16} strokeWidth={2} /> {isFr ? 'Générer un devis' : 'Generate a quote'}
+          </button>
+          <Step6PDF variant="secondary" />
+        </div>
       </div>
     </>
   );
