@@ -166,6 +166,16 @@ export default function HistoryPage() {
     catch { return iso; }
   };
 
+  // Pour les timestamps complets (ex: created_at, timestamptz) — contrairement
+  // à formatDate, pas besoin du correctif T12:00:00 : l'instant est déjà
+  // complet avec fuseau, donc pas d'ambiguïté de jour à corriger.
+  const formatDateTime = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB');
+  };
+
   return (
     <>
       <div className="section-header">
@@ -312,7 +322,7 @@ export default function HistoryPage() {
                   )}
                   <div className="history-detail-row">
                     <span>{isFr ? 'Enregistré le' : 'Saved on'}</span>
-                    <span>{formatDate(v.created_at)}</span>
+                    <span>{formatDateTime(v.created_at)}</span>
                   </div>
 
                   {(v.total_volume || 0) > 0 && (
