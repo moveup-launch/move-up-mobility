@@ -81,18 +81,20 @@ function QuickAdjustSheet({ roomId, catKey, itemId }) {
                 {v.requires_disassembly && <span className="tag tag-disassembly">{isFr ? 'Demontage' : 'Disassembly'}</span>}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {qty > 0 && (
-                <span style={{ fontWeight: '700', fontSize: '16px', color: 'var(--accent)', minWidth: '20px', textAlign: 'center' }}>{qty}</span>
-              )}
-              {qty > 0 && (
-                <button
-                  style={minusBtnStyle}
-                  onClick={(e) => { e.stopPropagation(); changeQty(roomId, uid, -1); }}
-                >
-                  −
-                </button>
-              )}
+            {/* Badge + bouton "−" toujours montés (visibility, pas de mount
+                conditionnel) : la ligne garde exactement la même largeur/hauteur
+                avant et après un ajout, pour que le panneau (ancré en bas,
+                hauteur = contenu) ne se redécale jamais et qu'un clic rapide
+                sur une autre variante ne tombe pas au mauvais endroit. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', visibility: qty > 0 ? 'visible' : 'hidden' }}>
+              <span style={{ fontWeight: '700', fontSize: '16px', color: 'var(--accent)', minWidth: '20px', textAlign: 'center' }}>{qty}</span>
+              <button
+                style={minusBtnStyle}
+                onClick={(e) => { e.stopPropagation(); changeQty(roomId, uid, -1); }}
+                tabIndex={qty > 0 ? 0 : -1}
+              >
+                −
+              </button>
             </div>
           </div>
         );
