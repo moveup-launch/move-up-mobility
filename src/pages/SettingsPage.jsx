@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   CreditCard, User, Building2, Smartphone, MapPin, Mail, Globe, Receipt, Palette,
   FileText, Save, Wrench, Package, Ruler, Undo2, HelpCircle, BookOpen, ClipboardList,
-  Lock, ExternalLink, AlertTriangle, Trash2, X, Check, Settings, Image as ImageIcon,
+  Lock, ExternalLink, AlertTriangle, Trash2, X, Check, Settings, Image as ImageIcon, Search,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
@@ -724,26 +724,61 @@ function CustomCatalogSection() {
 }
 
 /* ─── Volumes par défaut ──────────────────────────────── */
+// 15 catégories du catalogue — libellés locaux car translations.js n'a pas
+// de clé pour garageBasement/babyEquip/common/exceptional/vehicles.
+const VOLUME_CATEGORIES = [
+  { key: 'bedroom',        fr: 'Chambre',              en: 'Bedroom' },
+  { key: 'livingRoom',     fr: 'Salon',                en: 'Living room' },
+  { key: 'kitchen',        fr: 'Cuisine',              en: 'Kitchen' },
+  { key: 'diningRoom',     fr: 'Salle à manger',       en: 'Dining room' },
+  { key: 'office',         fr: 'Bureau',               en: 'Office' },
+  { key: 'garden',         fr: 'Jardin / extérieur',   en: 'Garden / outdoor' },
+  { key: 'garageBasement', fr: 'Garage / Cave',        en: 'Garage / Basement' },
+  { key: 'laundry',        fr: 'Buanderie',            en: 'Laundry room' },
+  { key: 'bathroom',       fr: 'Salle de bain',        en: 'Bathroom' },
+  { key: 'babyEquip',      fr: 'Bébé',                 en: 'Baby' },
+  { key: 'common',         fr: 'Objets communs',       en: 'Common items' },
+  { key: 'exceptional',    fr: 'Objets exceptionnels', en: 'Special items' },
+  { key: 'boxes',          fr: 'Cartons',              en: 'Boxes' },
+  { key: 'entrance',       fr: 'Entrée',               en: 'Entryway' },
+  { key: 'vehicles',       fr: 'Véhicules',            en: 'Vehicles' },
+];
+
+const normalizeSearch = str => (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 function VolumeDefaultsSection() {
   const { t, lang, volumeOverrides, setVolumeOverride, resetVolumeOverride } = useApp();
   const isFr = lang === 'fr';
+  const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('all');
 
   const mainItems = [];
-  ['bedroom', 'livingRoom', 'kitchen'].forEach(cat => {
+  VOLUME_CATEGORIES.forEach(({ key: cat }) => {
     (CATALOG[cat] || []).forEach(item => {
       item.variants.forEach(v => {
         const uid = `${item.id}_${v.id}`;
+        const searchText = normalizeSearch([
+          item.name?.fr, item.name?.en, v.label?.fr, v.label?.en, ...(item.keywords || []),
+        ].filter(Boolean).join(' '));
         mainItems.push({
           uid,
+          catKey: cat,
           name: (isFr ? item.name?.fr : item.name?.en) || '',
           variant: (isFr ? v.label?.fr : v.label?.en) || '',
           icon: item.icon,
           defaultVol: v.volume_m3,
           overrideVol: volumeOverrides[uid],
+          searchText,
         });
       });
     });
   });
+
+  const query = normalizeSearch(search);
+  const visibleItems = mainItems.filter(item =>
+    (catFilter === 'all' || item.catKey === catFilter) &&
+    (!query || item.searchText.includes(query))
+  );
 
   return (
     <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Ruler size={14} strokeWidth={2} /> {t('settingsVolumeDefaults')}</span>}>
@@ -752,8 +787,43 @@ function VolumeDefaultsSection() {
           ? "Modifiez le volume par défaut des objets du catalogue. Utilisé quand vous ajoutez un objet à l'inventaire."
           : 'Override default volumes for catalog items. Applied when adding items to inventory.'}
       </div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ position: 'relative', flex: 1 }}>
+          <Search size={14} strokeWidth={2} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={isFr ? 'Rechercher un objet...' : 'Search an item...'}
+            style={{
+              width: '100%', padding: '8px 10px 8px 32px', fontSize: '13px',
+              borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)',
+              boxSizing: 'border-box',
+            }}
+          />
+        </div>
+        <select
+          value={catFilter}
+          onChange={e => setCatFilter(e.target.value)}
+          style={{
+            padding: '8px 10px', fontSize: '13px', borderRadius: '8px',
+            border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)',
+            flexShrink: 0, maxWidth: '150px',
+          }}
+        >
+          <option value="all">{isFr ? 'Toutes les catégories' : 'All categories'}</option>
+          {VOLUME_CATEGORIES.map(c => (
+            <option key={c.key} value={c.key}>{isFr ? c.fr : c.en}</option>
+          ))}
+        </select>
+      </div>
+      {visibleItems.length === 0 && (
+        <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', padding: '16px 0' }}>
+          {isFr ? 'Aucun objet ne correspond.' : 'No matching item.'}
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {mainItems.map(item => (
+        {visibleItems.map(item => (
           <div key={item.uid} style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             padding: '8px 10px', background: 'var(--surface2)', borderRadius: '6px',
