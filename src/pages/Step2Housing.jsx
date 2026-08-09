@@ -141,15 +141,7 @@ function AccessBlock({ prefix, label }) {
             <>
               <div className="field">
                 <label><span className="field-icon"><ArrowUpDown size={16} strokeWidth={2} /></span>{t('elevator')}</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {[{ val: 'yes', lbl: isFr ? 'Oui' : 'Yes' }, { val: 'no', lbl: isFr ? 'Non' : 'No' }].map(o => (
-                    <div key={o.val} className={`radio-option ${d.elevator === o.val ? 'selected' : ''}`}
-                      style={{ flex: 1, padding: '10px', justifyContent: 'center' }}
-                      onClick={() => update('elevator', o.val)}>
-                      <span className="radio-label">{o.lbl}</span>
-                    </div>
-                  ))}
-                </div>
+                <YesNoCheck value={d.elevator} onChange={v => update('elevator', v)} isFr={isFr} />
               </div>
               {d.elevator === 'yes' && (
                 <>

@@ -54,7 +54,7 @@ export function UpgradePlanModal({ lang, onClose, onUpgrade, reason = 'visit_lim
 const emptyAccess = {
   address: '', city: '', postalCode: '', floor: '',
   noFixedAddress: false,
-  elevator: 'no',
+  elevator: 'toCheck',
   elevatorUsable: 'toCheck',
   elevatorSize: 'toCheck',
   parkingAvailable: 'toCheck',
@@ -1046,6 +1046,10 @@ export function AppProvider({ children }) {
     const migrateAccess = (raw) => ({
       ...emptyAccess,
       ...raw,
+      // Une visite déjà enregistrée avec un vrai 'yes'/'no' garde sa valeur
+      // (raw?.elevator la fournit) ; seule une valeur absente ou vide (jamais
+      // enregistrée) retombe sur 'toCheck', jamais rétroactivement sur 'no'.
+      elevator: raw?.elevator || 'toCheck',
       elevatorUsable: raw?.elevatorUsable || 'toCheck',
       elevatorSize: raw?.elevatorSize || 'toCheck',
       parkingAvailable: raw?.parkingAvailable || 'toCheck',
