@@ -29,7 +29,19 @@ export default defineConfig({
         navigateFallback: 'index.html',
         runtimeCaching: [
           {
-            // Appels Supabase : NetworkFirst (5s timeout) puis cache
+            // Données Supabase (table REST — visites, photos, profils...) :
+            // jamais de cache. Avec NetworkFirst + repli sur cache 24h, une
+            // connexion terrain lente (>5s) faisait afficher un instantané
+            // périmé (ex: "aucune visite planifiée" alors que des visites
+            // existaient déjà en base). Le repli hors-ligne pour l'écriture
+            // est déjà géré côté app (moveup_pending_saves/moveup_offline_visits,
+            // indépendant du service worker) — pas besoin de ce cache-ci.
+            urlPattern: /^https:\/\/[^/]+\.supabase\.co\/rest\/v1\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            // Storage/Auth Supabase (photos signées, session) — comportement
+            // inchangé, non concerné par le bug ci-dessus.
             urlPattern: /^https:\/\/[^/]+\.supabase\.co\/.*/i,
             handler: 'NetworkFirst',
             options: {
