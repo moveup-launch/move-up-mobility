@@ -258,7 +258,8 @@ export default function AgendaPage() {
         style={{
           padding: '4px 8px', borderRadius: '8px', fontSize: '12px',
           border: `1px solid ${sc.color}`, background: sc.bg,
-          color: sc.color, fontWeight: '700', cursor: 'pointer', flexShrink: 0,
+          color: sc.color, fontWeight: '700', cursor: 'pointer',
+          flexShrink: 0, maxWidth: '130px', minWidth: 0,
         }}
       >
         {STATUS_OPTS.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}

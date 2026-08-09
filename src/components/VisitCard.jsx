@@ -185,7 +185,7 @@ export default function VisitCard({
             <span style={{ color: 'var(--accent)', fontWeight: '700' }}> — {timeStr}</span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <span style={{
             fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '12px',
             background: isVideo ? '#EDE9FE' : '#F0FDF4',
