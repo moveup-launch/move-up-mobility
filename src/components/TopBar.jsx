@@ -32,7 +32,7 @@ export default function TopBar() {
         )}
       </div>
       <div className="topbar-actions">
-        <div className="lang-toggle">
+        <div className="lang-toggle" title={isFr ? "Langue de l'application" : 'Application language'}>
           <button className={`lang-btn ${lang === 'fr' ? 'active' : ''}`} onClick={() => setLang('fr')}>FR</button>
           <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
         </div>

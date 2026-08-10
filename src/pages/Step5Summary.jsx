@@ -496,6 +496,11 @@ export default function Step5Summary() {
               ))}
             </div>
           </div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px' }}>
+            {isFr
+              ? 'Pour les SMS/emails ci-dessous uniquement — indépendant de la langue de l\'application'
+              : "For the SMS/emails below only — independent from the app's language"}
+          </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             {state.client.phone && (
               <button

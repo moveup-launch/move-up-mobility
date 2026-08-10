@@ -805,6 +805,11 @@ export default function QuotePage() {
             </button>
           ))}
         </div>
+        <span style={{ fontSize: '11px', color: 'var(--text3)', width: '100%' }}>
+          {isFr
+            ? "N'affecte que ce devis — indépendant de la langue de l'application"
+            : "Applies to this quote only — independent from the app's language"}
+        </span>
         <select
           value={status}
           onChange={e => setStatus(e.target.value)}

@@ -87,6 +87,11 @@ export default function Step1Client() {
               </div>
             ))}
           </div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
+            {isFr
+              ? 'Utilisée pour les SMS, emails et documents envoyés au client'
+              : 'Used for SMS, emails and documents sent to the client'}
+          </div>
         </div>
         <div className="field">
           <label><span className="field-icon"><Truck size={16} strokeWidth={2} /></span>{t('moveDate')}</label>
