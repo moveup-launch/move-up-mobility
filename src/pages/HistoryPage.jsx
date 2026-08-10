@@ -182,7 +182,9 @@ export default function HistoryPage() {
       <div className="section-header">
         <div className="section-title">{isFr ? 'Historique' : 'History'}</div>
         <div className="section-subtitle">
-          {isFr ? `${visits.length} visite${visits.length !== 1 ? 's' : ''}` : `${visits.length} visit${visits.length !== 1 ? 's' : ''}`}
+          {loading
+            ? (isFr ? 'Chargement…' : 'Loading…')
+            : (isFr ? `${visits.length} visite${visits.length !== 1 ? 's' : ''}` : `${visits.length} visit${visits.length !== 1 ? 's' : ''}`)}
         </div>
       </div>
 

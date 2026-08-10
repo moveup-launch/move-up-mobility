@@ -305,9 +305,11 @@ export default function AgendaPage() {
         <div>
           <div className="section-title">🗓️ {t('agenda')}</div>
           <div className="section-subtitle">
-            {isFr
-              ? `${allVisits.length} visite${allVisits.length !== 1 ? 's' : ''}`
-              : `${allVisits.length} visit${allVisits.length !== 1 ? 's' : ''}`}
+            {loading
+              ? (isFr ? 'Chargement…' : 'Loading…')
+              : (isFr
+                  ? `${allVisits.length} visite${allVisits.length !== 1 ? 's' : ''}`
+                  : `${allVisits.length} visit${allVisits.length !== 1 ? 's' : ''}`)}
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
@@ -361,7 +363,10 @@ export default function AgendaPage() {
           </div>
 
           {loading ? (
-            <div className="empty-state"><div className="empty-icon">⏳</div></div>
+            <div className="empty-state">
+              <div className="empty-icon">⏳</div>
+              <div className="empty-title">{isFr ? 'Chargement…' : 'Loading…'}</div>
+            </div>
           ) : filteredVisits.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📅</div>
