@@ -8,6 +8,15 @@ export default function ClientTrackingPage({ token }) {
   const [visit, setVisit] = useState(null);
   const [status, setStatus] = useState(token ? 'loading' : 'notfound');
 
+  // visit.visit_date vient d'une colonne DATE Postgres, donc toujours au format
+  // ISO (YYYY-MM-DD) brut — on le formate pour l'affichage client.
+  const formatVisitDate = (iso) => {
+    if (!iso) return iso;
+    const d = new Date(`${iso}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   useEffect(() => {
     if (!token) return;
     supabase
@@ -76,7 +85,7 @@ export default function ClientTrackingPage({ token }) {
               {visit.visit_date && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 14 }}>
                   <span style={{ color: '#6B6862' }}>{isFr ? 'Date de visite' : 'Visit date'}</span>
-                  <strong>{visit.visit_date}</strong>
+                  <strong>{formatVisitDate(visit.visit_date)}</strong>
                 </div>
               )}
               {visit.origin_city && (

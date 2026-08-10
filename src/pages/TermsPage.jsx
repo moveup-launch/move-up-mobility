@@ -54,7 +54,13 @@ export default function TermsPage() {
   const isFr = lang === 'fr';
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', maxWidth: '720px', margin: '0 auto', padding: '24px 20px 60px', color: '#1A1917' }}>
+    <div style={{
+      fontFamily: 'system-ui, -apple-system, sans-serif', maxWidth: '720px', margin: '0 auto',
+      padding: '24px 20px 60px', color: '#1A1917',
+      /* html/body/#root ont overflow:hidden pour l'app principale (mode "app native") —
+         cette page autonome (hors de #app) doit donc gérer son propre scroll. */
+      height: '100vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+    }}>
       <LegalHeader lang={lang} setLang={setLang} />
 
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6, letterSpacing: -0.5 }}>
