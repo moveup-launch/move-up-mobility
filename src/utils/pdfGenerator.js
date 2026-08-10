@@ -111,6 +111,19 @@ function getVariantLabel(item, lang) {
   return variant.label[lang] || variant.label.fr || variant.label.en || item.variantLabel;
 }
 
+// Beaucoup d'objets du catalogue n'ont qu'une seule variante, dont le libellé
+// reprend volontairement le nom de l'objet (ex: "Canapé 3 places" / "Canapé 3
+// places") -- dans ce cas afficher "nom - variante" duplique le texte dans le
+// PDF. On n'affiche la variante que si elle apporte une info differente.
+function getItemDisplayLabel(item, lang) {
+  const name = getItemName(item, lang);
+  const variant = getVariantLabel(item, lang);
+  if (!variant || variant.trim().toLowerCase() === String(name).trim().toLowerCase()) {
+    return safe(name);
+  }
+  return safe(`${name} - ${variant}`);
+}
+
 export async function generateVisitPDF(visitState, profile, lang) {
   const isFr = lang === 'fr';
   const t = (key) => TRANSLATIONS[lang]?.[key] || key;
@@ -421,7 +434,7 @@ export async function generateVisitPDF(visitState, profile, lang) {
     items.forEach(item => {
       checkY(6);
       doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-      doc.text(safe(`  ${getItemName(item, lang)} - ${getVariantLabel(item, lang)}`), 16, y);
+      doc.text(`  ${getItemDisplayLabel(item, lang)}`, 16, y);
       doc.setFont('helvetica', 'bold');
       doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
       const tags = [];
@@ -466,7 +479,7 @@ export async function generateVisitPDF(visitState, profile, lang) {
       items.forEach(item => {
         checkY(6);
         doc.setTextColor(...BLACK); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-        doc.text(safe(`  ${getItemName(item, lang)} - ${getVariantLabel(item, lang)}`), 16, y);
+        doc.text(`  ${getItemDisplayLabel(item, lang)}`, 16, y);
         doc.setFont('helvetica', 'bold');
         doc.text(safe(`x${item.qty}  ${(item.volume_m3 * item.qty).toFixed(3)} m3`), W - 16, y, { align: 'right' });
         const tags = [];
