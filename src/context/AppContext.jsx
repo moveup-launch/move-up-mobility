@@ -94,6 +94,12 @@ const initialState = {
   transportOverride: null,
   editingVisitId: null,
   justFinishedInventory: false,
+  // Autorise (une seule fois) le petit écran de célébration en fin
+  // d'inventaire. true pour une visite qui n'avait encore aucun objet
+  // saisi ; loadVisit le repasse à false si la visite rouverte avait déjà
+  // du contenu, pour ne pas rejouer la célébration en consultant/modifiant
+  // une visite déjà remplie (voir nextStep).
+  canCelebrateCompletion: true,
   shareToken: null,
 };
 
@@ -185,7 +191,11 @@ export function AppProvider({ children }) {
   };
   const nextStep = () => {
     setCurrentStepState(s => {
-      if (s === 2) setState(st => ({ ...st, justFinishedInventory: true }));
+      if (s === 2) setState(st => ({
+        ...st,
+        justFinishedInventory: st.canCelebrateCompletion,
+        canCelebrateCompletion: false, // one-shot : plus jamais dans cette session
+      }));
       return Math.min(3, s + 1);
     });
   };
@@ -1084,8 +1094,14 @@ export function AppProvider({ children }) {
       items: (r.items || []).map(migrateItemDestination),
     }));
 
+    // La célébration de fin d'inventaire ne doit se jouer que la toute
+    // première fois qu'une visite reçoit du contenu — pas à chaque fois
+    // qu'on rouvre une visite déjà remplie pour la consulter/modifier.
+    const hadExistingInventory = migratedRooms.some(r => (r.items || []).some(i => (i.qty || 0) > 0));
+
     setState({
       ...initialState,
+      canCelebrateCompletion: !hadExistingInventory,
       client: {
         name: cd.name || '',
         phone: cd.phone || '',
