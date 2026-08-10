@@ -1,4 +1,7 @@
 import { jsPDF } from 'jspdf';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { CATALOG } from '../data/catalog';
 import { TRANSLATIONS } from '../data/translations';
 import { DESTINATION_PRESETS } from '../data/destinationPresets';
@@ -642,5 +645,26 @@ export async function generateVisitPDF(visitState, profile, lang) {
 
   addFooters();
 
-  doc.save(safe(`MoveUp_${visitState.client?.name || "client"}_${visitState.client?.visitDate || "visite"}.pdf`));
+  const filename = safe(`MoveUp_${visitState.client?.name || "client"}_${visitState.client?.visitDate || "visite"}.pdf`);
+
+  // doc.save() declenche un telechargement navigateur (blob + <a download>), qui
+  // n'existe pas dans la WebView native (Capacitor) -- le PDF etait "genere" mais
+  // rien ne s'ouvrait jamais sur iOS/Android. Sur natif, on ecrit le fichier dans
+  // le cache de l'app puis on ouvre la feuille de partage native, qui permet de
+  // le previsualiser, l'enregistrer dans Fichiers, l'envoyer par mail, etc.
+  if (Capacitor.isNativePlatform()) {
+    const base64 = doc.output('datauristring').split(',')[1];
+    const { uri } = await Filesystem.writeFile({
+      path: filename,
+      data: base64,
+      directory: Directory.Cache,
+    });
+    await Share.share({
+      title: filename,
+      url: uri,
+      dialogTitle: isFr ? 'Partager le rapport PDF' : 'Share PDF report',
+    });
+  } else {
+    doc.save(filename);
+  }
 }
