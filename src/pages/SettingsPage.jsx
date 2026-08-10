@@ -143,6 +143,7 @@ function CompanySection() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [status, setStatus] = useState('idle');
+  const [saveError, setSaveError] = useState(null);
 
   // Sync form quand le profil charge de façon asynchrone
   useEffect(() => {
@@ -244,7 +245,22 @@ function CompanySection() {
 
   const handleSave = async () => {
     setStatus('saving');
-    const { error } = await saveProfile(form);
+    setSaveError(null);
+    // default_vat_rate est un champ numerique cote base, mais volontairement
+    // laissable vide dans le formulaire ("pas de TVA") -- une chaine vide ''
+    // fait echouer l'upsert Postgres (invalid input syntax for type numeric).
+    // On convertit donc '' en null avant l'envoi.
+    const payload = {
+      ...form,
+      default_vat_rate: form.default_vat_rate === '' || form.default_vat_rate === null
+        ? null
+        : Number(form.default_vat_rate),
+    };
+    const { error } = await saveProfile(payload);
+    if (error) {
+      console.error('Profile save error:', error);
+      setSaveError(error.message || String(error));
+    }
     setStatus(error ? 'error' : 'saved');
     setTimeout(() => setStatus('idle'), 3000);
   };
@@ -503,6 +519,11 @@ function CompanySection() {
           : status === 'error' ? '❌ Erreur'
           : <><Save size={16} strokeWidth={2} /> {isFr ? 'Sauvegarder' : 'Save'}</>}
       </button>
+      {status === 'error' && saveError && (
+        <div style={{ marginTop: '6px', fontSize: '12px', color: 'var(--danger)', fontWeight: '600' }}>
+          ❌ {saveError}
+        </div>
+      )}
     </Section>
   );
 }
