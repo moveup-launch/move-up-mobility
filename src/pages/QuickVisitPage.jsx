@@ -13,6 +13,15 @@ export default function QuickVisitPage() {
   const [errors, setErrors] = useState({});
   const [emailStatus, setEmailStatus] = useState('idle');
 
+  // d.visitDate vient d'un <input type="date"> natif (toujours ISO en interne) —
+  // on le formate pour l'affichage plutot que de montrer l'ISO brut.
+  const formatVisitDate = (iso) => {
+    if (!iso) return iso;
+    const dt = new Date(`${iso}T00:00:00`);
+    if (Number.isNaN(dt.getTime())) return iso;
+    return dt.toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   const validate = () => {
     const e = {};
     if (!d.name.trim()) e.name = isFr ? 'Obligatoire' : 'Required';
@@ -65,7 +74,7 @@ export default function QuickVisitPage() {
           </div>
           <div style={{ fontSize: '14px', color: 'var(--text3)' }}>
             {d.name}
-            {d.visitDate && <> · <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{d.visitDate}</span></>}
+            {d.visitDate && <> · <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{formatVisitDate(d.visitDate)}</span></>}
             {d.visitTime && <> · {d.visitTime}</>}
           </div>
         </div>

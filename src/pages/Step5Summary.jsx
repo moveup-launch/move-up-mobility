@@ -139,6 +139,17 @@ export default function Step5Summary() {
   const isEditing = !!state.editingVisitId;
   const segments = state.moveSegments || [];
 
+  // state.client.visitDate vient d'un <input type="date"> natif, donc toujours au
+  // format ISO (YYYY-MM-DD) en interne — on le formate ici plutot que d'afficher
+  // l'ISO brut. frLocale par defaut = langue interface, mais peut etre surchargee
+  // (ex: langue du client) pour les textes envoyes au client (SMS/email).
+  const formatVisitDate = (iso, frLocale = isFr) => {
+    if (!iso) return null;
+    const d = new Date(`${iso}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(frLocale ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   // Petit moment de satisfaction en fin de visite fraîchement complétée
   // (pas ré-affiché si on rouvre une visite existante pour la modifier).
   const [showCelebration, setShowCelebration] = useState(!!state.justFinishedInventory);
@@ -191,17 +202,18 @@ export default function Step5Summary() {
   const handleSendEmail = () => {
     const email = state.client.email;
     if (!email) return;
+    const visitDateStr = formatVisitDate(state.client.visitDate, msgFr);
     const subject = msgFr
-      ? `Récapitulatif visite déménagement — ${state.client.visitDate}`
-      : `Moving visit summary — ${state.client.visitDate}`;
+      ? `Récapitulatif visite déménagement — ${visitDateStr}`
+      : `Moving visit summary — ${visitDateStr}`;
     const origin = [state.origin.address, state.origin.postalCode, state.origin.city].filter(Boolean).join(', ');
     const dest = state.destination.noFixedAddress
       ? (msgFr ? state.destination.city || 'Destination à définir' : state.destination.city || 'Destination TBD')
       : [state.destination.address, state.destination.postalCode, state.destination.city].filter(Boolean).join(', ');
     const linkLine = trackingUrl ? (msgFr ? `\n\nSuivez votre dossier ici : ${trackingUrl}` : `\n\nTrack your file here: ${trackingUrl}`) : '';
     const body = msgFr
-      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${state.client.visitDate} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³${linkLine}\n\nCordialement,\n${state.client.surveyor || ''}`
-      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${state.client.visitDate} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³${linkLine}\n\nBest regards,\n${state.client.surveyor || ''}`;
+      ? `Bonjour ${state.client.name || ''},\n\nVotre visite de déménagement du ${visitDateStr} a bien été enregistrée.\n\nDépart : ${origin}\nArrivée : ${dest}\nVolume estimé : ${vol.toFixed(1)} m³${linkLine}\n\nCordialement,\n${state.client.surveyor || ''}`
+      : `Hello ${state.client.name || ''},\n\nYour moving visit of ${visitDateStr} has been recorded.\n\nOrigin: ${origin}\nDestination: ${dest}\nEstimated volume: ${vol.toFixed(1)} m³${linkLine}\n\nBest regards,\n${state.client.surveyor || ''}`;
     window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
@@ -235,7 +247,7 @@ export default function Step5Summary() {
         <div className="card-title">{isFr ? 'Récapitulatif' : 'Summary'}</div>
         <ul className="item-list-summary">
           <li><span>{t('clientName')}</span><strong>{state.client.name || '—'}</strong></li>
-          <li><span>{t('visitDate')}</span><strong>{state.client.visitDate || '—'}</strong></li>
+          <li><span>{t('visitDate')}</span><strong>{formatVisitDate(state.client.visitDate) || '—'}</strong></li>
           <li>
             <span>{t('origin')}</span>
             <strong style={{ fontSize: '12px', maxWidth: '55%', textAlign: 'right' }}>
