@@ -1,5 +1,95 @@
+import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Play, Pencil, FileText, Phone, ClipboardList, Trash2, MapPin, Home, Video, Mail, MessageSquare } from 'lucide-react';
+
+// Propose 1 à 3 créneaux au choix du client au lieu d'une seule date figée.
+// Si aucun créneau n'est saisi, on retombe sur le message "proposition
+// d'une date unique" déjà existant (defaultSmsBody / defaultEmailBody).
+// uiFr : langue de l'interface (Thomas, qui remplit la fenêtre) — distincte
+// de clientFr : langue du message envoyé (celle du client, comme partout
+// ailleurs dans ce fichier via msgFr).
+function ProposeSlotsModal({ uiFr, clientFr, phone, email, defaultSmsBody, defaultEmailBody, emailSubject, smsSignature, emailSignature, onClose }) {
+  const [slots, setSlots] = useState(['', '', '']);
+  const setSlot = (i, v) => setSlots(s => s.map((x, idx) => (idx === i ? v : x)));
+  const filled = slots.map(s => s.trim()).filter(Boolean);
+
+  const buildBody = (forEmail) => {
+    if (filled.length === 0) return forEmail ? defaultEmailBody : defaultSmsBody;
+    const list = filled.map((s, i) => `${i + 1}) ${s}`).join('\n');
+    const signature = forEmail ? emailSignature : smsSignature;
+    return clientFr
+      ? `Bonjour, voici plusieurs créneaux possibles pour votre visite de déménagement :\n\n${list}\n\nQuel créneau vous conviendrait le mieux ? N'hésitez pas à nous proposer une autre disponibilité si aucun ne vous convient.\n\n${signature}`
+      : `Hello, here are a few possible slots for your moving survey visit:\n\n${list}\n\nWhich one would suit you best? Feel free to suggest another time if none of these work.\n\n${signature}`;
+  };
+
+  const sendSMS = () => {
+    if (!phone) return;
+    window.open(`sms:${phone}?body=${encodeURIComponent(buildBody(false))}`);
+    onClose();
+  };
+  const sendEmail = () => {
+    if (!email) return;
+    window.open(`mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(buildBody(true))}`);
+    onClose();
+  };
+
+  const inputStyle = {
+    width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: 8,
+    borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, fontFamily: 'var(--font)',
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 4, color: 'var(--text)' }}>
+        {uiFr ? 'Proposer des créneaux' : 'Propose time slots'}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 14, lineHeight: 1.5 }}>
+        {uiFr
+          ? 'Laisse vide pour proposer simplement la date déjà prévue, ou indique 1 à 3 créneaux au choix du client.'
+          : 'Leave blank to just propose the currently scheduled date, or enter 1 to 3 slots for the client to choose from.'}
+      </div>
+      {slots.map((s, i) => (
+        <input
+          key={i}
+          value={s}
+          onChange={e => setSlot(i, e.target.value)}
+          placeholder={uiFr ? `Créneau ${i + 1} (ex: Lundi 14h)` : `Slot ${i + 1} (e.g. Monday 2pm)`}
+          style={inputStyle}
+        />
+      ))}
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <button
+          onClick={sendSMS}
+          disabled={!phone}
+          style={{
+            flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #FED7AA',
+            background: phone ? '#FFF7ED' : 'var(--surface2)', color: phone ? '#C2410C' : 'var(--text3)',
+            fontWeight: 700, fontSize: 13, cursor: phone ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {uiFr ? 'Envoyer par SMS →' : 'Send by SMS →'}
+        </button>
+        <button
+          onClick={sendEmail}
+          disabled={!email}
+          style={{
+            flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #BFDBFE',
+            background: email ? '#EFF6FF' : 'var(--surface2)', color: email ? '#1D4ED8' : 'var(--text3)',
+            fontWeight: 700, fontSize: 13, cursor: email ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {uiFr ? 'Envoyer par Email →' : 'Send by Email →'}
+        </button>
+      </div>
+      <button
+        onClick={onClose}
+        style={{ width: '100%', marginTop: 8, padding: '10px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: 13, cursor: 'pointer' }}
+      >
+        {uiFr ? 'Annuler' : 'Cancel'}
+      </button>
+    </div>
+  );
+}
 
 function getStatusInfo(status, isFr) {
   const map = {
@@ -41,7 +131,7 @@ export default function VisitCard({
   onDeleteCancel,
   statusSelector = null,
 }) {
-  const { lang, profile } = useApp();
+  const { lang, profile, openModal, closeModal } = useApp();
   const isFr = lang === 'fr';
   const v = visit;
 
@@ -91,7 +181,6 @@ export default function VisitCard({
   const proposeSmsBody = msgFr
     ? `Bonjour ${clientFirstName}, nous vous proposons de passer réaliser votre visite de déménagement le ${dateStrMsg}${timeStr ? ' à ' + timeStr : ''}. Cette date vous convient-elle ? N'hésitez pas à nous indiquer vos disponibilités si besoin.\n\n${smsSignature}`
     : `Hello ${clientFirstName}, we would like to propose ${dateStrMsg}${timeStr ? ' at ' + timeStr : ''} for your moving survey visit. Does this work for you? Let us know your availability if not.\n\n${smsSignature}`;
-  const proposeSmsHref = phone ? `sms:${phone}?body=${encodeURIComponent(proposeSmsBody)}` : '';
 
   const emailSignature = [
     commercialFullName,
@@ -116,9 +205,6 @@ export default function VisitCard({
   const proposeEmailBody = msgFr
     ? `Bonjour ${clientFirstName},\n\nNous vous proposons de passer réaliser votre visite de déménagement :\n\nDate proposée : ${dateStrMsg}\nHeure : ${timeStr || 'À définir'}\n\nCette date vous convient-elle ? N'hésitez pas à nous indiquer vos disponibilités si vous préférez un autre créneau.\n\n${emailSignature}`
     : `Hello ${clientFirstName},\n\nWe would like to propose the following for your moving survey visit:\n\nProposed date: ${dateStrMsg}\nTime: ${timeStr || 'To be defined'}\n\nDoes this work for you? Let us know your availability if you'd prefer another slot.\n\n${emailSignature}`;
-  const proposeMailtoHref = email
-    ? `mailto:${email}?subject=${encodeURIComponent(proposeEmailSubject)}&body=${encodeURIComponent(proposeEmailBody)}`
-    : '';
 
   const btn = {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -357,24 +443,34 @@ export default function VisitCard({
             {isFr ? '1. Proposer la date' : '1. Propose the date'}
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
-            {phone ? (
-              <a href={proposeSmsHref} style={{ ...btn, flex: 1, background: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA', textDecoration: 'none' }}>
-                <MessageSquare size={15} strokeWidth={2} style={{marginRight:5,verticalAlign:"middle",display:"inline"}} />SMS
-              </a>
-            ) : (
-              <button disabled style={{ ...btn, flex: 1, background: 'var(--surface2)', color: 'var(--text3)', border: '1px solid var(--border)', opacity: 0.4, cursor: 'not-allowed' }}>
-                <MessageSquare size={15} strokeWidth={2} style={{marginRight:5,verticalAlign:"middle",display:"inline"}} />SMS
-              </button>
-            )}
-            {email ? (
-              <a href={proposeMailtoHref} style={{ ...btn, flex: 1, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', textDecoration: 'none' }}>
-                <Mail size={15} strokeWidth={2} style={{marginRight:5,verticalAlign:"middle",display:"inline"}} />Email
-              </a>
-            ) : (
-              <button disabled style={{ ...btn, flex: 1, background: 'var(--surface2)', color: 'var(--text3)', border: '1px solid var(--border)', opacity: 0.4, cursor: 'not-allowed' }}>
-                <Mail size={15} strokeWidth={2} style={{marginRight:5,verticalAlign:"middle",display:"inline"}} />Email
-              </button>
-            )}
+            <button
+              disabled={!phone && !email}
+              onClick={() => openModal(
+                <ProposeSlotsModal
+                  uiFr={isFr}
+                  clientFr={msgFr}
+                  phone={phone}
+                  email={email}
+                  defaultSmsBody={proposeSmsBody}
+                  defaultEmailBody={proposeEmailBody}
+                  emailSubject={proposeEmailSubject}
+                  smsSignature={smsSignature}
+                  emailSignature={emailSignature}
+                  onClose={closeModal}
+                />
+              )}
+              style={{
+                ...btn, flex: 1,
+                background: (phone || email) ? '#FFF7ED' : 'var(--surface2)',
+                color: (phone || email) ? '#C2410C' : 'var(--text3)',
+                border: `1px solid ${(phone || email) ? '#FED7AA' : 'var(--border)'}`,
+                opacity: (phone || email) ? 1 : 0.4,
+                cursor: (phone || email) ? 'pointer' : 'not-allowed',
+              }}
+            >
+              <MessageSquare size={15} strokeWidth={2} style={{marginRight:5,verticalAlign:"middle",display:"inline"}} />
+              {isFr ? 'Proposer un créneau' : 'Propose a slot'}
+            </button>
           </div>
           <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text3)', marginTop: '8px', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
             {isFr ? '2. Confirmer le RDV' : '2. Confirm the appointment'}
