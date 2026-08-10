@@ -3,7 +3,7 @@ import { TRANSLATIONS } from '../data/translations';
 import { CATALOG } from '../data/catalog';
 import { DESTINATION_PRESETS } from '../data/destinationPresets';
 import { supabase } from '../lib/supabase';
-import { openProCheckout } from '../lib/stripe';
+import { openProCheckout, isNativeApp } from '../lib/stripe';
 
 const AppContext = createContext();
 
@@ -16,6 +16,7 @@ const PHOTO_SIGNED_URL_TTL = 86400; // 24h — bucket 'visit-photos' privé
 export function UpgradePlanModal({ lang, onClose, onUpgrade, reason = 'visit_limit' }) {
   const isFr = lang === 'fr';
   const isTrialReason = reason === 'trial_expired';
+  const native = isNativeApp();
   return (
     <div style={{ padding: '24px', textAlign: 'center' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
@@ -33,13 +34,24 @@ export function UpgradePlanModal({ lang, onClose, onUpgrade, reason = 'visit_lim
               ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées.`
               : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits.`)}
       </div>
-      <button
-        className="btn btn-primary"
-        style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
-        onClick={onUpgrade}
-      >
-        {isFr ? "S'abonner au Plan Pro à 19,99€/mois →" : 'Subscribe to Pro at 19.99€/month →'}
-      </button>
+      {native ? (
+        <div style={{
+          background: 'var(--surface2)', borderRadius: 10, padding: '14px 16px',
+          fontSize: 13, color: 'var(--text3)', marginBottom: 10, lineHeight: 1.5,
+        }}>
+          {isFr
+            ? 'Gérez votre abonnement Pro depuis moveupapp.com dans votre navigateur.'
+            : 'Manage your Pro subscription from moveupapp.com in your browser.'}
+        </div>
+      ) : (
+        <button
+          className="btn btn-primary"
+          style={{ width: '100%', padding: '14px', fontSize: 15, marginBottom: 10 }}
+          onClick={onUpgrade}
+        >
+          {isFr ? "S'abonner au Plan Pro à 19,99€/mois →" : 'Subscribe to Pro at 19.99€/month →'}
+        </button>
+      )}
       <button
         className="btn btn-secondary"
         style={{ width: '100%', padding: '12px', fontSize: 14 }}

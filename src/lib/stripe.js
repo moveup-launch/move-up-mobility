@@ -1,6 +1,22 @@
+import { Capacitor } from '@capacitor/core';
+
 export const PRO_PAYMENT_LINK = 'https://buy.stripe.com/aFadR970uaojcRPaz67kc00';
 
+// Apple (et Google) interdisent de vendre un abonnement numerique deblocable
+// dans l'app via un moyen de paiement externe (ici Stripe) sans passer par
+// leur propre systeme d'achat integre (App Store Review Guidelines 3.1.1).
+// Sur la version native (iOS/Android via Capacitor), on ne doit donc jamais
+// ouvrir Stripe depuis l'app -- seule la version web (moveupapp.com) peut.
+export function isNativeApp() {
+  try {
+    return Capacitor.isNativePlatform();
+  } catch {
+    return false;
+  }
+}
+
 export function openProCheckout(userEmail, userId) {
+  if (isNativeApp()) return; // sécurité : les boutons sont censés être masqués en amont sur natif
   const params = new URLSearchParams();
   if (userEmail) params.set('prefilled_email', userEmail);
   // client_reference_id : transmis à Stripe puis renvoyé dans le webhook
@@ -12,6 +28,7 @@ export function openProCheckout(userEmail, userId) {
 }
 
 export async function openBillingPortal(userId) {
+  if (isNativeApp()) return; // sécurité : les boutons sont censés être masqués en amont sur natif
   const isFr = typeof navigator === 'undefined' || navigator.language?.toLowerCase().startsWith('fr');
   const noCustomerMsg = isFr
     ? 'Aucun abonnement actif à gérer. Si vous venez de vous abonner, réessayez dans quelques instants.'

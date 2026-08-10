@@ -1,11 +1,12 @@
 import { useApp } from '../context/AppContext';
-import { openProCheckout, PRO_PAYMENT_LINK } from '../lib/stripe';
+import { openProCheckout, PRO_PAYMENT_LINK, isNativeApp } from '../lib/stripe';
 
 export default function PricingPage() {
   const { lang, user, profile, isOnTrial, isTrialExpired, getTrialDaysLeft } = useApp();
   const isFr = lang === 'fr';
   const currentPlan = profile?.plan || 'free';
   const ACCENT = '#2B6BE6';
+  const native = isNativeApp();
   const onTrial = isOnTrial();
   const trialExpired = isTrialExpired();
   const trialDays = getTrialDaysLeft();
@@ -117,19 +118,32 @@ export default function PricingPage() {
           <li>✓ {isFr ? 'Support email prioritaire' : 'Priority email support'}</li>
         </ul>
         {currentPlan !== 'pro' && (
-          <button
-            className="btn btn-primary"
-            style={{ width: '100%', padding: '14px', fontSize: 15 }}
-            onClick={() => openProCheckout(user?.email, user?.id)}
-            disabled={!PRO_PAYMENT_LINK}
-          >
-            {isFr ? 'S\'abonner au plan Pro →' : 'Subscribe to Pro →'}
-          </button>
+          native ? (
+            <div style={{
+              background: 'var(--surface2)', borderRadius: 10, padding: '12px 14px',
+              fontSize: 13, color: 'var(--text3)', textAlign: 'center', lineHeight: 1.5,
+            }}>
+              {isFr
+                ? 'Abonnement disponible sur moveupapp.com, dans votre navigateur.'
+                : 'Subscription available on moveupapp.com, in your browser.'}
+            </div>
+          ) : (
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '14px', fontSize: 15 }}
+              onClick={() => openProCheckout(user?.email, user?.id)}
+              disabled={!PRO_PAYMENT_LINK}
+            >
+              {isFr ? 'S\'abonner au plan Pro →' : 'Subscribe to Pro →'}
+            </button>
+          )
         )}
       </div>
 
       <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text3)', padding: '8px 0 24px' }}>
-        {isFr ? 'Paiement sécurisé via Stripe · Annulable à tout moment' : 'Secure payment via Stripe · Cancel anytime'}
+        {native
+          ? (isFr ? 'Gestion de l\'abonnement disponible sur moveupapp.com' : 'Subscription management available on moveupapp.com')
+          : (isFr ? 'Paiement sécurisé via Stripe · Annulable à tout moment' : 'Secure payment via Stripe · Cancel anytime')}
       </div>
     </>
   );

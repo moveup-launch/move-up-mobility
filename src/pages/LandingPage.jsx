@@ -1,7 +1,8 @@
-import { openProCheckout } from '../lib/stripe';
+import { openProCheckout, isNativeApp } from '../lib/stripe';
 
 export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading }) {
   const ACCENT = '#2B6BE6';
+  const native = isNativeApp();
 
   return (
     <div id="landing">
@@ -168,9 +169,15 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
                 <li>✓ Support email prioritaire</li>
                 <li style={{ color: 'rgba(255,255,255,0.4)' }}>✗ Multi-utilisateurs</li>
               </ul>
-              <button className="landing-plan-btn landing-plan-btn-white" onClick={() => openProCheckout()}>
-                S'abonner au plan Pro →
-              </button>
+              {native ? (
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 8 }}>
+                  Abonnement disponible sur moveupapp.com
+                </p>
+              ) : (
+                <button className="landing-plan-btn landing-plan-btn-white" onClick={() => openProCheckout()}>
+                  S'abonner au plan Pro →
+                </button>
+              )}
             </div>
           </div>
           <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
