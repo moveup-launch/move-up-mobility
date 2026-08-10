@@ -111,6 +111,15 @@ function getVariantLabel(item, lang) {
 export async function generateVisitPDF(visitState, profile, lang) {
   const isFr = lang === 'fr';
   const t = (key) => TRANSLATIONS[lang]?.[key] || key;
+  // Les champs date (visitDate, moveDate) viennent d'<input type="date"> natifs,
+  // donc toujours au format ISO (YYYY-MM-DD) en interne — on les formate selon la
+  // langue du rapport plutot que d'afficher l'ISO brut dans le PDF.
+  const formatDateStr = (iso) => {
+    if (!iso) return iso;
+    const d = new Date(`${iso}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(isFr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
 
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const W = 210;
@@ -348,9 +357,9 @@ export async function generateVisitPDF(visitState, profile, lang) {
   row(t('clientName'), visitState.client?.name);
   row(t('clientPhone'), visitState.client?.phone);
   row(t('clientEmail'), visitState.client?.email);
-  row(t('visitDate'), visitState.client?.visitDate);
+  row(t('visitDate'), formatDateStr(visitState.client?.visitDate));
   row(t('surveyor'), visitState.client?.surveyor);
-  row(t('moveDate'), visitState.client?.moveDate);
+  row(t('moveDate'), formatDateStr(visitState.client?.moveDate));
   if (visitState.client?.notes) row(t('notes'), visitState.client.notes);
   divider();
 
