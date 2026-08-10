@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FileText, Ship, Plane, Truck, Package, Building2, Link as LinkIcon, Pencil, Copy, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
@@ -9,7 +10,7 @@ const STATUS_MAP = {
   refused:  { labelFr: 'Refusé',    labelEn: 'Refused',  color: '#DC2626', bg: '#FEF2F2' },
 };
 
-const MODE_ICONS = { sea: '🚢', air: '✈️', road: '🚛', storage: '📦', local: '🏙️' };
+const MODE_ICONS = { sea: Ship, air: Plane, road: Truck, storage: Package, local: Building2 };
 
 export default function QuoteListPage() {
   const { lang, user, openEditQuote, openNewQuote, setViewMode, loadVisit, goToStep } = useApp();
@@ -88,7 +89,9 @@ export default function QuoteListPage() {
     <>
       <div className="section-header">
         <div>
-          <div className="section-title">📋 {isFr ? 'Devis' : 'Quotes'}</div>
+          <div className="section-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <FileText size={18} strokeWidth={2} /> {isFr ? 'Devis' : 'Quotes'}
+          </div>
           <div className="section-subtitle">{quotes.length} {isFr ? 'devis' : 'quote(s)'}</div>
         </div>
       </div>
@@ -148,7 +151,7 @@ export default function QuoteListPage() {
 
       {loading && (
         <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text3)' }}>
-          ⏳ {isFr ? 'Chargement…' : 'Loading…'}
+          {isFr ? 'Chargement…' : 'Loading…'}
         </div>
       )}
 
@@ -169,7 +172,7 @@ export default function QuoteListPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {filtered.map(q => {
           const s = STATUS_MAP[q.status] || STATUS_MAP.draft;
-          const modeIcon = MODE_ICONS[q.transport_mode] || '📦';
+          const ModeIcon = MODE_ICONS[q.transport_mode] || Package;
           const dateStr = q.created_at
             ? new Date(q.created_at).toLocaleDateString(isFr ? 'fr-FR' : 'en-GB')
             : '';
@@ -183,8 +186,8 @@ export default function QuoteListPage() {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <div style={{ fontWeight: '800', fontSize: '16px', color: 'var(--text)' }}>
-                  {modeIcon} {q.reference}
+                <div style={{ fontWeight: '800', fontSize: '16px', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <ModeIcon size={16} strokeWidth={2} /> {q.reference}
                 </div>
                 <select
                   value={q.status}
@@ -220,50 +223,53 @@ export default function QuoteListPage() {
                     textDecoration: 'underline', marginBottom: '6px',
                   }}
                 >
-                  🔗 {isFr ? 'Voir la visite associée' : 'View associated visit'}
+                  <LinkIcon size={12} strokeWidth={2} /> {isFr ? 'Voir la visite associée' : 'View associated visit'}
                 </button>
               )}
 
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <button
                   className="btn btn-primary"
-                  style={{ flex: 2, padding: '8px', fontSize: '12px', minWidth: '80px' }}
+                  style={{ flex: 2, padding: '8px', fontSize: '12px', minWidth: '80px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
                   onClick={() => openEditQuote(q.id)}
                 >
-                  ✏️ {isFr ? 'Modifier' : 'Edit'}
+                  <Pencil size={13} strokeWidth={2} /> {isFr ? 'Modifier' : 'Edit'}
                 </button>
                 <button
                   style={{
                     flex: 1, padding: '8px', borderRadius: '8px',
                     border: '1px solid var(--accent)', background: 'var(--accent-light)',
                     color: 'var(--accent)', fontSize: '12px', cursor: 'pointer', fontWeight: '600',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                   }}
                   onClick={() => openEditQuote(q.id)}
                   title={isFr ? 'Ouvrir pour générer le PDF' : 'Open to generate PDF'}
                 >
-                  📄 PDF
+                  <FileText size={13} strokeWidth={2} /> PDF
                 </button>
                 <button
                   style={{
                     flex: 1, padding: '8px', borderRadius: '8px',
                     border: '1px solid var(--border)', background: 'var(--surface2)',
                     color: 'var(--text2)', fontSize: '12px', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                   }}
                   onClick={() => handleDuplicate(q)}
                   disabled={duplicating === q.id}
                 >
-                  {duplicating === q.id ? '…' : `⎘ ${isFr ? 'Dupliquer' : 'Copy'}`}
+                  {duplicating === q.id ? '…' : <><Copy size={13} strokeWidth={2} /> {isFr ? 'Dupliquer' : 'Copy'}</>}
                 </button>
                 <button
                   style={{
                     flex: 1, padding: '8px', borderRadius: '8px',
                     border: '1px solid var(--danger)', background: 'var(--danger-light)',
                     color: 'var(--danger)', fontSize: '12px', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   }}
                   onClick={() => handleDelete(q.id)}
                   disabled={deleting === q.id}
                 >
-                  {deleting === q.id ? '…' : '🗑️'}
+                  {deleting === q.id ? '…' : <Trash2 size={13} strokeWidth={2} />}
                 </button>
               </div>
             </div>

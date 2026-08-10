@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CalendarDays, List } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import VisitCard from '../components/VisitCard';
@@ -303,7 +304,9 @@ export default function AgendaPage() {
     <div style={{ padding: '16px', maxWidth: '640px', margin: '0 auto' }}>
       <div className="section-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
         <div>
-          <div className="section-title">🗓️ {t('agenda')}</div>
+          <div className="section-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <CalendarDays size={18} strokeWidth={2} /> {t('agenda')}
+          </div>
           <div className="section-subtitle">
             {loading
               ? (isFr ? 'Chargement…' : 'Loading…')
@@ -316,9 +319,11 @@ export default function AgendaPage() {
           <button
             onClick={() => setViewMode(m => m === 'list' ? 'calendar' : 'list')}
             className="btn btn-secondary"
-            style={{ padding: '9px 14px', fontSize: '13px' }}
+            style={{ padding: '9px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            {viewMode === 'list' ? '🗓️ ' + (isFr ? 'Calendrier' : 'Calendar') : '📋 ' + (isFr ? 'Liste' : 'List')}
+            {viewMode === 'list'
+              ? <><CalendarDays size={15} strokeWidth={2} /> {isFr ? 'Calendrier' : 'Calendar'}</>
+              : <><List size={15} strokeWidth={2} /> {isFr ? 'Liste' : 'List'}</>}
           </button>
           <button
             onClick={() => setShowModal(true)}

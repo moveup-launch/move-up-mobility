@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Pencil, User, MapPin, Calendar, Phone, Home, Mail, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { sendConfirmationEmail } from '../lib/resend';
 
@@ -95,30 +96,31 @@ export default function QuickVisitPage() {
                 color: 'var(--accent)', fontWeight: '700', fontSize: '15px',
                 cursor: emailStatus === 'sending' ? 'default' : 'pointer',
                 opacity: emailStatus === 'sending' ? 0.7 : 1,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               }}
             >
               {emailStatus === 'sending'
                 ? (isFr ? '⏳ Envoi…' : '⏳ Sending…')
                 : emailStatus === 'error'
                   ? `❌ ${t('confirmEmailError')} — ${isFr ? 'réessayer' : 'retry'}`
-                  : `✉️ ${t('sendConfirmEmail')}`}
+                  : <><Mail size={16} strokeWidth={2} /> {t('sendConfirmEmail')}</>}
             </button>
           )}
         </div>
 
         <button
           className="btn btn-primary"
-          style={{ width: '100%', padding: '14px', fontSize: '15px', marginBottom: '8px' }}
+          style={{ width: '100%', padding: '14px', fontSize: '15px', marginBottom: '8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           onClick={() => setViewMode('agenda')}
         >
-          📅 {t('viewAgenda')}
+          <Calendar size={16} strokeWidth={2} /> {t('viewAgenda')}
         </button>
         <button
           className="btn btn-secondary"
-          style={{ width: '100%', padding: '12px', fontSize: '14px' }}
+          style={{ width: '100%', padding: '12px', fontSize: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           onClick={() => setViewMode('dashboard')}
         >
-          🏠 {isFr ? 'Tableau de bord' : 'Dashboard'}
+          <Home size={15} strokeWidth={2} /> {isFr ? 'Tableau de bord' : 'Dashboard'}
         </button>
       </div>
     );
@@ -127,7 +129,9 @@ export default function QuickVisitPage() {
   return (
     <>
       <div className="section-header">
-        <div className="section-title">✏️ {t('quickVisit')}</div>
+        <div className="section-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <Pencil size={18} strokeWidth={2} /> {t('quickVisit')}
+        </div>
         <div className="section-subtitle">
           {isFr ? 'Créez une visite en quelques secondes' : 'Create a visit in seconds'}
         </div>
@@ -135,7 +139,9 @@ export default function QuickVisitPage() {
 
       {/* Infos client */}
       <div className="card">
-        <div className="card-title">👤 {t('clientInfo')}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <User size={14} strokeWidth={2} /> {t('clientInfo')}
+        </div>
 
         <div className="field">
           <label>{t('clientName')} *</label>
@@ -164,8 +170,9 @@ export default function QuickVisitPage() {
                 padding: '10px 12px', borderRadius: '8px', background: '#F0FDF4',
                 color: '#16A34A', textDecoration: 'none', fontSize: '16px',
                 border: '1px solid #BBF7D0', flexShrink: 0,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                📞
+                <Phone size={16} strokeWidth={2} />
               </a>
             )}
           </div>
@@ -185,7 +192,9 @@ export default function QuickVisitPage() {
 
       {/* Adresse de départ */}
       <div className="card">
-        <div className="card-title">📍 {isFr ? "Adresse d'origine" : 'Origin address'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <MapPin size={14} strokeWidth={2} /> {isFr ? "Adresse d'origine" : 'Origin address'}
+        </div>
         <div className="field">
           <label>{isFr ? 'Adresse' : 'Address'}</label>
           <input
@@ -219,7 +228,9 @@ export default function QuickVisitPage() {
 
       {/* Date & heure */}
       <div className="card">
-        <div className="card-title">📅 {isFr ? 'Date & heure de la visite' : 'Visit date & time'}</div>
+        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Calendar size={14} strokeWidth={2} /> {isFr ? 'Date & heure de la visite' : 'Visit date & time'}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div className="field">
             <label>{t('visitDate')} *</label>
@@ -261,7 +272,9 @@ export default function QuickVisitPage() {
             ? (isFr ? '⏳ Création en cours…' : '⏳ Creating…')
             : status === 'error'
               ? (isFr ? '❌ Erreur — réessayer' : '❌ Error — retry')
-              : `✅ ${t('createVisit')}`}
+              : <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Check size={16} strokeWidth={2} /> {t('createVisit')}
+                </span>}
         </button>
       </div>
     </>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Shield, User, Building2, Calendar, ClipboardList } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 
@@ -53,7 +54,9 @@ export default function AdminPage() {
   return (
     <div style={{ padding: '20px 16px', maxWidth: 900, margin: '0 auto' }}>
       <div className="section-header">
-        <div className="section-title">🛡️ {isFr ? 'Administration' : 'Administration'}</div>
+        <div className="section-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <Shield size={18} strokeWidth={2} /> {isFr ? 'Administration' : 'Administration'}
+        </div>
         <div className="section-subtitle">
           {users.length} {isFr ? 'utilisateur(s)' : 'user(s)'}
         </div>
@@ -109,11 +112,21 @@ export default function AdminPage() {
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text3)', display: 'flex', gap: 10, flexWrap: 'wrap', lineHeight: 1.8 }}>
                     {(u.first_name || u.last_name) && (
-                      <span>👤 {[u.first_name, u.last_name].filter(Boolean).join(' ')}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <User size={12} strokeWidth={2} /> {[u.first_name, u.last_name].filter(Boolean).join(' ')}
+                      </span>
                     )}
-                    {u.company_name && <span>🏢 {u.company_name}</span>}
-                    <span>📅 {u.created_at ? new Date(u.created_at).toLocaleDateString(isFr ? 'fr-FR' : 'en-GB') : '—'}</span>
-                    <span>🗂️ {u.visit_count ?? 0} {isFr ? 'visite(s)' : 'visit(s)'}</span>
+                    {u.company_name && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Building2 size={12} strokeWidth={2} /> {u.company_name}
+                      </span>
+                    )}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Calendar size={12} strokeWidth={2} /> {u.created_at ? new Date(u.created_at).toLocaleDateString(isFr ? 'fr-FR' : 'en-GB') : '—'}
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <ClipboardList size={12} strokeWidth={2} /> {u.visit_count ?? 0} {isFr ? 'visite(s)' : 'visit(s)'}
+                    </span>
                   </div>
                 </div>
 
