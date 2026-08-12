@@ -239,8 +239,11 @@ export async function generateVisitPDF(visitState, profile, lang) {
   doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(150, 150, 150);
   doc.text(safe(isFr ? 'TRAJET DU DEMENAGEMENT' : 'MOVE ROUTE'), 18, cy);
   cy += 10;
-  const oCity = visitState.origin?.city || (isFr ? 'Depart' : 'Origin');
-  const dCity = visitState.destination?.city || (isFr ? 'Arrivee' : 'Destination');
+  // Fallback '-' plutot que de repeter le libelle ('Depart'/'Arrivee') quand la
+  // ville n'est pas renseignee -- cette repetition ressemblait a un texte non
+  // remplace plutot qu'a un etat "vide" assume.
+  const oCity = visitState.origin?.city || '-';
+  const dCity = visitState.destination?.city || '-';
   const oAddr = [visitState.origin?.address, visitState.origin?.postalCode].filter(Boolean).join(', ');
   const dAddr = visitState.destination?.noFixedAddress ? '' : [visitState.destination?.address, visitState.destination?.postalCode].filter(Boolean).join(', ');
   doc.setTextColor(...brandColor); doc.setFontSize(8); doc.setFont('helvetica', 'bold');
