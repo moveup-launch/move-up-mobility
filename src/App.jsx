@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { AppProvider, useApp } from './context/AppContext';
 import { useIsDesktop } from './hooks/useIsDesktop';
 import { supabase } from './lib/supabase';
@@ -202,6 +203,12 @@ function AppContent() {
     setDemoLoading(false);
   };
 
+  // Sur natif (iOS/Android), la page marketing (LandingPage) ne doit jamais
+  // s'afficher : c'est le rôle du site moveupapp.com. L'app native va
+  // directement à l'écran de connexion/inscription quand personne n'est
+  // connecté (pas de bouton "Retour" puisqu'il n'y a nulle part où revenir).
+  const isNative = Capacitor.isNativePlatform();
+
   let content;
   if (authLoading) {
     content = (
@@ -210,16 +217,24 @@ function AppContent() {
       </div>
     );
   } else if (!user) {
-    content = showDemoVisit
-      ? (
+    if (showDemoVisit) {
+      content = (
         <DemoVisitPage
           onClose={() => setShowDemoVisit(false)}
           onCreateAccount={() => { setShowDemoVisit(false); goSignUp(); }}
         />
-      )
-      : showAuth
-        ? <AuthPage initialMode={authMode} onBack={() => setShowAuth(false)} onSeeDemo={() => setShowDemoVisit(true)} />
-        : <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} onDemo={handleDemo} demoLoading={demoLoading} />;
+      );
+    } else if (isNative || showAuth) {
+      content = (
+        <AuthPage
+          initialMode={authMode}
+          onBack={isNative ? undefined : () => setShowAuth(false)}
+          onSeeDemo={() => setShowDemoVisit(true)}
+        />
+      );
+    } else {
+      content = <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} onDemo={handleDemo} demoLoading={demoLoading} />;
+    }
   } else {
     content = isDesktop ? <DesktopLayout /> : <MobileLayout />;
   }
