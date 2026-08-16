@@ -44,7 +44,7 @@ function Section({ title, children }) {
   );
 }
 
-const SUPPORT_EMAIL = 'thomas@eur-relocation.com';
+const SUPPORT_EMAIL = 'contact@moveupapp.com';
 
 export default function SupportPage() {
   const [lang, setLang] = useState(
