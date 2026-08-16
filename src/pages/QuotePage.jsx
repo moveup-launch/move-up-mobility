@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import {
   ChevronLeft, ClipboardList, Link, User, Map, Wallet, Star, CheckCircle2, XCircle,
   Receipt, StickyNote, Save, FileText, Mail, Paperclip, Ship, Plane, Truck, Package,
@@ -385,9 +388,17 @@ export default function QuotePage() {
     let y = 0;
 
     const BRAND = hexToRgb(profile?.company_color || '#2B6BE6');
-    const DARK  = [20, 20, 18];
+    const DARK  = [26, 25, 23];
     const GRAY  = [110, 108, 102];
     const LGRAY = [240, 238, 234];
+
+    // Teintes dérivées de la couleur de marque -- pour un rendu plus sobre/pro
+    // que des aplats de couleur vive partout : un fond tres clair + un liseré
+    // d'accent, plutôt qu'un bloc plein sur chaque titre de section.
+    const tint  = (col, amt) => col.map(c => Math.round(c + (255 - c) * amt));
+    const shade = (col, amt) => col.map(c => Math.round(c * (1 - amt)));
+    const BRAND_DARK = shade(BRAND, 0.22);
+    const BRAND_TINT = tint(BRAND, 0.92);
 
     let currentPage = 1;
     const addPage = () => { doc.addPage(); y = 20; currentPage++; };
@@ -396,11 +407,13 @@ export default function QuotePage() {
     const sectionBar = (title, color) => {
       checkY(12);
       const col = color || BRAND;
+      doc.setFillColor(...tint(col, 0.92));
+      doc.rect(MARGIN, y, CW, 8, 'F');
       doc.setFillColor(...col);
-      doc.roundedRect(MARGIN, y, CW, 8, 1.5, 1.5, 'F');
-      doc.setTextColor(255, 255, 255);
+      doc.rect(MARGIN, y, 1.3, 8, 'F');
+      doc.setTextColor(...DARK);
       doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
-      doc.text(safe(title), MARGIN + 4, y + 5.5);
+      doc.text(safe(title), MARGIN + 5, y + 5.5);
       y += 12;
     };
 
@@ -423,9 +436,13 @@ export default function QuotePage() {
       try { logoInfo = await loadImgAsDataUrl(profile.company_logo_url); } catch {}
     }
 
-    const headerH = 44;
-    doc.setFillColor(...BRAND);
+    const headerH = 42;
+    doc.setFillColor(...BRAND_DARK);
     doc.rect(0, 0, W, headerH, 'F');
+    // fin liseré couleur de marque au pied de l'en-tête, pour une séparation
+    // plus nette et un peu de couleur sans revenir a un aplat brut
+    doc.setFillColor(...BRAND);
+    doc.rect(0, headerH, W, 1.2, 'F');
 
     // Company info (left)
     let textX = MARGIN;
@@ -543,8 +560,8 @@ export default function QuotePage() {
       doc.text(safe(`${isFrPdf ? 'TVA' : 'VAT'} (${vatRateNum}%)`), MARGIN + 4, y + 4);
       doc.text(safe(`${vatAmount.toFixed(2)} ${qt.currency}`), W - MARGIN - 2, y + 4, { align: 'right' });
       y += 8;
-      doc.setFillColor(...BRAND);
-      doc.roundedRect(MARGIN, y, CW, 11, 1.5, 1.5, 'F');
+      doc.setFillColor(...BRAND_DARK);
+      doc.roundedRect(MARGIN, y, CW, 11, 1, 1, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(11); doc.setFont('helvetica', 'bold');
       doc.text(safe(isFrPdf ? 'TOTAL TTC' : 'TOTAL (incl. VAT)'), MARGIN + 4, y + 7.5);
@@ -554,8 +571,8 @@ export default function QuotePage() {
       // Total simple + mention d'exonération
       checkY(20);
       y += 2;
-      doc.setFillColor(...BRAND);
-      doc.roundedRect(MARGIN, y, CW, 11, 1.5, 1.5, 'F');
+      doc.setFillColor(...BRAND_DARK);
+      doc.roundedRect(MARGIN, y, CW, 11, 1, 1, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(11); doc.setFont('helvetica', 'bold');
       doc.text(safe(qt.total), MARGIN + 4, y + 7.5);
@@ -579,21 +596,28 @@ export default function QuotePage() {
       const leftX  = MARGIN;
       const rightX = MARGIN + halfW + 6;
 
-      // Headers
-      doc.setFillColor(...BRAND);
-      doc.roundedRect(leftX, y, halfW, 7.5, 1.5, 1.5, 'F');
-      doc.setFillColor(185, 50, 50);
-      doc.roundedRect(rightX, y, halfW, 7.5, 1.5, 1.5, 'F');
-      doc.setTextColor(255, 255, 255);
+      // Headers -- meme esprit que sectionBar : fond tres clair + liseré
+      // d'accent coloré, plutôt que deux blocs vert/rouge criards.
+      const GREEN = [0, 120, 60];
+      const RED   = [178, 48, 48];
+      doc.setFillColor(...tint(GREEN, 0.93));
+      doc.rect(leftX, y, halfW, 7.5, 'F');
+      doc.setFillColor(...GREEN);
+      doc.rect(leftX, y, 1.3, 7.5, 'F');
+      doc.setFillColor(...tint(RED, 0.93));
+      doc.rect(rightX, y, halfW, 7.5, 'F');
+      doc.setFillColor(...RED);
+      doc.rect(rightX, y, 1.3, 7.5, 'F');
+      doc.setTextColor(...DARK);
       doc.setFontSize(8); doc.setFont('helvetica', 'bold');
-      doc.text(safe(qt.included), leftX + 4, y + 5);
-      doc.text(safe(qt.exclusions), rightX + 4, y + 5);
+      doc.text(safe(qt.included), leftX + 5, y + 5);
+      doc.text(safe(qt.exclusions), rightX + 5, y + 5);
       y += 11;
 
       const rowH = 5.2;
       inclList.forEach((s, i) => {
         const ry = y + i * rowH;
-        doc.setDrawColor(0, 140, 60); doc.setLineWidth(0.55);
+        doc.setDrawColor(...GREEN); doc.setLineWidth(0.55);
         doc.line(leftX + 1.3, ry + 2.6, leftX + 2.3, ry + 3.6);
         doc.line(leftX + 2.3, ry + 3.6, leftX + 4.3, ry + 1.2);
         doc.setTextColor(...DARK);
@@ -604,7 +628,7 @@ export default function QuotePage() {
       exclList.forEach((e, i) => {
         const ry = y + i * rowH;
         doc.setFontSize(7.8); doc.setFont('helvetica', 'normal');
-        doc.setTextColor(185, 50, 50);
+        doc.setTextColor(...RED);
         doc.text('x', rightX + 2, ry + 4);
         doc.setTextColor(...DARK);
         const txt = doc.splitTextToSize(safe(e.label), halfW - 10);
@@ -691,7 +715,19 @@ export default function QuotePage() {
   const handlePDF = async () => {
     const doc = await buildPDF();
     const fname = safe(`Devis_${reference}_${clientName || 'client'}`).replace(/\s+/g, '_');
-    doc.save(`${fname}.pdf`);
+    const filename = `${fname}.pdf`;
+
+    // doc.save() repose sur un <a download> + blob URL, non supporte dans la
+    // WebView Capacitor sur natif -- meme fix que pour le rapport de visite
+    // (pdfGenerator.js) : ecriture via Filesystem puis partage natif.
+    if (Capacitor.isNativePlatform()) {
+      const isFr = quoteLang === 'fr';
+      const base64 = doc.output('datauristring').split(',')[1];
+      const { uri } = await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache });
+      await Share.share({ title: filename, url: uri, dialogTitle: isFr ? 'Partager le devis PDF' : 'Share PDF quote' });
+    } else {
+      doc.save(filename);
+    }
   };
 
   const handleSendEmail = () => {
