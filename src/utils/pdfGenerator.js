@@ -65,6 +65,30 @@ async function loadImageAsDataUrl(url) {
   return { dataUrl, w, h };
 }
 
+// Les photos de visite sont déjà redimensionnées à 1200px de large à la
+// capture (Step4Inventory.jsx) pour bien s'afficher/zoomer dans l'app — mais
+// c'est très supérieur à ce qu'il faut pour un visuel de 87×65mm dans le PDF.
+// jsPDF n'applique aucune recompression à l'embed : sur une visite avec
+// beaucoup de photos, ça peut faire grossir le PDF au point qu'il ne passe
+// plus en pièce jointe email (constaté : un rapport à ~33 Mo). On recompresse
+// donc chaque image une seule fois, à une résolution adaptée à l'impression
+// PDF, avant de l'insérer.
+async function resizeImageDataUrl(dataUrl, maxW, mime = 'image/jpeg', quality = 0.6) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let { width: w, height: h } = img;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL(mime, quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 function getSegmentSolution(type, volume, isFr) {
   const v = parseFloat(volume) || 0;
   if (type === 'sea' || type === 'international') {
@@ -179,7 +203,15 @@ export async function generateVisitPDF(visitState, profile, lang) {
 
   let coverLogo = null;
   if (profile?.company_logo_url) {
-    try { coverLogo = await loadImageAsDataUrl(profile.company_logo_url); } catch { /* skip */ }
+    try {
+      coverLogo = await loadImageAsDataUrl(profile.company_logo_url);
+      // Le logo n'est affiché qu'en tout petit (46mm max) sur la page de garde —
+      // pas la peine d'embarquer le fichier original si l'utilisateur a
+      // uploadé un logo haute résolution.
+      if (coverLogo.w > 400) {
+        coverLogo.dataUrl = await resizeImageDataUrl(coverLogo.dataUrl, 400, 'image/png');
+      }
+    } catch { /* skip */ }
   }
   if (coverLogo) {
     try {
@@ -187,6 +219,18 @@ export async function generateVisitPDF(visitState, profile, lang) {
       const lH = 14, lW = Math.min(lH * ratio, 46);
       doc.addImage(coverLogo.dataUrl, 'PNG', 18, 10, lW, lH);
     } catch { /* skip */ }
+  }
+
+  // Pré-compression de toutes les photos de la visite pour l'export PDF
+  // (une seule fois par photo, même si une image identique apparaissait
+  // plusieurs fois) — voir le commentaire sur resizeImageDataUrl plus haut.
+  const photoPdfCache = new Map();
+  for (const room of (visitState.rooms || [])) {
+    for (const photo of (room.photos || [])) {
+      if (photo.dataURL && !photoPdfCache.has(photo.dataURL)) {
+        photoPdfCache.set(photo.dataURL, await resizeImageDataUrl(photo.dataURL, 700, 'image/jpeg', 0.6));
+      }
+    }
   }
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10); doc.setFont('helvetica', 'bold');
@@ -533,7 +577,8 @@ export async function generateVisitPDF(visitState, profile, lang) {
           if (idx >= displayPhotos.length) break;
           const photo = displayPhotos[idx];
           const x = 12 + col * (PHOTO_W + PHOTO_GAP);
-          try { doc.addImage(photo.dataURL, 'JPEG', x, rowY, PHOTO_W, PHOTO_H); } catch { /* skip */ }
+          const embedSrc = photoPdfCache.get(photo.dataURL) || photo.dataURL;
+          try { doc.addImage(embedSrc, 'JPEG', x, rowY, PHOTO_W, PHOTO_H); } catch { /* skip */ }
           doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
           doc.text(safe(photo.category || ''), x, rowY + PHOTO_H + 4);
           if (photo.comment) {
