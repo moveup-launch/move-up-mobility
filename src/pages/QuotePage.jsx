@@ -169,6 +169,7 @@ export default function QuotePage() {
   // Quote fields
   const [quoteId, setQuoteId]           = useState(null);
   const [visitId, setVisitId]           = useState(null);
+  const [shareToken, setShareToken]     = useState(null);
   const [quoteLang, setQuoteLang]       = useState('en');
   const [reference, setReference]       = useState('');
   const [status, setStatus]             = useState('draft');
@@ -226,6 +227,12 @@ export default function QuotePage() {
         setQuoteLang(ql);
         setValidityDate(data.validity_date || '');
         setVisitId(data.visit_id);
+        // Le lien de suivi vit sur la visite, pas sur le devis -- il faut
+        // aller le rechercher separement quand on rouvre un devis existant.
+        if (data.visit_id) {
+          supabase.from('visits').select('share_token').eq('id', data.visit_id).single()
+            .then(({ data: v }) => setShareToken(v?.share_token || null));
+        }
         setClientName(data.client_name || '');
         setClientEmail(data.client_email || '');
         setClientPhone(data.client_phone || '');
@@ -260,6 +267,7 @@ export default function QuotePage() {
     const visit = quoteVisit;
     if (visit) {
       setVisitId(visit.id);
+      setShareToken(visit.share_token || null);
       setClientName(visit.client_name || '');
       setClientEmail(visit.client_email || visit.client_data?.email || '');
       setClientPhone(visit.client_phone || visit.client_data?.phone || '');
@@ -583,6 +591,19 @@ export default function QuotePage() {
         doc.text(safe(vatExemptionNote), MARGIN + 2, y + 2);
         y += 8;
       }
+    }
+
+    // ── Lien de suivi client ────────────────────────────────────────
+    // Meme lien que celui deja propose par SMS/email (Step5Summary.jsx) --
+    // ici sur le devis, il permet au client de suivre son dossier en ligne
+    // et fait au passage decouvrir l'app aux clients des demenageurs qui
+    // l'utilisent (levier d'acquisition).
+    if (shareToken) {
+      checkY(8);
+      const trackUrl = `${window.location.origin}/suivi/${shareToken}`;
+      doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BRAND);
+      doc.textWithLink(safe(isFrPdf ? 'Suivez votre dossier en ligne ->' : 'Track your file online ->'), W / 2, y + 4, { align: 'center', url: trackUrl });
+      y += 10;
     }
 
     // ── Services included + Exclusions (2 columns) ─────────────────

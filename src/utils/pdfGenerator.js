@@ -346,6 +346,16 @@ export async function generateVisitPDF(visitState, profile, lang) {
   doc.text(safe([profile?.company_name, profile?.company_email].filter(Boolean).join(' - ')), 18, 281);
   doc.text(safe(isFr ? 'Genere avec Move Up App' : 'Generated with Move Up App'), W - 18, 281, { align: 'right' });
 
+  // Lien de suivi client : reprend le meme lien que celui deja propose par
+  // SMS/email (Step5Summary.jsx) -- ici sur le PDF, il permet au client de
+  // suivre son dossier en ligne, et fait au passage decouvrir l'app aux
+  // clients des demenageurs qui l'utilisent (levier d'acquisition).
+  if (visitState.shareToken) {
+    const trackUrl = `${window.location.origin}/suivi/${visitState.shareToken}`;
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...brandColor);
+    doc.textWithLink(safe(isFr ? 'Suivez votre dossier en ligne ->' : 'Track your file online ->'), W / 2, 287, { align: 'center', url: trackUrl });
+  }
+
   doc.addPage();
   y = 20;
 
