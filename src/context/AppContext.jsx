@@ -26,13 +26,21 @@ export function UpgradePlanModal({ lang, onClose, onUpgrade, reason = 'visit_lim
           : (isFr ? 'Limite du plan gratuit atteinte' : 'Free plan limit reached')}
       </div>
       <div style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 24, lineHeight: 1.6 }}>
-        {isTrialReason
-          ? (isFr
-              ? "Vos 30 jours d'essai gratuit sont écoulés. Vos visites précédentes restent consultables (historique, PDF), mais il faut passer au Plan Pro à 19,99€/mois pour en créer de nouvelles."
-              : 'Your 30-day free trial is over. Your past visits stay available (history, PDF), but you need to upgrade to Pro at 19.99€/month to create new ones.')
-          : (isFr
-              ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées.`
-              : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits.`)}
+        {native
+          ? (isTrialReason
+              ? (isFr
+                  ? "Vos 30 jours d'essai gratuit sont écoulés. Vos visites précédentes restent consultables (historique, PDF). Contactez votre administrateur pour en créer de nouvelles."
+                  : 'Your 30-day free trial is over. Your past visits stay available (history, PDF). Contact your administrator to create new ones.')
+              : (isFr
+                  ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Contactez votre administrateur pour plus d'options.`
+                  : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Contact your administrator for more options.`))
+          : (isTrialReason
+              ? (isFr
+                  ? "Vos 30 jours d'essai gratuit sont écoulés. Vos visites précédentes restent consultables (historique, PDF), mais il faut passer au Plan Pro à 19,99€/mois pour en créer de nouvelles."
+                  : 'Your 30-day free trial is over. Your past visits stay available (history, PDF), but you need to upgrade to Pro at 19.99€/month to create new ones.')
+              : (isFr
+                  ? `Le plan gratuit est limité à ${FREE_VISIT_LIMIT} visites. Passez au Plan Pro à 19,99€/mois pour des visites illimitées.`
+                  : `The free plan is limited to ${FREE_VISIT_LIMIT} visits. Upgrade to Pro at 19.99€/month for unlimited visits.`))}
       </div>
       {native ? (
         <div style={{
@@ -40,8 +48,8 @@ export function UpgradePlanModal({ lang, onClose, onUpgrade, reason = 'visit_lim
           fontSize: 13, color: 'var(--text3)', marginBottom: 10, lineHeight: 1.5,
         }}>
           {isFr
-            ? 'Gérez votre abonnement Pro depuis moveupapp.com dans votre navigateur.'
-            : 'Manage your Pro subscription from moveupapp.com in your browser.'}
+            ? 'Gérez votre abonnement Pro depuis votre espace administrateur.'
+            : 'Manage your Pro subscription from your admin dashboard.'}
         </div>
       ) : (
         <button

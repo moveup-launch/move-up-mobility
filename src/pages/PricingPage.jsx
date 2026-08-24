@@ -124,8 +124,8 @@ export default function PricingPage() {
               fontSize: 13, color: 'var(--text3)', textAlign: 'center', lineHeight: 1.5,
             }}>
               {isFr
-                ? 'Abonnement disponible sur moveupapp.com, dans votre navigateur.'
-                : 'Subscription available on moveupapp.com, in your browser.'}
+                ? 'Contactez votre administrateur pour passer au plan Pro.'
+                : 'Contact your administrator to upgrade to Pro.'}
             </div>
           ) : (
             <button
@@ -142,7 +142,7 @@ export default function PricingPage() {
 
       <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text3)', padding: '8px 0 24px' }}>
         {native
-          ? (isFr ? 'Gestion de l\'abonnement disponible sur moveupapp.com' : 'Subscription management available on moveupapp.com')
+          ? (isFr ? 'Abonnement géré au niveau de votre entreprise' : 'Subscription managed at the company level')
           : (isFr ? 'Paiement sécurisé via Stripe · Annulable à tout moment' : 'Secure payment via Stripe · Cancel anytime')}
       </div>
     </>

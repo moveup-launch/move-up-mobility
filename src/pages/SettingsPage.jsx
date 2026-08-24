@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext';
 import DecimalInput from '../components/DecimalInput';
 import { supabase } from '../lib/supabase';
 import { CATALOG } from '../data/catalog';
-import { openProCheckout, openBillingPortal } from '../lib/stripe';
+import { openProCheckout, openBillingPortal, isNativeApp } from '../lib/stripe';
 import Onboarding from '../components/Onboarding';
 import Guide from '../components/Guide';
 
@@ -533,6 +533,7 @@ function SubscriptionSection() {
   const { lang, profile, user } = useApp();
   const isFr = lang === 'fr';
   const isPro = profile?.plan === 'pro';
+  const native = isNativeApp();
 
   return (
     <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><CreditCard size={14} strokeWidth={2} /> {isFr ? 'Abonnement' : 'Subscription'}</span>}>
@@ -560,6 +561,13 @@ function SubscriptionSection() {
           <CreditCard size={16} />
           {isFr ? 'Gérer mon abonnement' : 'Manage subscription'}
         </button>
+      ) : native ? (
+        <div style={{
+          padding: '12px 14px', borderRadius: '10px', background: 'var(--surface2)',
+          color: 'var(--text3)', fontSize: '13px', textAlign: 'center', lineHeight: 1.5,
+        }}>
+          {isFr ? 'Contactez votre administrateur pour passer au plan Pro.' : 'Contact your administrator to upgrade to Pro.'}
+        </div>
       ) : (
         <button
           onClick={() => openProCheckout(user?.email, user?.id)}

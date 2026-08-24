@@ -171,7 +171,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
               </ul>
               {native ? (
                 <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 8 }}>
-                  Abonnement disponible sur moveupapp.com
+                  Contactez votre administrateur pour en savoir plus
                 </p>
               ) : (
                 <button className="landing-plan-btn landing-plan-btn-white" onClick={() => openProCheckout()}>
