@@ -170,7 +170,7 @@ export default function VisitCard({
 
   // Bloc signature — avec ou sans entreprise
   const smsSignature = companyName
-    ? `${commercialFullName}${commercialFullName ? ' — ' : ''}${companyName}${companyPhone ? '\n' + companyPhone : ''}\nPowered by Move Up App`
+    ? `${commercialFullName}${commercialFullName ? ' — ' : ''}${companyName}${companyPhone ? '\n' + companyPhone : ''}`
     : (commercialFullName || 'Move Up App');
 
   const smsBody = msgFr
@@ -188,7 +188,6 @@ export default function VisitCard({
     companyPhone,
     companyEmail,
     companyWeb,
-    'Powered by Move Up App',
   ].filter(Boolean).join('\n');
 
   const emailSubject = msgFr
