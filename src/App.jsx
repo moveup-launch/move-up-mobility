@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import ErrorBoundary from './components/ErrorBoundary';
 import { AppProvider, useApp } from './context/AppContext';
 import { useIsDesktop } from './hooks/useIsDesktop';
-import { supabase } from './lib/supabase';
+import { supabase, supabaseConfigError } from './lib/supabase';
 import TopBar from './components/TopBar';
 import StepIndicator from './components/StepIndicator';
 import MobileNav from './components/MobileNav';
@@ -248,7 +249,14 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function AppRoutes() {
+  // Déclenché ici (pendant le rendu, sous l'ErrorBoundary) plutôt que dans
+  // supabase.js au chargement du module, sinon l'ErrorBoundary ne peut pas
+  // l'attraper et on retombe sur l'écran blanc qu'on essaie d'éviter.
+  if (supabaseConfigError) {
+    throw new Error(supabaseConfigError);
+  }
+
   const pathname = window.location.pathname;
   if (pathname === '/cgu') return <TermsPage />;
   if (pathname === '/confidentialite') return <PrivacyPage />;
@@ -262,5 +270,13 @@ export default function App() {
     <AppProvider>
       <AppContent />
     </AppProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppRoutes />
+    </ErrorBoundary>
   );
 }
