@@ -228,11 +228,11 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
               <span className="landing-kicker-label">POUR LES DÉMÉNAGEURS PROFESSIONNELS</span>
             </div>
             <h1 className="landing-h1">
-              Le volume, calculé <em>pendant</em> la visite.
+              Le <em>compagnon</em> du déménageur, de la visite au devis.
             </h1>
             <p className="landing-hero-sub">
-              Vous entrez chez le client, vous ajoutez les meubles pièce par pièce, et vous ressortez avec le
-              volume, le camion, l'équipe et le rapport. Sans tableur, sans ressaisie le soir.
+              Estimez le volume pendant la visite, organisez votre agenda, envoyez SMS et email en un clic,
+              générez devis et rapport PDF en quelques clics — sur téléphone, tablette ou ordinateur.
             </p>
             <div className="landing-hero-actions">
               <button className="landing-btn-primary landing-btn-lg" onClick={onSignUp}>Essayer gratuitement</button>
@@ -252,35 +252,29 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
             <div className="landing-hero-badge">
               <img src={appIcon} alt="Move Up App" />
             </div>
-            <VolumeDemo />
+            <div className="landing-devices-tag">MULTI-SUPPORT — MOBILE, TABLETTE, ORDINATEUR</div>
+            <div className="landing-devices-stage">
+              <div className="landing-device laptop">
+                <div className="landing-device-bezel landing-device-frame">
+                  <div className="landing-device-cam" />
+                  <div className="landing-device-screen"><img src={shotLogement} alt="Move Up App sur ordinateur" /></div>
+                </div>
+                <div className="landing-device-base" />
+              </div>
+              <div className="landing-device landing-device-frame tablet">
+                <div className="landing-device-cam" />
+                <div className="landing-device-screen"><img src={shotTablette} alt="Move Up App sur tablette" /></div>
+              </div>
+              <div className="landing-device landing-device-frame phone">
+                <div className="landing-device-cam" />
+                <div className="landing-device-screen"><img src={shotSynthese} alt="Move Up App sur mobile" /></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="landing-hero-devices">
-          <div className="landing-devices-head">
-            <div className="landing-eyebrow bronze">MULTI-SUPPORT</div>
-            <h2 className="landing-h2 center" style={{ marginBottom: 10 }}>Sur mobile, tablette et ordinateur.</h2>
-            <p className="landing-lead" style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
-              Vos visites vous suivent, quel que soit l'appareil utilisé sur le terrain ou au bureau.
-            </p>
-          </div>
-          <div className="landing-devices-stage">
-            <div className="landing-device laptop">
-              <div className="landing-device-bezel landing-device-frame">
-                <div className="landing-device-cam" />
-                <div className="landing-device-screen"><img src={shotTablette} alt="Move Up App sur ordinateur" /></div>
-              </div>
-              <div className="landing-device-base" />
-            </div>
-            <div className="landing-device landing-device-frame tablet">
-              <div className="landing-device-cam" />
-              <div className="landing-device-screen"><img src={shotLogement} alt="Move Up App sur tablette" /></div>
-            </div>
-            <div className="landing-device landing-device-frame phone">
-              <div className="landing-device-cam" />
-              <div className="landing-device-screen"><img src={shotSynthese} alt="Move Up App sur mobile" /></div>
-            </div>
-          </div>
+        <div className="landing-hero-demo-secondary">
+          <VolumeDemo />
         </div>
       </section>
 
@@ -316,6 +310,25 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
               </div>
               <p className="landing-step-desc">Volume total, camion et équipe recommandés, rapport PDF, lien de suivi client, devis chiffré. Avant même d'être remonté dans la voiture.</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Agenda, messages, devis ────────────────────── */}
+      <section className="landing-section">
+        <div className="landing-container landing-field-grid">
+          <div>
+            <div className="landing-eyebrow">AU-DELÀ DU VOLUME</div>
+            <h2 className="landing-h2" style={{ marginBottom: 22 }}>Un agenda à jour, un client prévenu, un devis prêt.</h2>
+            <p className="landing-lead">Move Up App ne s'arrête pas au calcul du volume : c'est aussi l'outil qui organise vos visites, prévient vos clients et transforme chaque visite terminée en devis chiffré.</p>
+            <div className="landing-field-list">
+              <div className="landing-field-item"><CheckIcon /><span>Agenda centralisé : toutes vos visites et relances au même endroit</span></div>
+              <div className="landing-field-item"><CheckIcon /><span>SMS et email en un tap, sans changer d'application</span></div>
+              <div className="landing-field-item"><CheckIcon /><span>Devis chiffré généré à la fin de la visite, prêt à envoyer</span></div>
+            </div>
+          </div>
+          <div className="landing-field-visual sidebar">
+            <img src={shotTablette} alt="Menu Agenda et Devis de Move Up App" />
           </div>
         </div>
       </section>
