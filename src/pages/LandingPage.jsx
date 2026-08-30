@@ -5,6 +5,7 @@ import shotLogement from '../assets/landing/screenshot-logement-acces.jpg';
 import shotInventaire from '../assets/landing/screenshot-inventaire.jpg';
 import shotSynthese from '../assets/landing/screenshot-synthese-devis.jpg';
 import shotTablette from '../assets/landing/screenshot-tablette-terrain.jpg';
+import appStoreMultiSupport from '../assets/landing/app-store-multisupport.jpg';
 
 // ── Catalogue de démo (hero) — un sous-ensemble réaliste par pièce ──
 const DEMO_ROOMS = [
@@ -228,7 +229,7 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
               <span className="landing-kicker-label">POUR LES DÉMÉNAGEURS PROFESSIONNELS</span>
             </div>
             <h1 className="landing-h1">
-              Le <em>compagnon</em> du déménageur, de la visite au devis.
+              Le <em>compagnon</em> du déménageur, du rendez-vous au devis.
             </h1>
             <p className="landing-hero-sub">
               Estimez le volume pendant la visite, organisez votre agenda, envoyez SMS et email en un clic,
@@ -252,29 +253,8 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
             <div className="landing-hero-badge">
               <img src={appIcon} alt="Move Up App" />
             </div>
-            <div className="landing-devices-tag">MULTI-SUPPORT — MOBILE, TABLETTE, ORDINATEUR</div>
-            <div className="landing-devices-stage">
-              <div className="landing-device laptop">
-                <div className="landing-device-bezel landing-device-frame">
-                  <div className="landing-device-cam" />
-                  <div className="landing-device-screen"><img src={shotLogement} alt="Move Up App sur ordinateur" /></div>
-                </div>
-                <div className="landing-device-base" />
-              </div>
-              <div className="landing-device landing-device-frame tablet">
-                <div className="landing-device-cam" />
-                <div className="landing-device-screen"><img src={shotTablette} alt="Move Up App sur tablette" /></div>
-              </div>
-              <div className="landing-device landing-device-frame phone">
-                <div className="landing-device-cam" />
-                <div className="landing-device-screen"><img src={shotSynthese} alt="Move Up App sur mobile" /></div>
-              </div>
-            </div>
+            <VolumeDemo />
           </div>
-        </div>
-
-        <div className="landing-hero-demo-secondary">
-          <VolumeDemo />
         </div>
       </section>
 
@@ -412,6 +392,15 @@ export default function LandingPage({ onSignIn, onSignUp, onDemo, demoLoading })
             <h2 className="landing-h2" style={{ marginBottom: 22 }}>Un rapport que vous n'avez pas honte d'envoyer.</h2>
             <p className="landing-lead">Inventaire complet, contraintes d'accès, photos, logistique recommandée, votre logo. Généré en un clic à la fin de la visite, dans la langue de votre client.</p>
             <button className="landing-btn-primary landing-btn-lg" onClick={onSignUp}>Générer mon premier rapport</button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Multi-support (visuel App Store) ──────────── */}
+      <section className="landing-section">
+        <div className="landing-container">
+          <div className="landing-appstore-visual">
+            <img src={appStoreMultiSupport} alt="Move Up App sur mobile, tablette et ordinateur" />
           </div>
         </div>
       </section>
