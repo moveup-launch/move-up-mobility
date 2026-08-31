@@ -974,6 +974,12 @@ export function AppProvider({ children }) {
 
   const saveVisit = async () => {
     if (!user) return { error: 'Not authenticated' };
+    // Compte démo partagé (mode démo natif) : on simule un enregistrement
+    // réussi sans jamais écrire dans la base — plusieurs visiteurs utilisent
+    // le même compte, une vraie écriture polluerait les données des autres.
+    if (user.email === 'demo@moveupapp.com') {
+      return { data: { id: state.editingVisitId || 'demo' }, error: null };
+    }
     if (!navigator.onLine) {
       // Sauvegarde locale en attente de reconnexion
       const vol = getTotalVolume();
@@ -1259,6 +1265,8 @@ export function AppProvider({ children }) {
   };
 
   const uploadPhotos = async (visitId, roomsSnapshot) => {
+    // Compte démo partagé : jamais d'upload réel (cf. saveVisit ci-dessus).
+    if (user?.email === 'demo@moveupapp.com') return;
     const rooms = roomsSnapshot || state.rooms;
     for (const room of rooms) {
       const pending = (room.photos || []).filter(p => p.uploadStatus === 'pending' && p.dataURL);
@@ -1291,6 +1299,8 @@ export function AppProvider({ children }) {
   const performAutoSave = useRef(null);
   performAutoSave.current = async () => {
     if (!state.editingVisitId || viewMode !== 'wizard') return;
+    // Compte démo partagé : jamais d'écriture auto (cf. saveVisit ci-dessus).
+    if (user?.email === 'demo@moveupapp.com') return;
     const vol = getTotalVolume();
     const payload = {
       total_volume: vol,

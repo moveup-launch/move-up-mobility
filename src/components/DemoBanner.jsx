@@ -1,6 +1,8 @@
 import { useApp } from '../context/AppContext';
+import { isNativeApp, openExternalUrl } from '../lib/platform';
 
 const DEMO_EMAIL = 'demo@moveupapp.com';
+const SIGNUP_URL = 'https://moveupapp.com';
 
 export default function DemoBanner() {
   const { user, signOut } = useApp();
@@ -8,6 +10,12 @@ export default function DemoBanner() {
   if (user?.email !== DEMO_EMAIL) return null;
 
   const handleCreateAccount = async () => {
+    // Natif : pas d'inscription in-app (App Store 3.1.1) — direction le site,
+    // dans le navigateur externe, sans déconnecter la session démo en cours.
+    if (isNativeApp()) {
+      await openExternalUrl(SIGNUP_URL);
+      return;
+    }
     sessionStorage.setItem('moveup_after_signout', 'signup');
     await signOut();
   };

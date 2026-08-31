@@ -40,6 +40,33 @@ export default function NewVisitModal({ onClose, onCreated }) {
     setSaving(true);
     setSaveError(null);
 
+    // ── Compte démo partagé (mode démo natif) ──────────────────
+    // Le client Supabase bloque déjà l'écriture réelle (lib/supabase.js),
+    // mais elle renverrait data:{} — une carte de visite vide dans le
+    // tableau de bord. On construit ici une fausse visite locale, avec
+    // les valeurs réellement saisies, pour une démo cohérente.
+    if (user.email === 'demo@moveupapp.com') {
+      onCreated({
+        id: `demo_${Date.now()}`,
+        user_id: user.id,
+        client_name: form.name.trim() || null,
+        client_phone: form.phone.trim() || null,
+        client_email: form.email.trim() || null,
+        visit_date: form.visitDate || null,
+        visit_time: form.visitTime || null,
+        visit_status: 'prevue',
+        visit_type: form.visitType || 'physical',
+        video_link: form.visitType === 'video' ? (form.videoLink.trim() || null) : null,
+        agenda_notes: form.notes.trim() || null,
+        origin_data: { address: form.address.trim(), city: form.city.trim(), postalCode: form.postalCode.trim() },
+        client_data: {
+          name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim(),
+          visitDate: form.visitDate, visitTime: form.visitTime, agendaNotes: form.notes.trim(),
+        },
+      });
+      return;
+    }
+
     // ── Sauvegarde hors-ligne ─────────────────────────────────
     if (!navigator.onLine) {
       const visitData = {

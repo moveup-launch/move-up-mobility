@@ -1,11 +1,18 @@
 import { useState } from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
+import { isNativeApp, openExternalUrl } from '../lib/platform';
 
-export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
+const SIGNUP_URL = 'https://moveupapp.com';
+
+export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo, onDemo, demoLoading }) {
   const { lang } = useApp();
-  const [mode, setMode] = useState(initialMode);
+  const native = isNativeApp();
+  // Sur natif, l'inscription se fait exclusivement sur moveupapp.com (App
+  // Store 3.1.1) : l'onglet/formulaire "Inscription" n'existe pas ici, donc
+  // le mode ne doit jamais pouvoir valoir 'signup' quel que soit initialMode.
+  const [mode, setMode] = useState(native ? 'login' : initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -63,7 +70,10 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
     setLoading(false);
   };
 
-  const switchMode = (m) => { setMode(m); setError(''); setSuccess(''); setTermsAccepted(false); };
+  const switchMode = (m) => {
+    if (native && m === 'signup') return; // pas d'inscription dans l'app native
+    setMode(m); setError(''); setSuccess(''); setTermsAccepted(false);
+  };
 
   return (
     <div className="auth-page">
@@ -84,7 +94,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
           {isFr ? 'Estimation de déménagement' : 'Moving Volume Estimator'}
         </div>
 
-        {mode !== 'forgot' && (
+        {mode !== 'forgot' && !native && (
           <div className="auth-tabs">
             <button className={`auth-tab ${mode === 'login' ? 'active' : ''}`} onClick={() => switchMode('login')}>
               {isFr ? 'Connexion' : 'Login'}
@@ -235,7 +245,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
         </form>
         )}
 
-        {onSeeDemo && mode !== 'forgot' && (
+        {!native && onSeeDemo && mode !== 'forgot' && (
           <button
             type="button"
             onClick={onSeeDemo}
@@ -249,6 +259,44 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
             <Eye size={13} strokeWidth={2} />
             {isFr ? "Découvrir une visite d'exemple" : 'See an example visit'}
           </button>
+        )}
+
+        {/* Natif uniquement : pas d'inscription dans l'app (App Store 3.1.1)
+            — un compte se crée exclusivement sur moveupapp.com, dans le
+            navigateur externe. Le mode démo réutilise le compte démo partagé
+            déjà utilisé par la landing page web (onDemo/demoLoading) pour
+            explorer l'app réelle sans créer de compte personnel. */}
+        {native && mode !== 'forgot' && (
+          <>
+            {onDemo && (
+              <button
+                type="button"
+                onClick={onDemo}
+                disabled={demoLoading}
+                className="btn auth-submit"
+                style={{
+                  marginTop: 10, background: 'none', border: '1px solid var(--border)',
+                  color: 'var(--text)', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: 6,
+                }}
+              >
+                <Sparkles size={15} strokeWidth={2} />
+                {demoLoading
+                  ? (isFr ? 'Connexion…' : 'Connecting…')
+                  : (isFr ? 'Essayer en mode démo' : 'Try demo mode')}
+              </button>
+            )}
+            <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text3)', marginTop: 16 }}>
+              {isFr ? 'Pas encore de compte ? ' : 'No account yet? '}
+              <button
+                type="button"
+                onClick={() => openExternalUrl(SIGNUP_URL)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 12, padding: 0, textDecoration: 'underline' }}
+              >
+                {isFr ? 'Créez-le sur moveupapp.com' : 'Create one at moveupapp.com'}
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

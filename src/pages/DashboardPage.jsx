@@ -289,6 +289,15 @@ export default function DashboardPage() {
 
   const openVisit = async (visitId, step = 0) => {
     setOpening(visitId);
+    // Visite fictive créée en mode démo (id local, jamais en base) : on la
+    // rouvre depuis l'état déjà en mémoire plutôt que de la rechercher en
+    // base, où elle n'existe pas.
+    if (visitId.startsWith('demo_')) {
+      const local = allVisits.find(v => v.id === visitId);
+      if (local) { loadVisit(local); if (step > 0) goToStep(step); }
+      setOpening(null);
+      return;
+    }
     const { data, error } = await supabase
       .from('visits').select('*').eq('id', visitId).single();
     if (!error && data) {
@@ -316,6 +325,14 @@ export default function DashboardPage() {
       return;
     }
     setDeleting(id);
+    // Compte démo partagé (mode démo natif) : la suppression n'est que
+    // visuelle, pour ne pas casser la démo des autres visiteurs.
+    if (user?.email === 'demo@moveupapp.com') {
+      setVisits(prev => prev.filter(v => v.id !== id));
+      setConfirmDelete(null);
+      setDeleting(null);
+      return;
+    }
     const { error } = await supabase.from('visits').delete().eq('id', id);
     if (!error) setVisits(prev => prev.filter(v => v.id !== id));
     setConfirmDelete(null);

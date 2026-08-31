@@ -232,6 +232,8 @@ function AppContent() {
           initialMode={authMode}
           onBack={isNative ? undefined : () => setShowAuth(false)}
           onSeeDemo={() => setShowDemoVisit(true)}
+          onDemo={handleDemo}
+          demoLoading={demoLoading}
         />
       );
     } else {

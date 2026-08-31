@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 /**
  * Détection de la plateforme d'exécution.
@@ -31,5 +32,24 @@ export function getPlatform() {
     return Capacitor.getPlatform();
   } catch {
     return 'web';
+  }
+}
+
+/**
+ * Ouvre une URL dans le navigateur SYSTÈME (Safari/Chrome), jamais dans une
+ * WebView de l'app — utilisé pour renvoyer vers moveupapp.com (création de
+ * compte, App Store review 3.1.1 : pas de flux de vente/inscription intégré
+ * à l'app). Sur le web, simple fallback window.open (jamais appelé en
+ * pratique puisque le web garde son propre flux d'inscription).
+ */
+export async function openExternalUrl(url) {
+  try {
+    if (isNativeApp()) {
+      await Browser.open({ url });
+    } else {
+      window.open(url, '_blank');
+    }
+  } catch (err) {
+    console.error('openExternalUrl error:', err);
   }
 }
