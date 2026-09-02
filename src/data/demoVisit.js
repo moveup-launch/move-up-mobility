@@ -1,76 +1,151 @@
-// Visite d'exemple statique — utilisée uniquement par DemoVisitPage.
-// Données en dur, structurées comme une vraie visite (rooms_data / items),
-// mais SANS aucun appel Supabase ni dépendance à AppContext.
+// Contenu de la visite fictive du mode démo local (voir DemoAppContext.jsx +
+// DemoExplorePage.jsx). Le "panier" de départ ci-dessous référence
+// directement le vrai catalogue (data/catalog.js) par catKey/itemId/variantId
+// — comme le ferait un ajout manuel dans l'inventaire réel — pour que les
+// objets affichés (nom, icône, volume, tags fragile/lourd/démontage) soient
+// exactement ceux du vrai catalogue, sans données dupliquées à maintenir.
 
-const room = (id, type, name, items) => ({ id, type, name, items });
+import { CATALOG } from './catalog';
+import { TRANSLATIONS } from './translations';
 
-const item = (itemId, catalogId, name, icon, volume_m3, qty, flags = {}) => ({
-  itemId, catalogId, name, icon, volume_m3, qty,
-  fragile: !!flags.fragile,
-  heavy: !!flags.heavy,
-  requires_disassembly: !!flags.disassembly,
-});
+const ROOMS_SEED = [
+  {
+    type: 'livingRoom',
+    items: [
+      { catKey: 'livingRoom', itemId: 'sofa_corner', variantId: 'sofa_corner_std', qty: 1 },
+      { catKey: 'livingRoom', itemId: 'armchair', variantId: 'armchair_std', qty: 1 },
+      { catKey: 'livingRoom', itemId: 'coffee_table', variantId: 'ct_std', qty: 1 },
+      { catKey: 'livingRoom', itemId: 'tv_unit', variantId: 'tvunit_std', qty: 1 },
+      { catKey: 'common', itemId: 'tv', variantId: 'tv_medium', qty: 1 },
+      { catKey: 'diningRoom', itemId: 'dining_table', variantId: 'dt_rect_6', qty: 1 },
+      { catKey: 'diningRoom', itemId: 'dining_chair', variantId: 'dc_std', qty: 4 },
+      { catKey: 'livingRoom', itemId: 'buffet', variantId: 'buffet_std', qty: 1 },
+      { catKey: 'boxes', itemId: 'box_standard', variantId: 'v', qty: 14 },
+      { catKey: 'boxes', itemId: 'box_books', variantId: 'v', qty: 8 },
+    ],
+  },
+  {
+    type: 'bedroom',
+    items: [
+      { catKey: 'bedroom', itemId: 'bed', variantId: 'bed_double', qty: 1 },
+      { catKey: 'bedroom', itemId: 'mattress', variantId: 'mat_double', qty: 1 },
+      { catKey: 'bedroom', itemId: 'nightstand', variantId: 'nightstand_std', qty: 2 },
+      { catKey: 'bedroom', itemId: 'dresser', variantId: 'dresser_std', qty: 1 },
+      { catKey: 'bedroom', itemId: 'wardrobe', variantId: 'ward_2door', qty: 1 },
+      { catKey: 'bedroom', itemId: 'desk', variantId: 'desk_std', qty: 1 },
+      { catKey: 'boxes', itemId: 'box_wardrobe', variantId: 'v', qty: 7 },
+      { catKey: 'boxes', itemId: 'box_standard', variantId: 'v', qty: 14 },
+      { catKey: 'boxes', itemId: 'box_linen', variantId: 'v', qty: 5 },
+    ],
+  },
+  {
+    type: 'kitchen',
+    items: [
+      { catKey: 'kitchen', itemId: 'fridge', variantId: 'fridge_combo', qty: 1 },
+      { catKey: 'kitchen', itemId: 'dishwasher', variantId: 'dw_std', qty: 1 },
+      { catKey: 'kitchen', itemId: 'oven', variantId: 'oven_builtin', qty: 1 },
+      { catKey: 'kitchen', itemId: 'microwave', variantId: 'mw_std', qty: 1 },
+      { catKey: 'kitchen', itemId: 'kitchen_table', variantId: 'ktable_large', qty: 1 },
+      { catKey: 'kitchen', itemId: 'chairs', variantId: 'chair_std', qty: 4 },
+      { catKey: 'kitchen', itemId: 'kitchen_island', variantId: 'island_small', qty: 1 },
+      { catKey: 'boxes', itemId: 'box_dishes', variantId: 'v', qty: 14 },
+      { catKey: 'boxes', itemId: 'box_standard', variantId: 'v', qty: 12 },
+      { catKey: 'boxes', itemId: 'box_fragile', variantId: 'v', qty: 8 },
+    ],
+  },
+];
 
-export const DEMO_VISIT = {
-  client_name: { fr: 'Famille Exemple', en: 'Example Family' },
-  visit_date: '2026-08-15',
-  housing_type: 'T3',
-  origin_data: { address: '12 rue de la Paix', city: 'Paris' },
-  destination_data: { address: '5 avenue des Fleurs', city: 'Lyon' },
-  recommended_truck: { fr: 'Camion 20 m³ + 3 déménageurs', en: '20 m³ truck + 3 movers' },
-  rooms_data: [
-    room('room_demo_1', 'livingRoom', { fr: 'Salon', en: 'Living room' }, [
-      item('sofa_corner_std', 'sofa_corner', { fr: "Canapé d'angle", en: 'Corner sofa' }, '🛋️', 3.0, 1, { heavy: true, disassembly: true }),
-      item('armchair_std', 'armchair', { fr: 'Fauteuil', en: 'Armchair' }, '💺', 0.5, 1),
-      item('ct_std', 'coffee_table', { fr: 'Table basse', en: 'Coffee table' }, '🪑', 0.35, 1, { fragile: true }),
-      item('tvunit_std', 'tv_unit', { fr: 'Meuble TV', en: 'TV unit' }, '📺', 0.6, 1, { heavy: true }),
-      item('tv_medium', 'tv', { fr: 'TV 50"', en: '50" TV' }, '📺', 0.3, 1, { fragile: true }),
-      item('dt_rect_6', 'dining_table', { fr: 'Table à manger', en: 'Dining table' }, '🍽️', 1.0, 1, { fragile: true, disassembly: true }),
-      item('dc_std', 'dining_chair', { fr: 'Chaises', en: 'Chairs' }, '🪑', 0.15, 4),
-      item('buffet_std', 'buffet', { fr: 'Buffet', en: 'Buffet' }, '🗄️', 0.9, 1, { heavy: true }),
-      item('box_standard', 'box_standard', { fr: 'Carton standard', en: 'Standard box' }, '📦', 0.07, 18),
-      item('box_books', 'box_books', { fr: 'Carton livres', en: 'Books box' }, '📚', 0.04, 8),
-    ]),
-    room('room_demo_2', 'bedroom', { fr: 'Chambre', en: 'Bedroom' }, [
-      item('bed_double', 'bed', { fr: 'Lit double (140cm)', en: 'Double bed' }, '🛏️', 1.0, 1, { disassembly: true }),
-      item('mat_double', 'mattress', { fr: 'Matelas 2 places', en: 'Double mattress' }, '🟦', 0.5, 1, { heavy: true }),
-      item('nightstand_std', 'nightstand', { fr: 'Table de nuit', en: 'Nightstand' }, '🪑', 0.15, 2),
-      item('dresser_std', 'dresser', { fr: 'Commode', en: 'Dresser' }, '🗄️', 0.6, 1, { heavy: true }),
-      item('ward_2door', 'wardrobe', { fr: 'Armoire 2 portes', en: '2-door wardrobe' }, '🚪', 1.2, 1, { heavy: true, disassembly: true }),
-      item('desk_std', 'desk', { fr: 'Bureau', en: 'Desk' }, '🖥️', 0.5, 1),
-      item('box_wardrobe', 'box_wardrobe', { fr: 'Carton penderie', en: 'Wardrobe box' }, '👔', 0.40, 7),
-      item('box_standard', 'box_standard', { fr: 'Carton standard', en: 'Standard box' }, '📦', 0.07, 18),
-      item('box_linen', 'box_linen', { fr: 'Carton linge', en: 'Linen box' }, '🧺', 0.10, 5),
-    ]),
-    room('room_demo_3', 'kitchen', { fr: 'Cuisine', en: 'Kitchen' }, [
-      item('fridge_combo', 'fridge', { fr: 'Réfrigérateur combiné', en: 'Fridge-freezer combo' }, '🧊', 0.7, 1, { heavy: true }),
-      item('dw_std', 'dishwasher', { fr: 'Lave-vaisselle', en: 'Dishwasher' }, '🍽️', 0.5, 1, { heavy: true }),
-      item('oven_builtin', 'oven', { fr: 'Four encastrable', en: 'Built-in oven' }, '🔥', 0.3, 1, { heavy: true }),
-      item('mw_std', 'microwave', { fr: 'Micro-ondes', en: 'Microwave' }, '📦', 0.1, 1, { fragile: true }),
-      item('ktable_large', 'kitchen_table', { fr: 'Table de cuisine', en: 'Kitchen table' }, '🪑', 1.0, 1, { fragile: true, disassembly: true }),
-      item('chair_std', 'chairs', { fr: 'Chaises', en: 'Chairs' }, '🪑', 0.15, 4),
-      item('island_small', 'kitchen_island', { fr: 'Îlot de cuisine', en: 'Kitchen island' }, '🍳', 0.4, 1, { heavy: true, disassembly: true }),
-      item('box_dishes', 'box_dishes', { fr: 'Carton vaisselle', en: 'Dishes box' }, '🍽️', 0.07, 16),
-      item('box_standard', 'box_standard', { fr: 'Carton standard', en: 'Standard box' }, '📦', 0.07, 16),
-      item('box_fragile', 'box_fragile', { fr: 'Carton fragile', en: 'Fragile box' }, '⚠️', 0.08, 8),
-    ]),
-  ],
-};
+// Même forme que ce que produit addItemToRoom() dans context/AppContext.jsx
+// (voir DemoAppContext.jsx) : name/variantLabel déjà résolus dans la langue
+// donnée, pas d'objet bilingue conservé sur l'item.
+function buildDemoItem({ catKey, itemId, variantId, qty }, lang) {
+  const itemDef = (CATALOG[catKey] || []).find(i => i.id === itemId);
+  const variant = itemDef?.variants.find(v => v.id === variantId);
+  if (!itemDef || !variant) return null; // garde-fou : ids vérifiés à la main contre catalog.js
+  return {
+    itemId: `${itemId}_${variantId}`,
+    catalogId: itemId,
+    name: itemDef.name[lang] || itemDef.name.fr || itemDef.name.en || '',
+    variantLabel: variant.label[lang] || variant.label.fr || variant.label.en || '',
+    icon: itemDef.icon,
+    qty,
+    volume_m3: variant.volume_m3,
+    fragile: variant.fragile,
+    heavy: variant.heavy,
+    requires_protection: variant.requires_protection,
+    requires_disassembly: variant.requires_disassembly,
+    possible_furniture_lift: variant.possible_furniture_lift,
+  };
+}
 
-export const getDemoRoomVolume = (r) =>
-  r.items.reduce((sum, it) => sum + it.volume_m3 * it.qty, 0);
+export function buildDemoRooms(lang) {
+  return ROOMS_SEED.map((room, idx) => ({
+    id: `demo_room_${idx + 1}`,
+    type: room.type,
+    name: TRANSLATIONS[lang]?.[room.type] || room.type,
+    isCustomName: false,
+    items: room.items.map(seed => buildDemoItem(seed, lang)).filter(Boolean),
+    photos: [],
+  }));
+}
 
-export const getDemoTotalVolume = () =>
-  DEMO_VISIT.rooms_data.reduce((sum, r) => sum + getDemoRoomVolume(r), 0);
-
-const collectFlagged = (flagKey) => {
-  const out = [];
-  DEMO_VISIT.rooms_data.forEach(r => {
-    r.items.filter(it => it[flagKey]).forEach(it => out.push({ ...it, roomName: r.name }));
-  });
-  return out;
-};
-
-export const getDemoFragileItems = () => collectFlagged('fragile');
-export const getDemoHeavyItems = () => collectFlagged('heavy');
-export const getDemoDisassemblyItems = () => collectFlagged('requires_disassembly');
+// État complet, à la forme exacte de `state` dans context/AppContext.jsx
+// (voir initialState) : c'est ce qui permet de réutiliser Step4Inventory,
+// Step5Summary et generateVisitPDF() sans aucune adaptation.
+export function buildDemoState(lang) {
+  const isFr = lang === 'fr';
+  const rooms = buildDemoRooms(lang);
+  return {
+    client: {
+      name: isFr ? 'Famille Exemple' : 'Example Family',
+      phone: '',
+      email: '',
+      visitDate: '2026-08-28',
+      visitTime: '10:00',
+      visitStatus: 'prevue',
+      agendaNotes: '',
+      surveyor: 'Alex Dupont',
+      moveDate: '2026-09-15',
+      notes: '',
+      clientLang: lang,
+    },
+    housingType: 'apartment',
+    housingTypeOrigin: 'apartment',
+    housingTypeDestination: 'apartment',
+    moveType: 'local',
+    moveSegments: [],
+    origin: {
+      address: '12 rue de la Paix', city: 'Paris', postalCode: '75002', floor: '3',
+      noFixedAddress: false,
+      elevator: 'yes', elevatorUsable: 'yes', elevatorSize: 'yes',
+      parkingAvailable: 'yes', accessDifficult: 'no',
+      truckDistance: 'lt10',
+      furnitureLiftNeeded: 'no', furnitureLiftFeasible: 'toCheck',
+      furnitureLiftLocation: '', furnitureLiftComment: '',
+      accessNotes: isFr ? 'Digicode à l’entrée, RAS.' : 'Entry keypad, no issue.',
+    },
+    destination: {
+      address: '5 avenue des Fleurs', city: 'Lyon', postalCode: '69006', floor: '4',
+      noFixedAddress: false,
+      elevator: 'no', elevatorUsable: 'toCheck', elevatorSize: 'toCheck',
+      parkingAvailable: 'toCheck', accessDifficult: 'yes',
+      truckDistance: '30_50',
+      furnitureLiftNeeded: 'yes', furnitureLiftFeasible: 'toCheck',
+      furnitureLiftLocation: isFr ? 'Façade côté rue' : 'Street-facing façade',
+      furnitureLiftComment: '',
+      accessNotes: isFr ? 'Rue étroite, vérifier l’accès camion.' : 'Narrow street, check truck access.',
+    },
+    rooms,
+    destinations: [],
+    currentRoomId: rooms[0]?.id || null,
+    boxesDone: {},
+    boxesRemaining: {},
+    nextRoomId: rooms.length + 1,
+    householdPersons: 3,
+    transportOverride: null,
+    editingVisitId: null,
+    justFinishedInventory: false,
+    canCelebrateCompletion: false,
+    shareToken: null,
+  };
+}

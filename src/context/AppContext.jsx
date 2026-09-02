@@ -7,6 +7,13 @@ import { openProCheckout, isNativeApp } from '../lib/stripe';
 
 const AppContext = createContext();
 
+// Exporté uniquement pour context/DemoAppContext.jsx (mode démo local, écran
+// de connexion natif) : il alimente ce même objet Context avec un état 100%
+// local (aucun Supabase, aucun réseau) pour réutiliser tels quels les écrans
+// réels d'inventaire (Step4Inventory, Step5Summary...) sans les modifier. Ne
+// touche à aucune logique de l'app authentifiée — ligne purement additive.
+export { AppContext };
+
 const FREE_VISIT_LIMIT = 3;
 const PHOTO_SIGNED_URL_TTL = 86400; // 24h — bucket 'visit-photos' privé
 

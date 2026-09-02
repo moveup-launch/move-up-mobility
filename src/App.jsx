@@ -18,7 +18,7 @@ import Step2Housing from './pages/Step2Housing';
 import Step4Inventory from './pages/Step4Inventory';
 import Step5Summary from './pages/Step5Summary';
 import AuthPage from './pages/AuthPage';
-import DemoVisitPage from './pages/DemoVisitPage';
+import DemoExplorePage from './pages/DemoExplorePage';
 import HistoryPage from './pages/HistoryPage';
 import DashboardPage, { DashboardRightPanel } from './pages/DashboardPage';
 import AgendaPage from './pages/AgendaPage';
@@ -173,7 +173,7 @@ function MobileLayout() {
 }
 
 function AppContent() {
-  const { user, authLoading } = useApp();
+  const { user, authLoading, lang } = useApp();
   const isDesktop = useIsDesktop();
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
@@ -210,7 +210,8 @@ function AppContent() {
   } else if (!user) {
     if (showDemoVisit) {
       content = (
-        <DemoVisitPage
+        <DemoExplorePage
+          lang={lang}
           onClose={() => setShowDemoVisit(false)}
           onCreateAccount={() => { setShowDemoVisit(false); goSignUp(); }}
         />
