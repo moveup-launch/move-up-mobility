@@ -23,7 +23,7 @@ export default function DemoExplorePage({ lang, onClose, onCreateAccount }) {
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       {/* Bandeau démo */}
       <div style={{
         background: '#FCD34D', color: '#1A1917', padding: '10px 16px',
@@ -49,7 +49,15 @@ export default function DemoExplorePage({ lang, onClose, onCreateAccount }) {
       </div>
 
       <DemoAppProvider lang={lang} onFinishInventory={() => setView('summary')}>
-        <div style={{ padding: '16px', maxWidth: '640px', margin: '0 auto', width: '100%', boxSizing: 'border-box', flex: 1 }}>
+        {/* flex:1 seul ne suffit pas ici : html/body/#root sont overflow:hidden
+            (index.css) et un enfant flex garde min-height:auto par défaut, donc
+            sans minHeight:0 ce conteneur grandissait avec son contenu au lieu de
+            devenir la zone de scroll — le catalogue (CatalogSection) semblait
+            figé sur iOS alors que les clics fonctionnaient normalement. */}
+        <div style={{
+          padding: '16px', maxWidth: '640px', margin: '0 auto', width: '100%', boxSizing: 'border-box',
+          flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 8, flexWrap: 'wrap' }}>
             <button
               onClick={onClose}
