@@ -33,4 +33,20 @@ npm run build
 echo "==> ci_post_clone: cap sync ios (copie dist/ + config vers ios/App/App)"
 npx cap sync ios
 
+# Xcode Cloud fournit $CI_BUILD_NUMBER (entier croissant a chaque run) —
+# on l'utilise comme CFBundleVersion via agvtool plutot que de coder un
+# numero en dur dans project.pbxproj, qui finit toujours par retomber
+# derriere ce qui a deja ete uploade sur App Store Connect (rejets
+# "bundle version must be higher than the previously uploaded version").
+# Necessite VERSIONING_SYSTEM = apple-generic sur la target App (deja
+# configure). Doc Apple : "Setting the next build number for Xcode
+# Cloud builds".
+if [ -n "$CI_BUILD_NUMBER" ]; then
+  echo "==> ci_post_clone: agvtool new-version -all $CI_BUILD_NUMBER"
+  cd "$CI_PRIMARY_REPOSITORY_PATH/ios/App"
+  agvtool new-version -all "$CI_BUILD_NUMBER"
+else
+  echo "==> ci_post_clone: CI_BUILD_NUMBER absent (build hors Xcode Cloud) — CURRENT_PROJECT_VERSION du repo laisse tel quel"
+fi
+
 echo "==> ci_post_clone: termine"
