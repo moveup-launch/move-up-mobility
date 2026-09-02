@@ -24,6 +24,30 @@ npm --version
 
 cd "$CI_PRIMARY_REPOSITORY_PATH"
 
+# .env est gitignore (secrets locaux) : sur Xcode Cloud, le clone frais n'en
+# a jamais eu. Vite ne lit que import.meta.env, alimente depuis un fichier
+# .env sur disque au moment du build — pas depuis les variables shell
+# heritees du process courant. Sans ce fichier, VITE_SUPABASE_URL/
+# VITE_SUPABASE_ANON_KEY valent undefined dans le bundle : lib/supabase.js
+# le detecte et fait planter l'app avec un ecran d'erreur des le lancement
+# (throw dans supabaseConfigError, vu par tout testeur TestFlight/reviewer
+# Apple). On regenere donc .env ici a partir des variables d'environnement
+# du workflow Xcode Cloud (App Store Connect > Xcode Cloud > workflow >
+# Environment) — a ajouter manuellement la, memes valeurs que le .env local.
+# set +x le temps d'ecrire le fichier pour ne jamais faire fuiter les
+# valeurs dans les logs de build (mode trace de la ligne 15 sinon).
+if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+  echo "!!! VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY absentes des variables d'environnement du workflow Xcode Cloud (Environment) — build interrompu plutot que de livrer un app qui plante au lancement."
+  exit 1
+fi
+set +x
+cat > .env <<ENVEOF
+VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENVEOF
+set -x
+echo "==> ci_post_clone: .env ecrit (VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY depuis l'environnement Xcode Cloud)"
+
 echo "==> ci_post_clone: npm install a la racine du repo"
 npm ci || npm install
 
