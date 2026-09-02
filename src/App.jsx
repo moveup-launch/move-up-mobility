@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AppProvider, useApp } from './context/AppContext';
 import { useIsDesktop } from './hooks/useIsDesktop';
-import { supabase, supabaseConfigError } from './lib/supabase';
+import { supabaseConfigError } from './lib/supabase';
 import TopBar from './components/TopBar';
 import StepIndicator from './components/StepIndicator';
 import MobileNav from './components/MobileNav';
@@ -177,7 +177,6 @@ function AppContent() {
   const isDesktop = useIsDesktop();
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
-  const [demoLoading, setDemoLoading] = useState(false);
   const [showDemoVisit, setShowDemoVisit] = useState(false);
 
   const goSignIn = () => { setAuthMode('login'); setShowAuth(true); };
@@ -194,16 +193,6 @@ function AppContent() {
       }
     }
   }, [user, authLoading]);
-
-  const handleDemo = async () => {
-    setDemoLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: 'demo@moveupapp.com',
-      password: 'Demo1234!',
-    });
-    if (error) alert('Compte démo non disponible. Veuillez réessayer.');
-    setDemoLoading(false);
-  };
 
   // Sur natif (iOS/Android), la page marketing (LandingPage) ne doit jamais
   // s'afficher : c'est le rôle du site moveupapp.com. L'app native va
@@ -232,12 +221,10 @@ function AppContent() {
           initialMode={authMode}
           onBack={isNative ? undefined : () => setShowAuth(false)}
           onSeeDemo={() => setShowDemoVisit(true)}
-          onDemo={handleDemo}
-          demoLoading={demoLoading}
         />
       );
     } else {
-      content = <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} onDemo={handleDemo} demoLoading={demoLoading} />;
+      content = <LandingPage onSignIn={goSignIn} onSignUp={goSignUp} />;
     }
   } else {
     content = isDesktop ? <DesktopLayout /> : <MobileLayout />;

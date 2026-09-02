@@ -1,12 +1,34 @@
 import { useState } from 'react';
-import { Eye, Sparkles } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { isNativeApp, openExternalUrl } from '../lib/platform';
 
 const SIGNUP_URL = 'https://moveupapp.com';
 
-export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo, onDemo, demoLoading }) {
+// Un échec réseau (pas de connexion, timeout, DNS, serveur Supabase
+// injoignable…) ne doit jamais afficher le message brut de l'erreur
+// (souvent un "Failed to fetch"/"Load failed" illisible pour l'utilisateur,
+// et différent selon le navigateur/OS). On détecte ce cas et on affiche un
+// message générique et actionnable à la place ; toute autre erreur (mot de
+// passe incorrect, email déjà utilisé…) garde le message précis de Supabase.
+function isNetworkError(err) {
+  if (!err) return false;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return true;
+  if (err.name === 'AuthRetryableFetchError') return true;
+  const msg = String(err.message || '').toLowerCase();
+  return ['failed to fetch', 'load failed', 'network request failed', 'network error', 'networkerror']
+    .some(needle => msg.includes(needle));
+}
+
+function friendlyAuthError(err, isFr) {
+  if (isNetworkError(err)) {
+    return isFr ? 'Connexion impossible, réessayez.' : 'Unable to connect, please try again.';
+  }
+  return err?.message || (isFr ? 'Une erreur est survenue.' : 'Something went wrong.');
+}
+
+export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
   const { lang } = useApp();
   const native = isNativeApp();
   // Sur natif, l'inscription se fait exclusivement sur moveupapp.com (App
@@ -33,7 +55,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo, onD
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     });
-    if (err) setError(err.message);
+    if (err) setError(friendlyAuthError(err, isFr));
     else setSuccess(isFr
       ? 'Un email de réinitialisation a été envoyé. Vérifiez votre boîte mail.'
       : 'A reset email has been sent. Check your inbox.');
@@ -48,11 +70,11 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo, onD
 
     if (mode === 'login') {
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-      if (err) setError(err.message);
+      if (err) setError(friendlyAuthError(err, isFr));
     } else {
       const { data, error: err } = await supabase.auth.signUp({ email, password });
       if (err) {
-        setError(err.message);
+        setError(friendlyAuthError(err, isFr));
       } else {
         if (data?.user) {
           await supabase.from('profiles').upsert({
@@ -245,7 +267,14 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo, onD
         </form>
         )}
 
-        {!native && onSeeDemo && mode !== 'forgot' && (
+        {/* Le mode démo est une visite fictive pré-remplie, entièrement en
+            mémoire (voir data/demoVisit.js) : aucune authentification, aucun
+            appel réseau, aucune dépendance à Supabase. Il fonctionne donc
+            même hors-ligne et de façon identique pour tout le monde (y
+            compris un testeur App Store sans compte ni réseau fiable) — voir
+            [rejet Apple "erreur au lancement"] qui visait l'ancienne version
+            connectant l'app à un compte Supabase partagé au clic. */}
+        {onSeeDemo && mode !== 'forgot' && (
           <button
             type="button"
             onClick={onSeeDemo}
@@ -263,40 +292,18 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo, onD
 
         {/* Natif uniquement : pas d'inscription dans l'app (App Store 3.1.1)
             — un compte se crée exclusivement sur moveupapp.com, dans le
-            navigateur externe. Le mode démo réutilise le compte démo partagé
-            déjà utilisé par la landing page web (onDemo/demoLoading) pour
-            explorer l'app réelle sans créer de compte personnel. */}
+            navigateur externe. */}
         {native && mode !== 'forgot' && (
-          <>
-            {onDemo && (
-              <button
-                type="button"
-                onClick={onDemo}
-                disabled={demoLoading}
-                className="btn auth-submit"
-                style={{
-                  marginTop: 10, background: 'none', border: '1px solid var(--border)',
-                  color: 'var(--text)', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: 6,
-                }}
-              >
-                <Sparkles size={15} strokeWidth={2} />
-                {demoLoading
-                  ? (isFr ? 'Connexion…' : 'Connecting…')
-                  : (isFr ? 'Essayer en mode démo' : 'Try demo mode')}
-              </button>
-            )}
-            <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text3)', marginTop: 16 }}>
-              {isFr ? 'Pas encore de compte ? ' : 'No account yet? '}
-              <button
-                type="button"
-                onClick={() => openExternalUrl(SIGNUP_URL)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 12, padding: 0, textDecoration: 'underline' }}
-              >
-                {isFr ? 'Créez-le sur moveupapp.com' : 'Create one at moveupapp.com'}
-              </button>
-            </div>
-          </>
+          <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text3)', marginTop: 16 }}>
+            {isFr ? 'Pas encore de compte ? ' : 'No account yet? '}
+            <button
+              type="button"
+              onClick={() => openExternalUrl(SIGNUP_URL)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 12, padding: 0, textDecoration: 'underline' }}
+            >
+              {isFr ? 'Créez-le sur moveupapp.com' : 'Create one at moveupapp.com'}
+            </button>
+          </div>
         )}
       </div>
     </div>
