@@ -240,10 +240,10 @@ export default function LandingPage({ onSignIn, onSignUp }) {
       {/* ── Hero ───────────────────────────────────────── */}
       <section className="landing-hero">
         <div className="landing-eyebrow">POUR LES DÉMÉNAGEURS PROFESSIONNELS</div>
-        <h1 className="landing-h1">Le volume, calculé pendant la visite.</h1>
+        <h1 className="landing-h1">Toute la journée, sur l'appareil que vous avez <em>en main</em>.</h1>
         <p className="landing-hero-sub">
-          Vous ajoutez les meubles pièce par pièce. Vous ressortez avec le volume, le camion, l'équipe et le
-          rapport. Sans tableur, sans ressaisie le soir.
+          Devis et agenda au bureau. Contact client sur la route. Inventaire en direct pendant la visite.
+          Les mêmes fonctionnalités vous suivent sur ordinateur, téléphone et tablette.
         </p>
         <div className="landing-hero-actions">
           <button className="landing-btn landing-btn-solid landing-btn-hero" onClick={onSignUp}>Essayer gratuitement</button>
@@ -253,6 +253,53 @@ export default function LandingPage({ onSignIn, onSignUp }) {
           </a>
         </div>
         <div className="landing-hero-note">30 jours gratuits · Sans carte bancaire</div>
+
+        <div className="landing-hero-scenarios">
+          <div className="landing-scenario-card">
+            <div className="landing-scenario-shot">
+              <div className="landing-mockup-desktop">
+                <div className="landing-mockup-bar">
+                  <span className="dot" /><span className="dot" /><span className="dot" />
+                  <span className="landing-mockup-bar-title">Move Up App</span>
+                </div>
+                <div className="landing-mockup-body">
+                  <div className="landing-mockup-block">
+                    <div className="landing-mockup-block-label">DEVIS EN COURS</div>
+                    <div className="landing-mockup-row"><span>Famille Martin</span><strong>1 240 €</strong></div>
+                    <div className="landing-mockup-row"><span>SCI Bréhat</span><strong>3 680 €</strong></div>
+                  </div>
+                  <div className="landing-mockup-block">
+                    <div className="landing-mockup-block-label">AGENDA — AUJOURD'HUI</div>
+                    <div className="landing-mockup-row"><span className="landing-mockup-time">10h00</span><span>Dupont — Lyon</span></div>
+                    <div className="landing-mockup-row"><span className="landing-mockup-time">14h30</span><span>Martin — Villeurbanne</span></div>
+                    <div className="landing-mockup-row"><span className="landing-mockup-time">17h00</span><span>SCI Bréhat — Bron</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="landing-scenario-label">AU BUREAU</div>
+            <h3 className="landing-scenario-title">Devis &amp; agenda, sur ordinateur</h3>
+            <p className="landing-scenario-desc">Préparez vos devis et gérez votre planning sur grand écran, entre deux visites.</p>
+          </div>
+
+          <div className="landing-scenario-card">
+            <div className="landing-scenario-shot">
+              <img src={shotLogement} alt="Fiche client et logement de l'app Move Up sur téléphone" />
+            </div>
+            <div className="landing-scenario-label">SUR LE TERRAIN</div>
+            <h3 className="landing-scenario-title">Contact client, sur téléphone</h3>
+            <p className="landing-scenario-desc">Relancez un client ou consultez une visite en cours, où que vous soyez.</p>
+          </div>
+
+          <div className="landing-scenario-card">
+            <div className="landing-scenario-shot">
+              <img src={shotTablette} alt="Inventaire en direct de l'app Move Up sur iPad" />
+            </div>
+            <div className="landing-scenario-label">PENDANT LA VISITE</div>
+            <h3 className="landing-scenario-title">Inventaire en direct, sur iPad</h3>
+            <p className="landing-scenario-desc">Ajoutez les meubles pièce par pièce chez le client, le volume se calcule en direct.</p>
+          </div>
+        </div>
       </section>
 
       {/* ── Démo interactive ───────────────────────────── */}
@@ -401,7 +448,8 @@ export default function LandingPage({ onSignIn, onSignUp }) {
                 <span className="landing-plan-label">PRO</span>
                 <span className="landing-plan-badge">LE PLUS POPULAIRE</span>
               </div>
-              <div className="landing-plan-price"><strong>19,99 €</strong><span>/mois</span></div>
+              <div className="landing-plan-price"><strong>19,99 €</strong><span>HT/mois</span></div>
+              <div className="landing-plan-price-ttc">(23,99 € TTC)</div>
               <p className="landing-plan-desc">Pour les professionnels actifs</p>
               <ul className="landing-plan-list">
                 <li>Visites illimitées</li>
