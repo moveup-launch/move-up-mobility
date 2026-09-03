@@ -1046,6 +1046,15 @@ textarea { min-height: 80px; resize: vertical; }
 .landing-h2-sm { font-size: 46px; line-height: 1.06; letter-spacing: -0.035em; }
 .landing-lead { font-size: 18px; line-height: 1.6; color: var(--landing-text-muted); }
 
+/* Fonctionnalités */
+.landing-features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px 44px; }
+.landing-feature-icon {
+  width: 44px; height: 44px; border-radius: 12px; background: var(--wash); color: var(--ink);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 18px; flex-shrink: 0;
+}
+.landing-feature-title { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; margin-bottom: 9px; }
+.landing-feature-desc { font-size: 15px; line-height: 1.6; color: var(--landing-text-muted); }
+
 /* Comment ça marche */
 .landing-steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
 .landing-step-shot {
@@ -1121,8 +1130,10 @@ textarea { min-height: 80px; resize: vertical; }
 .landing-plan-price strong { font-size: 46px; font-weight: 600; line-height: 1; letter-spacing: -0.035em; }
 .landing-plan-price span { font-size: 15px; color: var(--landing-text-faint); }
 .landing-plan.pro .landing-plan-price span { color: rgba(246,244,239,0.5); }
-.landing-plan-price-ttc { font-size: 13px; color: var(--landing-text-faint); margin-bottom: 22px; }
+.landing-plan-price-ttc { font-size: 13px; color: var(--landing-text-faint); margin-bottom: 10px; }
 .landing-plan.pro .landing-plan-price-ttc { color: rgba(246,244,239,0.5); }
+.landing-plan-trial-note { font-size: 12px; font-weight: 600; color: var(--landing-text-faint); margin-bottom: 22px; }
+.landing-plan.pro .landing-plan-trial-note { color: rgba(246,244,239,0.75); }
 .landing-plan-desc { font-size: 15px; color: var(--landing-text-muted); margin-bottom: 30px; }
 .landing-plan.pro .landing-plan-desc { color: rgba(246,244,239,0.6); }
 .landing-plan-list { display: flex; flex-direction: column; gap: 13px; margin-bottom: 34px; }
@@ -1149,7 +1160,7 @@ textarea { min-height: 80px; resize: vertical; }
 
 /* Ancres : compense le header sticky pour que la cible ne soit pas
    masquée par-derrière lors d'un clic sur un lien de nav. */
-#demo, #how, #report, #pricing { scroll-margin-top: 78px; }
+#features, #demo, #how, #report, #pricing { scroll-margin-top: 78px; }
 
 /* ── Responsive (non spécifié par la maquette — cadrée 1280px ; recos
    du README appliquées, voir résumé donné à l'utilisateur) ─────── */
@@ -1174,6 +1185,7 @@ textarea { min-height: 80px; resize: vertical; }
   .landing-steps-grid { grid-template-columns: 1fr; gap: 44px; }
   .landing-pricing-grid { grid-template-columns: 1fr; }
   .landing-hero-scenarios { grid-template-columns: 1fr; max-width: 420px; gap: 36px; }
+  .landing-features-grid { grid-template-columns: 1fr; gap: 34px; }
 }
 
 @media (max-width: 640px) {

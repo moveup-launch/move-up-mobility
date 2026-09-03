@@ -1,4 +1,8 @@
 import { useMemo, useState } from 'react';
+import {
+  Package, SlidersHorizontal, Tag, MapPin, LayoutGrid,
+  FileText, Camera, MessageCircle, Receipt, Palette, Link2, Route,
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { CATALOG, FREQUENT_ITEM_IDS } from '../data/catalog';
 import { openProCheckout, isNativeApp } from '../lib/stripe';
@@ -7,6 +11,71 @@ import shotLogement from '../assets/landing/screenshot-logement-acces.jpg';
 import shotInventaire from '../assets/landing/screenshot-inventaire.jpg';
 import shotSynthese from '../assets/landing/screenshot-synthese-devis.jpg';
 import shotTablette from '../assets/landing/screenshot-tablette-terrain.jpg';
+
+// ── Section Fonctionnalités — 10 blocs. Chiffres (209 objets, 337
+// variantes) vérifiés dans data/catalog.js, pas des estimations.
+const FEATURES = [
+  {
+    Icon: Package,
+    title: '209 objets déjà prêts, 337 variantes',
+    desc: "Un inventaire déjà complet, organisé par pièce. Recherche instantanée sur tout le catalogue, avec les suggestions les plus courantes en premier.",
+  },
+  {
+    Icon: SlidersHorizontal,
+    title: 'Chaque volume, à votre main',
+    desc: "Modifiez le volume de n'importe quel objet, ou ajoutez en quelques secondes un objet non répertorié.",
+  },
+  {
+    Icon: Tag,
+    title: 'Fragile, lourd, à démonter — tout est noté',
+    desc: "Signalez une caisse à prévoir, un objet lourd ou fragile, et ajoutez un commentaire libre sur chaque élément de l'inventaire.",
+  },
+  {
+    Icon: MapPin,
+    title: "Rien n'est oublié dès l'arrivée",
+    desc: "Coordonnées, adresses, étage, ascenseur, stationnement, distance de portage, monte-meubles : toutes les contraintes du terrain sont notées, avec un champ libre pour le reste (navette, consignes particulières...).",
+  },
+  {
+    Icon: LayoutGrid,
+    title: 'Une vue par pièce, pas un inventaire en vrac',
+    desc: 'Salon, chambre, cuisine... chaque pièce a son propre onglet, avec son volume calculé en direct.',
+  },
+  {
+    Icon: FileText,
+    title: 'Le rapport, généré tout seul',
+    desc: "PDF complet généré automatiquement à la fin de la visite — à envoyer tout de suite ou à retrouver plus tard dans l'historique, depuis n'importe quel écran.",
+  },
+  {
+    Icon: Camera,
+    title: 'Une photo, à tout moment',
+    desc: "Ajoutez des photos pendant la visite ou après coup, intégrées directement au rapport, depuis n'importe quel appareil.",
+  },
+  {
+    Icon: MessageCircle,
+    title: 'Un message, en un tap',
+    desc: 'SMS ou email pour prendre rendez-vous, proposer plusieurs créneaux, ou faire un rappel — en visio ou en personne.',
+  },
+  {
+    Icon: Receipt,
+    title: 'Le devis, avant de remonter dans la voiture',
+    desc: 'Généré directement depuis la visite et envoyable par email sur-le-champ, sans repasser par le bureau.',
+  },
+  {
+    Icon: Palette,
+    title: 'Votre marque, sur chaque document',
+    desc: 'Logo, coordonnées et couleur de votre entreprise appliqués automatiquement sur tous les devis et rapports générés.',
+  },
+  {
+    Icon: Link2,
+    title: 'Un lien de suivi, pour votre client',
+    desc: "Un lien unique généré pour chaque visite, à envoyer au client pour qu'il suive l'avancement — copiable en un clic depuis la synthèse.",
+  },
+  {
+    Icon: Route,
+    title: 'Un objet, une destination',
+    desc: 'Répartissez vos objets entre stockage, transport maritime, aérien ou toute autre destination, avec une solution logistique calculée pour chaque groupe.',
+  },
+];
 
 // ── Bandeau de la démo — 4 variantes de thème (cf. handoff §3a).
 // Exposé en constante (pas de prop parente pour ce réglage) : changer
@@ -225,6 +294,7 @@ export default function LandingPage({ onSignIn, onSignUp }) {
         <div className="landing-header-inner">
           <Logo />
           <nav className="landing-nav">
+            <a href="#features">Fonctionnalités</a>
             <a href="#demo">Démo</a>
             <a href="#how">Comment ça marche</a>
             <a href="#report">Rapport</a>
@@ -240,7 +310,7 @@ export default function LandingPage({ onSignIn, onSignUp }) {
       {/* ── Hero ───────────────────────────────────────── */}
       <section className="landing-hero">
         <div className="landing-eyebrow">POUR LES DÉMÉNAGEURS PROFESSIONNELS</div>
-        <h1 className="landing-h1">Toute la journée, sur l'appareil que vous avez <em>en main</em>.</h1>
+        <h1 className="landing-h1">Gérez vos visites depuis n'importe quel écran.</h1>
         <p className="landing-hero-sub">
           Devis et agenda au bureau. Contact client sur la route. Inventaire en direct pendant la visite.
           Les mêmes fonctionnalités vous suivent sur ordinateur, téléphone et tablette.
@@ -298,6 +368,25 @@ export default function LandingPage({ onSignIn, onSignUp }) {
             <div className="landing-scenario-label">PENDANT LA VISITE</div>
             <h3 className="landing-scenario-title">Inventaire en direct, sur iPad</h3>
             <p className="landing-scenario-desc">Ajoutez les meubles pièce par pièce chez le client, le volume se calcule en direct.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Fonctionnalités ─────────────────────────────── */}
+      <section id="features" className="landing-section">
+        <div className="landing-section-inner">
+          <div className="landing-section-head">
+            <div className="landing-eyebrow">FONCTIONNALITÉS</div>
+            <h2 className="landing-h2">Pensé pour ne rien oublier.</h2>
+          </div>
+          <div className="landing-features-grid">
+            {FEATURES.map((f) => (
+              <div className="landing-feature" key={f.title}>
+                <div className="landing-feature-icon"><f.Icon size={22} strokeWidth={2} /></div>
+                <h3 className="landing-feature-title">{f.title}</h3>
+                <p className="landing-feature-desc">{f.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -450,6 +539,7 @@ export default function LandingPage({ onSignIn, onSignUp }) {
               </div>
               <div className="landing-plan-price"><strong>19,99 €</strong><span>HT/mois</span></div>
               <div className="landing-plan-price-ttc">(23,99 € TTC)</div>
+              <div className="landing-plan-trial-note">30 jours d'essai gratuit, sans carte bancaire</div>
               <p className="landing-plan-desc">Pour les professionnels actifs</p>
               <ul className="landing-plan-list">
                 <li>Visites illimitées</li>
