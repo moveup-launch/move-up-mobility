@@ -14,12 +14,13 @@ const AppContext = createContext();
 // touche à aucune logique de l'app authentifiée — ligne purement additive.
 export { AppContext };
 
-const FREE_VISIT_LIMIT = 3;
+export const FREE_VISIT_LIMIT = 3;
 const PHOTO_SIGNED_URL_TTL = 86400; // 24h — bucket 'visit-photos' privé
 
-// reason: 'trial_expired' (essai de 30 jours écoulé) ou 'visit_limit'
-// (ancien plan gratuit permanent, plafonné à FREE_VISIT_LIMIT visites —
-// ne concerne que les comptes créés avant la mise en place de l'essai).
+// reason: 'trial_expired' (essai de 30 jours écoulé, avant d'avoir atteint
+// FREE_VISIT_LIMIT visites) ou 'visit_limit' (FREE_VISIT_LIMIT visites
+// atteintes, avec ou sans essai en cours — le compte gratuit legacy sans
+// trial_ends_at tombe systématiquement dans ce second cas).
 export function UpgradePlanModal({ lang, onClose, onUpgrade, reason = 'visit_limit' }) {
   const isFr = lang === 'fr';
   const isTrialReason = reason === 'trial_expired';
@@ -179,6 +180,22 @@ export function AppProvider({ children }) {
       .then(({ data }) => { if (data) setProfile(data); });
   }, [user]);
 
+  // Nombre de visites déjà créées par ce compte (RLS: auth.uid() = user_id,
+  // donc ce COUNT ne porte que sur les visites de l'utilisateur courant).
+  // Sert de base à hasFullAccess() : le plafond FREE_VISIT_LIMIT s'applique
+  // quel que soit l'état de l'essai (voir hasFullAccess ci-dessous).
+  const [visitCount, setVisitCount] = useState(0);
+  useEffect(() => {
+    if (!user) { setVisitCount(0); return; }
+    supabase.from('visits').select('*', { count: 'exact', head: true })
+      .then(({ count }) => setVisitCount(count || 0));
+  }, [user]);
+  // Incrément optimiste à chaque création de visite (saveVisit, NewVisitModal),
+  // pour que le plafond soit respecté immédiatement sans attendre un
+  // rechargement complet — y compris pour une visite créée hors-ligne, pas
+  // encore présente en base au moment du COUNT ci-dessus.
+  const incrementVisitCount = () => setVisitCount(c => c + 1);
+
   useEffect(() => {
     const handleOnline = async () => {
       resyncOnReconnectRef.current?.();
@@ -300,16 +317,22 @@ export function AppProvider({ children }) {
     setViewMode('wizard');
   };
 
-  // ── Accès / essai gratuit de 30 jours ──────────────────────────
-  // `trial_ends_at` est posé en base à la création du profil (colonne avec
-  // valeur par défaut now() + 30 jours). Les comptes créés avant la mise en
-  // place de l'essai n'ont pas cette colonne renseignée : ils restent sur
-  // l'ancien modèle "gratuit permanent plafonné à FREE_VISIT_LIMIT visites",
-  // pour ne pas couper l'accès à des utilisateurs existants sans prévenir.
+  // ── Accès / essai gratuit ───────────────────────────────────────
+  // Essai limité à FREE_VISIT_LIMIT visites OU 30 jours (trial_ends_at),
+  // ce qui arrive en premier. `trial_ends_at` est posé en base à la
+  // création du profil (colonne avec valeur par défaut now() + 30 jours) ;
+  // les comptes créés avant la mise en place de l'essai n'ont pas cette
+  // colonne renseignée (isOnTrial() = false, isTrialExpired() toujours
+  // false) et restent simplement plafonnés à FREE_VISIT_LIMIT visites,
+  // sans limite de temps — ancien modèle "gratuit permanent".
   const isProUser = () => (profile?.plan || 'free') === 'pro';
   const isOnTrial = () => !!profile?.trial_ends_at;
   const isTrialExpired = () => isOnTrial() && new Date(profile.trial_ends_at) < new Date();
-  const hasFullAccess = () => isProUser() || (isOnTrial() && !isTrialExpired());
+  const hasFullAccess = () => {
+    if (isProUser()) return true;
+    if (isTrialExpired()) return false;
+    return visitCount < FREE_VISIT_LIMIT;
+  };
   const getTrialDaysLeft = () => {
     if (!isOnTrial()) return null;
     const ms = new Date(profile.trial_ends_at) - new Date();
@@ -317,34 +340,17 @@ export function AppProvider({ children }) {
   };
 
   const [planVisitSignal, setPlanVisitSignal] = useState(0);
-  const openPlanVisit = async () => {
+  const openPlanVisit = () => {
     if (!hasFullAccess()) {
-      if (isTrialExpired()) {
-        openModal(
-          <UpgradePlanModal
-            lang={lang}
-            reason="trial_expired"
-            onClose={closeModal}
-            onUpgrade={() => { closeModal(); openProCheckout(user?.email, user?.id); }}
-          />
-        );
-        return;
-      }
-      // Compte legacy (pas d'essai) : ancien plafond de FREE_VISIT_LIMIT visites
-      const { count } = await supabase
-        .from('visits')
-        .select('*', { count: 'exact', head: true });
-      if ((count || 0) >= FREE_VISIT_LIMIT) {
-        openModal(
-          <UpgradePlanModal
-            lang={lang}
-            reason="visit_limit"
-            onClose={closeModal}
-            onUpgrade={() => { closeModal(); openProCheckout(user?.email, user?.id); }}
-          />
-        );
-        return;
-      }
+      openModal(
+        <UpgradePlanModal
+          lang={lang}
+          reason={isTrialExpired() ? 'trial_expired' : 'visit_limit'}
+          onClose={closeModal}
+          onUpgrade={() => { closeModal(); openProCheckout(user?.email, user?.id); }}
+        />
+      );
+      return;
     }
     setViewMode('agenda');
     setPlanVisitSignal(n => n + 1);
@@ -1015,6 +1021,9 @@ export function AppProvider({ children }) {
         all[key] = { userId: user.id, payload: offlinePayload, editingVisitId: state.editingVisitId };
         localStorage.setItem('moveup_pending_saves', JSON.stringify(all));
       } catch (e) { console.error('LocalStorage save error:', e); }
+      // Nouvelle visite (pas de editingVisitId) : compte immédiatement dans
+      // le quota, même pas encore synchronisée en base.
+      if (!state.editingVisitId) incrementVisitCount();
       return { data: { id: state.editingVisitId }, error: null, _pending: true };
     }
     const vol = getTotalVolume();
@@ -1075,6 +1084,7 @@ export function AppProvider({ children }) {
       lastSavedVisitIdRef.current = data.id;
       setState(s => ({ ...s, editingVisitId: data.id, shareToken: data.share_token }));
       uploadPhotos(data.id, state.rooms);
+      incrementVisitCount();
     }
     return { data, error };
   };
@@ -1381,6 +1391,7 @@ export function AppProvider({ children }) {
       state,
       t, tCat,
       isProUser, isOnTrial, isTrialExpired, hasFullAccess, getTrialDaysLeft,
+      visitCount, incrementVisitCount,
       updateClient, updateOrigin, updateDestination,
       setHousingType, setHousingTypeOrigin, setHousingTypeDestination,
       setMoveType, setHouseholdPersons, setTransportOverride,

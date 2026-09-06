@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext';
 import { addOfflineVisit } from '../lib/offlineQueue';
 
 export default function NewVisitModal({ onClose, onCreated }) {
-  const { user, lang } = useApp();
+  const { user, lang, incrementVisitCount } = useApp();
   const isFr = lang === 'fr';
 
   const [form, setForm] = useState({
@@ -95,6 +95,7 @@ export default function NewVisitModal({ onClose, onCreated }) {
         },
       };
       const offlineVisit = addOfflineVisit(visitData);
+      incrementVisitCount();
       onCreated(offlineVisit);
       return;
     }
@@ -136,6 +137,7 @@ export default function NewVisitModal({ onClose, onCreated }) {
         setSaving(false);
         return;
       }
+      incrementVisitCount();
       onCreated(data);
     } catch (err) {
       console.error('NewVisitModal unexpected error:', err);

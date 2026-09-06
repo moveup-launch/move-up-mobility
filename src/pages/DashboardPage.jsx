@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useApp, UpgradePlanModal } from '../context/AppContext';
+import { useApp, UpgradePlanModal, FREE_VISIT_LIMIT } from '../context/AppContext';
 import { openProCheckout } from '../lib/stripe';
 import BoxMascot from '../components/BoxMascot';
 import { FileText, Calendar, Clock, MapPin, BarChart3, Pencil, CalendarClock } from 'lucide-react';
@@ -204,12 +204,11 @@ const PLAN_BADGE = {
   free: { label: 'Gratuit',    bg: '#F0EFE9', color: '#6B6860' },
   pro:  { label: 'Pro ✨',     bg: '#EEF3FD', color: '#2B6BE6' },
 };
-const FREE_VISIT_LIMIT = 3;
 
 export default function DashboardPage() {
   const {
     t, lang, user, profile, loadVisit, goToStep, setViewMode, openNewQuote,
-    hasFullAccess, isTrialExpired, isOnTrial, getTrialDaysLeft,
+    hasFullAccess, isTrialExpired, getTrialDaysLeft, visitCount,
   } = useApp();
   const isFr = lang === 'fr';
 
@@ -366,7 +365,7 @@ export default function DashboardPage() {
           const b = PLAN_BADGE[plan] || PLAN_BADGE.free;
           const trialDays = getTrialDaysLeft();
           return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
               <span
                 style={{ background: b.bg, color: b.color, padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
                 onClick={() => setViewMode('pricing')}
@@ -380,9 +379,9 @@ export default function DashboardPage() {
                     : (isFr ? `Essai : ${trialDays} j restants` : `Trial: ${trialDays} d left`)}
                 </span>
               )}
-              {plan === 'free' && trialDays === null && (
-                <span style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  {allVisits.length}/{FREE_VISIT_LIMIT} {isFr ? 'visites' : 'visits'}
+              {plan !== 'pro' && (
+                <span style={{ fontSize: 11, color: visitCount >= FREE_VISIT_LIMIT ? 'var(--danger)' : 'var(--text3)', fontWeight: visitCount >= FREE_VISIT_LIMIT ? 700 : 400 }}>
+                  {visitCount}/{FREE_VISIT_LIMIT} {isFr ? 'visites' : 'visits'}
                 </span>
               )}
             </div>
@@ -391,7 +390,7 @@ export default function DashboardPage() {
 
         {/* CTA Nouvelle visite */}
         <button className="dashboard-cta" onClick={() => {
-          if (hasFullAccess() || (isOnTrial() === false && allVisits.length < FREE_VISIT_LIMIT)) {
+          if (hasFullAccess()) {
             setShowNewVisit(true);
           } else {
             setShowUpgradeModal(true);
@@ -421,7 +420,7 @@ export default function DashboardPage() {
                       border: 'none', background: 'var(--accent)', color: 'white',
                       fontWeight: '700', fontSize: '14px', cursor: 'pointer',
                     }}
-                    onClick={() => setShowNewVisit(true)}
+                    onClick={() => hasFullAccess() ? setShowNewVisit(true) : setShowUpgradeModal(true)}
                   >
                     <Pencil size={15} strokeWidth={2.5} style={{verticalAlign:'-2px', marginRight:6, display:'inline'}} />{isFr ? 'Créer une visite' : 'Create a visit'}
                   </button>
@@ -515,7 +514,7 @@ export default function DashboardPage() {
                     border: 'none', background: 'var(--accent)', color: 'white',
                     fontWeight: '700', fontSize: '14px', cursor: 'pointer',
                   }}
-                  onClick={() => setShowNewVisit(true)}
+                  onClick={() => hasFullAccess() ? setShowNewVisit(true) : setShowUpgradeModal(true)}
                 >
                   <Pencil size={15} strokeWidth={2.5} style={{verticalAlign:'-2px', marginRight:6, display:'inline'}} />{isFr ? 'Créer une visite' : 'Create a visit'}
                 </button>

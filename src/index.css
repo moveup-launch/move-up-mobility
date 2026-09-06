@@ -940,20 +940,6 @@ textarea { min-height: 80px; resize: vertical; }
 .landing-scenario-title { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; margin-bottom: 8px; }
 .landing-scenario-desc { font-size: 14px; line-height: 1.55; color: var(--landing-text-muted); }
 
-/* Mockup "ordinateur" codé (pas une capture) pour le scénario bureau —
-   même traitement visuel que .landing-report-mockup, en miniature. */
-.landing-mockup-desktop { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--surface); }
-.landing-mockup-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--landing-line-soft); flex-shrink: 0; }
-.landing-mockup-bar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--landing-line-sunken); }
-.landing-mockup-bar-title { margin-left: 8px; font-size: 10px; font-weight: 600; color: var(--landing-text-faint); }
-.landing-mockup-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 14px; min-height: 0; }
-.landing-mockup-block { background: var(--paper); border: 1px solid var(--landing-line-soft); border-radius: 8px; padding: 10px; overflow: hidden; }
-.landing-mockup-block-label { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; color: var(--landing-text-faint); margin-bottom: 8px; }
-.landing-mockup-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 10px; color: var(--ink); padding: 5px 0; border-top: 1px solid var(--landing-line-soft); }
-.landing-mockup-row:first-of-type { border-top: none; }
-.landing-mockup-row strong { font-weight: 600; }
-.landing-mockup-time { color: var(--landing-text-faint); flex-shrink: 0; }
-
 /* ── Démo interactive ───────────────────────────────────────── */
 .landing-demo-section { max-width: 1180px; margin: 0 auto; padding: 70px 44px 110px; }
 .landing-demo-card {

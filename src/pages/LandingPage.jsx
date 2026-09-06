@@ -3,10 +3,11 @@ import {
   Package, SlidersHorizontal, Tag, MapPin, LayoutGrid,
   FileText, Camera, MessageCircle, Receipt, Palette, Link2, Route,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, FREE_VISIT_LIMIT } from '../context/AppContext';
 import { CATALOG, FREQUENT_ITEM_IDS } from '../data/catalog';
 import { openProCheckout, isNativeApp } from '../lib/stripe';
 import appIcon from '../assets/landing/app-icon.png';
+import shotBureau from '../assets/landing/screenshot-devis-bureau.jpg';
 import shotLogement from '../assets/landing/screenshot-logement-acces.jpg';
 import shotInventaire from '../assets/landing/screenshot-inventaire.jpg';
 import shotSynthese from '../assets/landing/screenshot-synthese-devis.jpg';
@@ -327,25 +328,7 @@ export default function LandingPage({ onSignIn, onSignUp }) {
         <div className="landing-hero-scenarios">
           <div className="landing-scenario-card">
             <div className="landing-scenario-shot">
-              <div className="landing-mockup-desktop">
-                <div className="landing-mockup-bar">
-                  <span className="dot" /><span className="dot" /><span className="dot" />
-                  <span className="landing-mockup-bar-title">Move Up App</span>
-                </div>
-                <div className="landing-mockup-body">
-                  <div className="landing-mockup-block">
-                    <div className="landing-mockup-block-label">DEVIS EN COURS</div>
-                    <div className="landing-mockup-row"><span>Famille Martin</span><strong>1 240 €</strong></div>
-                    <div className="landing-mockup-row"><span>SCI Bréhat</span><strong>3 680 €</strong></div>
-                  </div>
-                  <div className="landing-mockup-block">
-                    <div className="landing-mockup-block-label">AGENDA — AUJOURD'HUI</div>
-                    <div className="landing-mockup-row"><span className="landing-mockup-time">10h00</span><span>Dupont — Lyon</span></div>
-                    <div className="landing-mockup-row"><span className="landing-mockup-time">14h30</span><span>Martin — Villeurbanne</span></div>
-                    <div className="landing-mockup-row"><span className="landing-mockup-time">17h00</span><span>SCI Bréhat — Bron</span></div>
-                  </div>
-                </div>
-              </div>
+              <img src={shotBureau} alt="Liste des devis de l'app Move Up sur ordinateur" />
             </div>
             <div className="landing-scenario-label">AU BUREAU</div>
             <h3 className="landing-scenario-title">Devis &amp; agenda, sur ordinateur</h3>
@@ -522,11 +505,11 @@ export default function LandingPage({ onSignIn, onSignUp }) {
               <div className="landing-plan-price"><strong>0 €</strong><span>/ 30 jours</span></div>
               <p className="landing-plan-desc">Pour découvrir l'outil, sans carte bancaire</p>
               <ul className="landing-plan-list">
-                <li>Visites illimitées pendant 30 jours</li>
-                <li>Photos illimitées pendant 30 jours</li>
+                <li>{FREE_VISIT_LIMIT} visites gratuites pendant 30 jours</li>
+                <li>Photos illimitées sur ces visites</li>
                 <li>PDF complet avec photos</li>
                 <li>Inventaire complet</li>
-                <li className="off">Création de visites après 30 jours</li>
+                <li className="off">Visites au-delà de {FREE_VISIT_LIMIT} ou après 30 jours</li>
                 <li className="off">Multi-utilisateurs</li>
               </ul>
               <button className="landing-btn landing-btn-outline landing-btn-block" onClick={onSignUp}>Démarrer l'essai gratuit</button>

@@ -1,4 +1,4 @@
-import { useApp } from '../context/AppContext';
+import { useApp, FREE_VISIT_LIMIT } from '../context/AppContext';
 import { openProCheckout, PRO_PAYMENT_LINK, isNativeApp } from '../lib/stripe';
 
 export default function PricingPage() {
@@ -52,7 +52,7 @@ export default function PricingPage() {
           <div style={{ fontSize: 12, color: 'var(--text3)' }}>
             {trialExpired
               ? (isFr ? 'Vos visites passées restent consultables. Abonnez-vous pour continuer à en créer.' : 'Your past visits stay accessible. Subscribe to keep creating new ones.')
-              : (isFr ? 'Visites et photos illimitées pendant la période d\'essai, sans carte bancaire.' : 'Unlimited visits and photos during the trial, no credit card needed.')}
+              : (isFr ? `${FREE_VISIT_LIMIT} visites gratuites pendant l'essai (30 jours), sans carte bancaire.` : `${FREE_VISIT_LIMIT} free visits during the trial (30 days), no credit card needed.`)}
           </div>
         </div>
       )}
@@ -75,14 +75,14 @@ export default function PricingPage() {
         <ul style={{ listStyle: 'none', fontSize: 13, color: 'var(--text2)', lineHeight: 2 }}>
           {onTrial ? (
             <>
-              <li>✓ {isFr ? 'Visites illimitées pendant 30 jours' : 'Unlimited visits for 30 days'}</li>
-              <li>✓ {isFr ? 'Photos illimitées pendant 30 jours' : 'Unlimited photos for 30 days'}</li>
+              <li>✓ {isFr ? `${FREE_VISIT_LIMIT} visites gratuites pendant 30 jours` : `${FREE_VISIT_LIMIT} free visits for 30 days`}</li>
+              <li>✓ {isFr ? 'Photos illimitées sur ces visites' : 'Unlimited photos on these visits'}</li>
               <li>✓ {isFr ? 'PDF complet avec photos' : 'Full PDF with photos'}</li>
               <li>✓ {isFr ? 'Aucune carte bancaire requise' : 'No credit card required'}</li>
             </>
           ) : (
             <>
-              <li>✓ {isFr ? '3 visites maximum' : '3 visits maximum'}</li>
+              <li>✓ {isFr ? `${FREE_VISIT_LIMIT} visites maximum` : `${FREE_VISIT_LIMIT} visits maximum`}</li>
               <li>✓ {isFr ? 'PDF basique' : 'Basic PDF'}</li>
               <li>✓ {isFr ? '5 photos par visite' : '5 photos per visit'}</li>
               <li>✓ {isFr ? 'Inventaire complet' : 'Full inventory'}</li>
