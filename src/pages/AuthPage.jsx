@@ -23,6 +23,23 @@ function isNetworkError(err) {
 
 function friendlyAuthError(err, isFr) {
   if (isNetworkError(err)) {
+    // Diagnostic temporaire (rejet Apple Review 2.1(a), 7 sept. 2026) : le
+    // message affiché à l'utilisateur reste volontairement générique, mais
+    // on logge ici le détail réel de l'erreur réseau catchée (nom, message,
+    // cause/code sous-jacent si dispo, état navigator.onLine) pour pouvoir
+    // diagnostiquer précisément si le problème se reproduit (ex: en cas de
+    // nouveau test par un reviewer Apple). À retirer une fois le rejet
+    // résolu et confirmé en repro.
+    console.error('[Auth] network error detail:', {
+      name: err?.name,
+      message: err?.message,
+      status: err?.status,
+      code: err?.code,
+      cause: err?.cause,
+      causeMessage: err?.cause?.message,
+      causeCode: err?.cause?.code,
+      online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+    });
     return isFr ? 'Connexion impossible, réessayez.' : 'Unable to connect, please try again.';
   }
   return err?.message || (isFr ? 'Une erreur est survenue.' : 'Something went wrong.');
