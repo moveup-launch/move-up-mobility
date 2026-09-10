@@ -8,6 +8,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Le script d'enregistrement auto-injecte serviceWorker.register() dans
+      // TOUTES les pages, y compris quand ce build tourne dans l'app native
+      // iOS/Android (Capacitor) — voir src/main.jsx. Un service worker PWA
+      // n'a aucune utilité dans une app déjà empaquetée nativement (tous les
+      // assets sont déjà locaux) et c'est un point connu d'instabilité dans
+      // les WebView iOS. On désactive l'injection auto ici et on
+      // l'enregistre nous-mêmes, uniquement sur le vrai site web.
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Move Up App',
