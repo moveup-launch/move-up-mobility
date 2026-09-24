@@ -311,7 +311,11 @@ export function AppProvider({ children }) {
   const startNewVisit = () => {
     setState({
       ...initialState,
-      client: { ...baseClient, surveyor: getSurveyorName() },
+      // clientLang par défaut = langue d'interface de l'agent au moment de la
+      // création (modifiable ensuite au cas par cas dans Step1Client) plutôt
+      // qu'un 'fr' figé, pour éviter qu'un agent travaillant en anglais
+      // envoie par défaut des messages client en français.
+      client: { ...baseClient, clientLang: lang, surveyor: getSurveyorName() },
     });
     setCurrentStepState(0);
     setViewMode('wizard');
@@ -371,7 +375,7 @@ export function AppProvider({ children }) {
   const startQuickVisit = () => {
     setState({
       ...initialState,
-      client: { ...baseClient, surveyor: getSurveyorName() },
+      client: { ...baseClient, clientLang: lang, surveyor: getSurveyorName() },
     });
     setCurrentStepState(0);
     setViewMode('quickvisit');
