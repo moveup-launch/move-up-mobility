@@ -3,6 +3,7 @@ import { Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { isNativeApp, openExternalUrl } from '../lib/platform';
+import appIcon from '../assets/landing/app-icon.png';
 
 const SIGNUP_URL = 'https://moveupapp.com';
 
@@ -126,9 +127,9 @@ export default function AuthPage({ initialMode = 'login', onBack, onSeeDemo }) {
           </button>
         )}
         <div className="auth-logo-wrap">
-          <div className="auth-logo">📦</div>
+          <div className="auth-logo"><img src={appIcon} alt="" className="auth-logo-img" /></div>
         </div>
-        <div className="auth-brand">Move Up App</div>
+        <div className="auth-brand">Move Up</div>
         <div className="auth-tagline">
           {isFr ? 'Estimation de déménagement' : 'Moving Volume Estimator'}
         </div>

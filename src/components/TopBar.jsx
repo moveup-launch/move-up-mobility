@@ -1,6 +1,7 @@
 import { useApp } from '../context/AppContext';
 import { useIsDesktop } from '../hooks/useIsDesktop';
-import { Settings, LogOut, Shield, ChevronLeft, Package } from 'lucide-react';
+import { Settings, LogOut, Shield, ChevronLeft } from 'lucide-react';
+import appIcon from '../assets/landing/app-icon.png';
 
 export default function TopBar() {
   const { lang, setLang, user, profile, signOut, viewMode, setViewMode, openPlanVisit } = useApp();
@@ -23,10 +24,9 @@ export default function TopBar() {
           </button>
         ) : (
           <>
-            <div className="topbar-logo"><Package size={18} strokeWidth={2} color="#fff" /></div>
+            <div className="topbar-logo"><img src={appIcon} alt="" className="topbar-logo-img" /></div>
             <div className="topbar-brand-text">
-              <span className="topbar-title">Move Up App</span>
-              <span className="topbar-title-suffix"> Mobility</span>
+              <span className="topbar-title">Move Up</span>
             </div>
           </>
         )}
